@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[34,)"
+issueTrackerURL="https://github.com/Direwolf20-MC/LogisticsLasers"
+license="MIT (https://github.com/Direwolf20-MC/LogisticsLasers/blob/master/LICENSE.md)"
+
+[[mods]]
+modId="logisticslasers"
+version="${version}"
+displayName="Logistics Lasers"
+updateJSONURL="https://raw.githubusercontent.com/Direwolf20-MC/LogisticsLasers/master/update.json"
+displayURL="https://github.com/Direwolf20-MC/LogisticsLasers/"
+logoFile="mininggadgets-logo.png"
+credits="CPW and Lex for making Forge the best API ever!!"
+authors="Direwolf20"
+description='''Logistics system that users lasers. Because lasers are cool.'''
+license="MIT (https://github.com/Direwolf20-MC/LogisticsLasers/blob/master/LICENSE.txt)"
+
+#forge
+[[dependencies.logisticslasers]]
+    modId="forge"
+    mandatory=true
+    versionRange="[34,)"
+    ordering="NONE"
+    side="BOTH"
+
+#minecraft
+[[dependencies.logisticslasers]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.3]"
+    ordering="NONE"
+    side="BOTH"
