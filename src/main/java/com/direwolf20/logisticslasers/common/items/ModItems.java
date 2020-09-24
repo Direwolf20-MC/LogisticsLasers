@@ -16,6 +16,7 @@ public class ModItems {
 
     // Block items
     public static final RegistryObject<Item> CONTROLLER_ITEM = ITEMS.register("controller", () -> new BlockItem(ModBlocks.CONTROLLER.get(), ITEM_GROUP));
+    public static final RegistryObject<Item> BASIC_NODE_ITEM = ITEMS.register("basicnode", () -> new BlockItem(ModBlocks.BASIC_NODE.get(), ITEM_GROUP));
 
     // Items
     //public static final RegistryObject<Item> GOO_RESIDUE = BASICITEMS.register("gooresidue", GooResidue::new);

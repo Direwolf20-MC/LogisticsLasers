@@ -1,6 +1,6 @@
 package com.direwolf20.logisticslasers.common.container;
 
-import com.direwolf20.logisticslasers.common.tiles.FETileBase;
+import com.direwolf20.logisticslasers.common.tiles.basetiles.FETileBase;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;

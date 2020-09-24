@@ -1,6 +1,6 @@
 package com.direwolf20.logisticslasers.common.capabilities;
 
-import com.direwolf20.logisticslasers.common.tiles.FETileBase;
+import com.direwolf20.logisticslasers.common.tiles.basetiles.FETileBase;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.IEnergyStorage;

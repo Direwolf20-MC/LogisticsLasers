@@ -13,6 +13,7 @@ public class GeneratorLanguage extends LanguageProvider {
     @Override
     protected void addTranslations() {
         addBlock(ModBlocks.CONTROLLER, "Laser Controller");
+        addBlock(ModBlocks.BASIC_NODE, "Basic Node");
 
         //addItem(ModItems.FOCUS_T1, "Basic Focus Crystal");
 

@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
+import com.direwolf20.logisticslasers.common.tiles.basetiles.FETileBase;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;

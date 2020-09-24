@@ -1,17 +1,12 @@
-package com.direwolf20.logisticslasers.common.tiles;
+package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.server.ServerChunkProvider;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -19,7 +14,7 @@ import net.minecraftforge.energy.CapabilityEnergy;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class FETileBase extends TileEntity implements ITickableTileEntity {
+public abstract class FETileBase extends TileBase implements ITickableTileEntity {
 
     //Data about the energy stored in this tile entity
     public FEEnergyStorage energyStorage;
@@ -77,39 +72,6 @@ public abstract class FETileBase extends TileEntity implements ITickableTileEnti
     public CompoundNBT write(CompoundNBT tag) {
         energy.ifPresent(h -> tag.put("energy", h.serializeNBT()));
         return super.write(tag);
-    }
-
-    @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        // Vanilla uses the type parameter to indicate which type of tile entity (command block, skull, or beacon?) is receiving the packet, but it seems like Forge has overridden this behavior
-        return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
-    }
-
-    @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
-    }
-
-    @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        read(this.getBlockState(), pkt.getNbtCompound());
-    }
-
-    public void markDirtyClient() {
-        markDirty();
-        if (getWorld() != null) {
-            SUpdateTileEntityPacket supdatetileentitypacket = this.getUpdatePacket();
-            BlockState state = world.getBlockState(this.pos);
-            if (state.isAir(world, this.pos))
-                return; //If the block is being broken, the TE stick around a bit longer and this might fire
-            if (supdatetileentitypacket == null) return;
-            Chunk chunk = world.getChunkAt(this.pos);
-            ((ServerChunkProvider) chunk.getWorld().getChunkProvider()).chunkManager.getTrackingPlayers(chunk.getPos(), false).forEach((player) -> {
-                player.connection.sendPacket(supdatetileentitypacket);
-            });
-            /*BlockState state = getWorld().getBlockState(getPos());
-            getWorld().notifyBlockUpdate(getPos(), state, state, 3);*/
-        }
     }
 
     @Nonnull
