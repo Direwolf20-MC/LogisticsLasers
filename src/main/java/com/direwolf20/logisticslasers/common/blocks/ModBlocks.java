@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.blocks;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
+import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
@@ -42,5 +43,6 @@ public class ModBlocks {
      * Containers
      */
     public static final RegistryObject<ContainerType<ControllerContainer>> CONTROLLER_CONTAINER = CONTAINERS.register("controller_container", () -> IForgeContainerType.create(ControllerContainer::new));
+    public static final RegistryObject<ContainerType<InventoryNodeContainer>> INVENTORY_NODE_CONTAINER = CONTAINERS.register("inventory_node_container", () -> IForgeContainerType.create(InventoryNodeContainer::new));
 
 }
