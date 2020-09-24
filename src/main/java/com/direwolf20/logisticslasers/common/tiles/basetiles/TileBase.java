@@ -15,17 +15,6 @@ public class TileBase extends TileEntity {
         super(type);
     }
 
-    //Misc Methods for TE's
-    @Override
-    public void read(BlockState state, CompoundNBT tag) {
-        super.read(state, tag);
-    }
-
-    @Override
-    public CompoundNBT write(CompoundNBT tag) {
-        return super.write(tag);
-    }
-
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
         // Vanilla uses the type parameter to indicate which type of tile entity (command block, skull, or beacon?) is receiving the packet, but it seems like Forge has overridden this behavior

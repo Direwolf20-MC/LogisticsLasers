@@ -1,8 +1,8 @@
 package com.direwolf20.logisticslasers.common.blocks;
 
+import com.direwolf20.logisticslasers.common.blocks.baseblocks.BaseNode;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,7 +19,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
-public class Controller extends Block {
+public class Controller extends BaseNode {
 
     public Controller() {
         super(
@@ -52,21 +52,4 @@ public class Controller extends Block {
         NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, pos);
         return ActionResultType.SUCCESS;
     }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!worldIn.isRemote) {
-            if (newState.getBlock() != this) {
-                TileEntity tileEntity = worldIn.getTileEntity(pos);
-                if (tileEntity != null) {
-                    if (tileEntity instanceof ControllerTile) {
-                        //((ControllerTile) tileEntity).deactivate((ServerWorld) worldIn);
-                    }
-                }
-                super.onReplaced(state, worldIn, pos, newState, isMoving);
-            }
-        }
-    }
-
 }

@@ -1,5 +1,6 @@
 package com.direwolf20.logisticslasers.common.blocks;
 
+import com.direwolf20.logisticslasers.common.blocks.baseblocks.BaseNode;
 import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -20,13 +21,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
-public class BasicNode extends Block {
+public class BasicNode extends BaseNode {
     protected static final VoxelShape SHAPE = Block.makeCuboidShape(3.0D, 3.0D, 3.0D, 13.0D, 13.0D, 13.0D);
 
     public BasicNode() {
-        super(
-                AbstractBlock.Properties.create(Material.IRON).hardnessAndResistance(2.0f).notSolid()
-        );
+        super(AbstractBlock.Properties.create(Material.IRON).hardnessAndResistance(2.0f).notSolid());
     }
 
     @Override
@@ -59,22 +58,6 @@ public class BasicNode extends Block {
         //DoStuff
 
         return ActionResultType.SUCCESS;
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!worldIn.isRemote) {
-            if (newState.getBlock() != this) {
-                TileEntity tileEntity = worldIn.getTileEntity(pos);
-                if (tileEntity != null) {
-                    if (tileEntity instanceof BasicNodeTile) {
-                        //((ControllerTile) tileEntity).deactivate((ServerWorld) worldIn);
-                    }
-                }
-                super.onReplaced(state, worldIn, pos, newState, isMoving);
-            }
-        }
     }
 
     @OnlyIn(Dist.CLIENT)

@@ -1,5 +1,6 @@
 package com.direwolf20.logisticslasers.common.blocks;
 
+import com.direwolf20.logisticslasers.common.blocks.baseblocks.BaseNode;
 import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.block.AbstractBlock;
@@ -26,7 +27,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
-public class InventoryNode extends Block {
+public class InventoryNode extends BaseNode {
     protected static final VoxelShape[] shapes = new VoxelShape[]{
             Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 4.0D, 16.0D), //DOWN
             Block.makeCuboidShape(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D), //UP
@@ -79,22 +80,6 @@ public class InventoryNode extends Block {
         //DoStuff
 
         return ActionResultType.SUCCESS;
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!worldIn.isRemote) {
-            if (newState.getBlock() != this) {
-                TileEntity tileEntity = worldIn.getTileEntity(pos);
-                if (tileEntity != null) {
-                    if (tileEntity instanceof BasicNodeTile) {
-                        //((ControllerTile) tileEntity).deactivate((ServerWorld) worldIn);
-                    }
-                }
-                super.onReplaced(state, worldIn, pos, newState, isMoving);
-            }
-        }
     }
 
     @OnlyIn(Dist.CLIENT)

@@ -1,11 +1,11 @@
 package com.direwolf20.logisticslasers.common.container;
 
-import com.direwolf20.logisticslasers.common.tiles.basetiles.FETileBase;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
@@ -18,9 +18,9 @@ public abstract class FEContainerBase extends Container {
     public ItemStackHandler handler;
 
     // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
-    public FETileBase tile;
+    public TileEntity tile;
 
-    public FEContainerBase(ContainerType<?> container, @Nullable FETileBase tile, IIntArray FETileData, int windowId, PlayerInventory playerInventory) {
+    public FEContainerBase(ContainerType<?> container, @Nullable TileEntity tile, IIntArray FETileData, int windowId, PlayerInventory playerInventory) {
         super(container, windowId);
 
         this.tile = tile;
@@ -31,7 +31,7 @@ public abstract class FEContainerBase extends Container {
         trackIntArray(FETileData);
     }
 
-    public FEContainerBase(ContainerType<?> container, @Nullable FETileBase tile, IIntArray FETileData, int windowId, PlayerInventory playerInventory, ItemStackHandler handler) {
+    public FEContainerBase(ContainerType<?> container, @Nullable TileEntity tile, IIntArray FETileData, int windowId, PlayerInventory playerInventory, ItemStackHandler handler) {
         super(container, windowId);
 
         this.handler = handler;

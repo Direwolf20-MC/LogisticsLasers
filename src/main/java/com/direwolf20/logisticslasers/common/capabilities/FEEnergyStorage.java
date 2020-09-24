@@ -1,7 +1,7 @@
 package com.direwolf20.logisticslasers.common.capabilities;
 
-import com.direwolf20.logisticslasers.common.tiles.basetiles.FETileBase;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.IEnergyStorage;
 
@@ -10,9 +10,9 @@ public class FEEnergyStorage implements IEnergyStorage, INBTSerializable<Compoun
     private int energy;
     private int capacity;
     private int maxInOut = 100000000;
-    private FETileBase tile;
+    private TileEntity tile;
 
-    public FEEnergyStorage(FETileBase tile, int energy, int capacity) {
+    public FEEnergyStorage(TileEntity tile, int energy, int capacity) {
         this.energy = energy;
         this.capacity = capacity;
         this.tile = tile;
