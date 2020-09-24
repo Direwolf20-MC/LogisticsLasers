@@ -20,5 +20,5 @@ public class ModItems {
     public static final RegistryObject<Item> INVENTORY_NODE_ITEM = ITEMS.register("inventorynode", () -> new BlockItem(ModBlocks.INVENTORY_NODE.get(), ITEM_GROUP));
 
     // Items
-    //public static final RegistryObject<Item> GOO_RESIDUE = BASICITEMS.register("gooresidue", GooResidue::new);
+    public static final RegistryObject<Item> WRENCH = BASICITEMS.register("wrench", Wrench::new);
 }

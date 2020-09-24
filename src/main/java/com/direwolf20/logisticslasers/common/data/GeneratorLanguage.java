@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.data;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
+import com.direwolf20.logisticslasers.common.items.ModItems;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.LanguageProvider;
 
@@ -16,7 +17,7 @@ public class GeneratorLanguage extends LanguageProvider {
         addBlock(ModBlocks.BASIC_NODE, "Basic Node");
         addBlock(ModBlocks.INVENTORY_NODE, "Inventory Node");
 
-        //addItem(ModItems.FOCUS_T1, "Basic Focus Crystal");
+        addItem(ModItems.WRENCH, "Laser Wrench");
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");

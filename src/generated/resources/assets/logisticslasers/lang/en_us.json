@@ -3,5 +3,6 @@
   "block.logisticslasers.controller": "Laser Controller",
   "block.logisticslasers.controllerscreen": "Laser Controller",
   "block.logisticslasers.inventorynode": "Inventory Node",
+  "item.logisticslasers.wrench": "Laser Wrench",
   "screen.logisticslasers.energy": "Energy: %s/%s FE"
 }

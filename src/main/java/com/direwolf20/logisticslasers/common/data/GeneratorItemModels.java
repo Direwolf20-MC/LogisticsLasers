@@ -2,12 +2,14 @@ package com.direwolf20.logisticslasers.common.data;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
+import com.direwolf20.logisticslasers.common.items.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.fml.RegistryObject;
 
 public class GeneratorItemModels extends ItemModelProvider {
     public GeneratorItemModels(DataGenerator generator, ExistingFileHelper existingFileHelper) {
@@ -20,6 +22,10 @@ public class GeneratorItemModels extends ItemModelProvider {
         registerBlockModel(ModBlocks.CONTROLLER.get());
         registerBlockModel(ModBlocks.BASIC_NODE.get());
         registerBlockModel(ModBlocks.INVENTORY_NODE.get());
+
+        for (RegistryObject<Item> item : ModItems.BASICITEMS.getEntries()) {
+            registerBasicItem(item.get());
+        }
     }
 
     private void registerBlockModel(Block block) {
