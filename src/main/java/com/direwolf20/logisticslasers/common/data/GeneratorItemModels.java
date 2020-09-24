@@ -19,7 +19,7 @@ public class GeneratorItemModels extends ItemModelProvider {
         // Our block items
         registerBlockModel(ModBlocks.CONTROLLER.get());
         registerBlockModel(ModBlocks.BASIC_NODE.get());
-
+        registerBlockModel(ModBlocks.INVENTORY_NODE.get());
     }
 
     private void registerBlockModel(Block block) {

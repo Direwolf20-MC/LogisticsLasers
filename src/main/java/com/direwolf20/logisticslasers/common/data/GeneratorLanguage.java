@@ -14,6 +14,7 @@ public class GeneratorLanguage extends LanguageProvider {
     protected void addTranslations() {
         addBlock(ModBlocks.CONTROLLER, "Laser Controller");
         addBlock(ModBlocks.BASIC_NODE, "Basic Node");
+        addBlock(ModBlocks.INVENTORY_NODE, "Inventory Node");
 
         //addItem(ModItems.FOCUS_T1, "Basic Focus Crystal");
 

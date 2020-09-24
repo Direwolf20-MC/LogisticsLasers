@@ -2,5 +2,6 @@
   "block.logisticslasers.basicnode": "Basic Node",
   "block.logisticslasers.controller": "Laser Controller",
   "block.logisticslasers.controllerscreen": "Laser Controller",
+  "block.logisticslasers.inventorynode": "Inventory Node",
   "screen.logisticslasers.energy": "Energy: %s/%s FE"
 }

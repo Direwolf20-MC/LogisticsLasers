@@ -34,6 +34,7 @@ public class GeneratorLoots extends LootTableProvider {
         protected void addTables() {
             this.registerDropSelfLootTable(ModBlocks.CONTROLLER.get());
             this.registerDropSelfLootTable(ModBlocks.BASIC_NODE.get());
+            this.registerDropSelfLootTable(ModBlocks.INVENTORY_NODE.get());
         }
 
         @Override

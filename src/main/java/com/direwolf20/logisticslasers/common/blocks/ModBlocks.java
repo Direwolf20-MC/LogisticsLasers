@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
 import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
+import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.tileentity.TileEntityType;
@@ -25,6 +26,7 @@ public class ModBlocks {
      */
     public static final RegistryObject<Block> CONTROLLER = BLOCKS.register("controller", Controller::new);
     public static final RegistryObject<Block> BASIC_NODE = BLOCKS.register("basicnode", BasicNode::new);
+    public static final RegistryObject<Block> INVENTORY_NODE = BLOCKS.register("inventorynode", InventoryNode::new);
 
     /**
      * TileEntity Registers to the above deferred registers to be loaded in from the mods main class.
@@ -33,6 +35,8 @@ public class ModBlocks {
             TILES_ENTITIES.register("controller", () -> TileEntityType.Builder.create(ControllerTile::new, ModBlocks.CONTROLLER.get()).build(null));
     public static final RegistryObject<TileEntityType<BasicNodeTile>> BASIC_NODE_TILE =
             TILES_ENTITIES.register("basicnode", () -> TileEntityType.Builder.create(BasicNodeTile::new, ModBlocks.BASIC_NODE.get()).build(null));
+    public static final RegistryObject<TileEntityType<InventoryNodeTile>> INVENTORY_NODE_TILE =
+            TILES_ENTITIES.register("inventorynode", () -> TileEntityType.Builder.create(InventoryNodeTile::new, ModBlocks.INVENTORY_NODE.get()).build(null));
 
     /**
      * Containers
