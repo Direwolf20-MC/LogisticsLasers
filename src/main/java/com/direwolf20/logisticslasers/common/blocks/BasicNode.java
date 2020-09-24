@@ -57,7 +57,7 @@ public class BasicNode extends BaseNode {
 
         //DoStuff
 
-        return ActionResultType.SUCCESS;
+        return super.onBlockActivated(state, worldIn, pos, player, hand, blockRayTraceResult);
     }
 
     @OnlyIn(Dist.CLIENT)

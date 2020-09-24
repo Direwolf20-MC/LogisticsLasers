@@ -50,6 +50,6 @@ public class Controller extends BaseNode {
             return ActionResultType.FAIL;
 
         NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, pos);
-        return ActionResultType.SUCCESS;
+        return super.onBlockActivated(state, worldIn, pos, player, hand, blockRayTraceResult);
     }
 }

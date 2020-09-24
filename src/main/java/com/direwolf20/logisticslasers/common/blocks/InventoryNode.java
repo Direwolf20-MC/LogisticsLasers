@@ -87,7 +87,7 @@ public class InventoryNode extends BaseNode {
         //DoStuff
         NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, pos);
 
-        return ActionResultType.SUCCESS;
+        return super.onBlockActivated(state, worldIn, pos, player, hand, blockRayTraceResult);
     }
 
     @OnlyIn(Dist.CLIENT)
