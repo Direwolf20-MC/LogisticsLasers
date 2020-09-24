@@ -1,13 +1,15 @@
 package com.direwolf20.logisticslasers;
 
+import com.direwolf20.logisticslasers.client.ClientSetup;
+import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
+import com.direwolf20.logisticslasers.common.items.ModItems;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -18,8 +20,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.stream.Collectors;
-
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(LogisticsLasers.MOD_ID)
 public class LogisticsLasers
@@ -29,14 +29,23 @@ public class LogisticsLasers
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
 
-    /*public static ItemGroup itemGroup = new ItemGroup(LogisticsLasers.MOD_ID) {
+    public static ItemGroup itemGroup = new ItemGroup(LogisticsLasers.MOD_ID) {
         @Override
         public ItemStack createIcon() {
-            return new ItemStack(ModBlocks.GOO_BLOCK.get());
+            return new ItemStack(ModBlocks.CONTROLLER.get());
         }
-    };*/
+    };
 
     public LogisticsLasers() {
+        IEventBus event = FMLJavaModLoadingContext.get().getModEventBus();
+
+        // Register all of our items, blocks, item blocks, etc
+        ModBlocks.BLOCKS.register(event);
+        ModItems.ITEMS.register(event);
+        ModItems.BASICITEMS.register(event);
+        ModBlocks.TILES_ENTITIES.register(event);
+        ModBlocks.CONTAINERS.register(event);
+
         // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         // Register the enqueueIMC method for modloading
@@ -57,6 +66,7 @@ public class LogisticsLasers
 
     private void doClientStuff(final FMLClientSetupEvent event) {
         // do something that can only be done on the client
+        ClientSetup.setup();
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)

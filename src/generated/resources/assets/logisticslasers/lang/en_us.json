@@ -1,0 +1,5 @@
+{
+  "block.logisticslasers.controller": "Laser Controller",
+  "block.logisticslasers.controllerscreen": "Laser Controller",
+  "screen.logisticslasers.energy": "Energy: %s/%s FE"
+}
