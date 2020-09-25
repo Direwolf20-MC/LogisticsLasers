@@ -14,14 +14,47 @@ import java.util.Set;
 
 public class NodeTileBase extends TileBase {
     private final Set<BlockPos> connectedNodes = new HashSet<>();
+    protected BlockPos controllerPos = BlockPos.ZERO;
 
     public NodeTileBase(TileEntityType<?> type) {
         super(type);
     }
 
+    public BlockPos getControllerPos() {
+        return controllerPos;
+    }
+
+    public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
+        this.controllerPos = controllerPos;
+        for (BlockPos updatePos : connectedNodes) {
+            if (updatePos.equals(sourcePos))
+                continue;
+            NodeTileBase te2 = (NodeTileBase) world.getTileEntity(updatePos);
+            te2.setControllerPos(controllerPos, this.pos);
+        }
+        System.out.println("Setting Controller position of Node at : " + this.getPos() + " to " + controllerPos);
+    }
+
+    public BlockPos validateController(BlockPos askingPos) {
+        for (BlockPos pos : connectedNodes) {
+            if (askingPos.equals(pos))
+                continue;
+            NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
+            BlockPos controllerPos = te.validateController(this.pos);
+            if (!controllerPos.equals(BlockPos.ZERO)) {
+                setControllerPos(controllerPos, this.pos);
+                return getControllerPos();
+            }
+        }
+        setControllerPos(BlockPos.ZERO, this.pos);
+        return getControllerPos();
+    }
+
     public boolean addNode(BlockPos pos) {
         boolean success = connectedNodes.add(pos);
         if (success) {
+            System.out.println("Connecting " + this.getPos() + " to " + pos);
+            validateController(this.pos);
             markDirtyClient();
         }
         return success;
@@ -30,6 +63,8 @@ public class NodeTileBase extends TileBase {
     public boolean removeNode(BlockPos pos) {
         boolean success = connectedNodes.remove(pos);
         if (success) {
+            System.out.println("Disconnecting " + this.getPos() + " to " + pos);
+            validateController(this.pos);
             markDirtyClient();
         }
         return success;
@@ -80,6 +115,7 @@ public class NodeTileBase extends TileBase {
             BlockPos blockPos = NBTUtil.readBlockPos(connections.getCompound(i).getCompound("pos"));
             connectedNodes.add(blockPos);
         }
+        controllerPos = NBTUtil.readBlockPos(tag.getCompound("controllerpos"));
     }
 
     @Override
@@ -91,6 +127,7 @@ public class NodeTileBase extends TileBase {
             connections.add(comp);
         }
         tag.put("connections", connections);
+        tag.put("controllerpos", NBTUtil.writeBlockPos(controllerPos));
         return super.write(tag);
     }
 

@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
@@ -21,17 +22,38 @@ import net.minecraftforge.energy.CapabilityEnergy;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ControllerTile extends NodeTileBase implements ITickableTileEntity, INamedContainerProvider {
 
     //Data about the energy stored in this tile entity
     public FEEnergyStorage energyStorage;
     private LazyOptional<FEEnergyStorage> energy;
+    //Data about the nodes this controller manages
+    private final Set<BlockPos> inventoryNodes = new HashSet<>();
+    private final Set<BlockPos> allNodes = new HashSet<>();
+
 
     public ControllerTile() {
         super(ModBlocks.CONTROLLER_TILE.get());
         this.energyStorage = new FEEnergyStorage(this, 0, 1000000);
         this.energy = LazyOptional.of(() -> this.energyStorage);
+    }
+
+    @Override
+    public BlockPos getControllerPos() {
+        return this.getPos();
+    }
+
+    @Override
+    public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
+        System.out.println("Not Setting Controller Pos at: " + getControllerPos());
+    }
+
+    @Override
+    public BlockPos validateController(BlockPos askingPos) {
+        return this.getPos();
     }
 
     @Override

@@ -31,7 +31,8 @@ public class BaseNode extends Block {
         if (!(te instanceof NodeTileBase))
             return ActionResultType.PASS;
 
-        System.out.println(((NodeTileBase) te).getConnectedNodes());
+        System.out.println("Connected Nodes: " + ((NodeTileBase) te).getConnectedNodes());
+        System.out.println("Controller: " + ((NodeTileBase) te).getControllerPos());
         return ActionResultType.SUCCESS;
     }
 
