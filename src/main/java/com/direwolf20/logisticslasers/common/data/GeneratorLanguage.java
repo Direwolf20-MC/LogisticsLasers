@@ -18,6 +18,8 @@ public class GeneratorLanguage extends LanguageProvider {
         addBlock(ModBlocks.INVENTORY_NODE, "Inventory Node");
 
         addItem(ModItems.WRENCH, "Laser Wrench");
+        addItem(ModItems.CARD_EXTRACTOR, "Extractor Module");
+        addItem(ModItems.CARD_INSERTER, "Inserter Module");
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");

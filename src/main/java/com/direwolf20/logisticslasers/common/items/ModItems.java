@@ -2,6 +2,8 @@ package com.direwolf20.logisticslasers.common.items;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardExtractor;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.RegistryObject;
@@ -21,4 +23,6 @@ public class ModItems {
 
     // Items
     public static final RegistryObject<Item> WRENCH = BASICITEMS.register("wrench", Wrench::new);
+    public static final RegistryObject<Item> CARD_EXTRACTOR = BASICITEMS.register("card_extractor", CardExtractor::new);
+    public static final RegistryObject<Item> CARD_INSERTER = BASICITEMS.register("card_inserter", CardInserter::new);
 }
