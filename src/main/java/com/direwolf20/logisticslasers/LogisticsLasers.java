@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers;
 
 import com.direwolf20.logisticslasers.client.ClientSetup;
+import com.direwolf20.logisticslasers.client.events.ClientEvents;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.items.ModItems;
 import net.minecraft.block.Block;
@@ -67,6 +68,7 @@ public class LogisticsLasers
     private void doClientStuff(final FMLClientSetupEvent event) {
         // do something that can only be done on the client
         ClientSetup.setup();
+        MinecraftForge.EVENT_BUS.register(ClientEvents.class);
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)

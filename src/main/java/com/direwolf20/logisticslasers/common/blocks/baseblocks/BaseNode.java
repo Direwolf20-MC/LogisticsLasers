@@ -26,7 +26,7 @@ public class BaseNode extends Block {
     @SuppressWarnings("deprecation")
     public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         if (worldIn.isRemote)
-            return ActionResultType.PASS;
+            return ActionResultType.FAIL;
         TileEntity te = worldIn.getTileEntity(pos);
         if (!(te instanceof NodeTileBase))
             return ActionResultType.PASS;
@@ -35,7 +35,7 @@ public class BaseNode extends Block {
         return ActionResultType.SUCCESS;
     }
 
-    @Override
+    /*@Override
     @SuppressWarnings("deprecation")
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!worldIn.isRemote) {
@@ -43,11 +43,11 @@ public class BaseNode extends Block {
                 TileEntity tileEntity = worldIn.getTileEntity(pos);
                 if (tileEntity != null) {
                     if (tileEntity instanceof NodeTileBase) {
-                        //((ControllerTile) tileEntity).deactivate((ServerWorld) worldIn);
+                        ((NodeTileBase) tileEntity).disconnectAllNodes();
                     }
                 }
                 super.onReplaced(state, worldIn, pos, newState, isMoving);
             }
         }
-    }
+    }*/
 }

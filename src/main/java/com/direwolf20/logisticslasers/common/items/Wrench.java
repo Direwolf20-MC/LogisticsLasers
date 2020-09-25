@@ -24,12 +24,12 @@ public class Wrench extends Item {
         super(new Item.Properties().maxStackSize(1).group(LogisticsLasers.itemGroup));
     }
 
-    public BlockPos storeConnectionPos(ItemStack wrench, BlockPos pos) {
+    public static BlockPos storeConnectionPos(ItemStack wrench, BlockPos pos) {
         wrench.getOrCreateTag().put("connectionpos", NBTUtil.writeBlockPos(pos));
         return pos;
     }
 
-    public BlockPos getConnectionPos(ItemStack wrench) {
+    public static BlockPos getConnectionPos(ItemStack wrench) {
         CompoundNBT compound = wrench.getOrCreateTag();
         return !compound.contains("connectionpos") ? storeConnectionPos(wrench, BlockPos.ZERO) : NBTUtil.readBlockPos(compound.getCompound("connectionpos"));
     }
@@ -66,14 +66,11 @@ public class Wrench extends Item {
                     storeConnectionPos(wrench, BlockPos.ZERO);
                     return new ActionResult<>(ActionResultType.PASS, wrench);
                 }
-                if (!((NodeTileBase) te).addNode(sourcePos))
-                    ((NodeTileBase) te).removeNode(sourcePos);
-
-                if (!((NodeTileBase) sourceTE).addNode(pos))
-                    ((NodeTileBase) sourceTE).removeNode(pos);
+                if (!((NodeTileBase) te).addConnection(sourcePos))
+                    ((NodeTileBase) te).removeConnection(sourcePos);
             }
         }
-        return new ActionResult<>(ActionResultType.PASS, wrench);
+        return new ActionResult<>(ActionResultType.SUCCESS, wrench);
     }
 
     @Override

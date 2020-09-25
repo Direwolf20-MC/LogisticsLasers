@@ -1,5 +1,6 @@
 package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
+import com.direwolf20.logisticslasers.client.renders.LaserConnections;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -29,11 +30,16 @@ public class TileBase extends TileEntity {
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         read(this.getBlockState(), pkt.getNbtCompound());
+        LaserConnections.buildLaserList();
     }
 
     public void markDirtyClient() {
         markDirty();
         if (getWorld() != null) {
+            if (getWorld().isRemote) {
+                System.out.println("Marking Dirty Client on client side == bad!");
+                return;
+            }
             SUpdateTileEntityPacket supdatetileentitypacket = this.getUpdatePacket();
             BlockState state = world.getBlockState(this.pos);
             if (state.isAir(world, this.pos))
