@@ -24,5 +24,9 @@ public class GeneratorLanguage extends LanguageProvider {
         add("block.logisticslasers.controllerscreen", "Laser Controller");
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");
         add("block.logisticslasers.inventorynodescreen", "Inventory Node");
+        add("message.logisticslasers.controllerat", "Controller Located at: %d");
+        add("message.logisticslasers.connections", "Connected to: %d");
+        add("message.logisticslasers.connectionmade", "Connection made to: %d");
+        add("message.logisticslasers.connectionfailed", "Connection failed to: %d");
     }
 }

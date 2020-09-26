@@ -11,6 +11,7 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 public class BaseNode extends Block {
@@ -31,6 +32,7 @@ public class BaseNode extends Block {
         if (!(te instanceof NodeTileBase))
             return ActionResultType.PASS;
 
+        player.sendStatusMessage(new TranslationTextComponent("message.logisticslasers.controllerat", ((NodeTileBase) te).getControllerPos()), true);
         System.out.println("Connected Nodes: " + ((NodeTileBase) te).getConnectedNodes());
         System.out.println("Controller: " + ((NodeTileBase) te).getControllerPos());
         return ActionResultType.SUCCESS;
