@@ -30,6 +30,18 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     }
 
 
+    @Override
+    public void addToController() {
+        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        te.addToInvNodes(pos);
+    }
+
+    @Override
+    public void removeFromController() {
+        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        te.removeFromInvNodes(pos);
+    }
+
     public ItemStackHandler getInventoryStacks() {
         ItemStackHandler handler = inventory.orElse(new ItemStackHandler(InventoryNodeContainer.SLOTS));
         return handler;

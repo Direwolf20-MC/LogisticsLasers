@@ -41,6 +41,31 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         this.energy = LazyOptional.of(() -> this.energyStorage);
     }
 
+    public boolean addToInvNodes(BlockPos pos) {
+        if (inventoryNodes.add(pos)) {
+            addToAllNodes(pos);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeFromInvNodes(BlockPos pos) {
+        return (inventoryNodes.remove(pos) && allNodes.remove(pos));
+    }
+
+    @Override
+    public void addToController() {
+        return; //NOOP
+    }
+
+    public boolean addToAllNodes(BlockPos pos) {
+        return allNodes.add(pos);
+    }
+
+    public boolean removeFromAllNodes(BlockPos pos) {
+        return allNodes.remove(pos);
+    }
+
     @Override
     public BlockPos getControllerPos() {
         return this.getPos();

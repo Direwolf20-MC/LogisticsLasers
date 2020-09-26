@@ -1,5 +1,6 @@
 package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
+import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -35,9 +36,25 @@ public class NodeTileBase extends TileBase {
 
     public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
         if (this.controllerPos.equals(controllerPos)) return;
-        this.controllerPos = controllerPos;
+        if (controllerPos.equals(BlockPos.ZERO)) {
+            removeFromController();
+            this.controllerPos = controllerPos;
+        } else {
+            this.controllerPos = controllerPos;
+            addToController();
+        }
         System.out.println("Setting Controller position of Node at : " + this.getPos() + " to " + controllerPos);
         updateNeighbors();
+    }
+
+    public void addToController() {
+        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        te.addToAllNodes(pos);
+    }
+
+    public void removeFromController() {
+        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        te.removeFromAllNodes(pos);
     }
 
     public Set<BlockPos> findAllConnectedNodes() {
@@ -147,6 +164,7 @@ public class NodeTileBase extends TileBase {
                 ((NodeTileBase) te).removeNode(this.pos);
             }
         }
+        removeFromController();
     }
 
     //Misc Methods for TE's
