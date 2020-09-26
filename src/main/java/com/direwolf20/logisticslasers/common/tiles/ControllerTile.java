@@ -57,6 +57,14 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     @Override
+    public boolean addNode(BlockPos pos) {
+        NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
+        if (te.hasController())
+            return false;
+        return super.addNode(pos);
+    }
+
+    @Override
     public void tick() {
         //Client only
         if (world.isRemote) {

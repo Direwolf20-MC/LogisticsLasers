@@ -112,7 +112,10 @@ public class NodeTileBase extends TileBase {
 
         boolean success = addNode(pos);
         if (success) {
-            te.addNode(this.pos);
+            if (!te.addNode(this.pos)) {
+                removeNode(pos);
+                return false;
+            }
             if (!hasController() && !te.hasController())
                 return success;
             if (!hasController()) {
