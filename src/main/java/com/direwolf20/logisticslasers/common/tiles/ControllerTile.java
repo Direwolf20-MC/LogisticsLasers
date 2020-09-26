@@ -52,7 +52,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     @Override
-    public BlockPos validateController(BlockPos askingPos) {
+    public BlockPos validateController() {
         return this.getPos();
     }
 
