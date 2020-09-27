@@ -10,10 +10,15 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
@@ -24,6 +29,9 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     private LazyOptional<InventoryNodeHandler> inventory = LazyOptional.of(() -> new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this));
+
+    @Nullable
+    private LazyOptional<IItemHandler> facingHandler;
 
     public InventoryNodeTile() {
         super(ModBlocks.INVENTORY_NODE_TILE.get());
@@ -56,6 +64,36 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     public ItemStackHandler getInventoryStacks() {
         ItemStackHandler handler = inventory.orElse(new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this));
         return handler;
+    }
+
+    public LazyOptional<IItemHandler> getHandler() {
+        if (facingHandler != null) {
+            return facingHandler;
+        }
+
+        // if no inventory cached yet, find a new one
+        Direction facing = getBlockState().get(BlockStateProperties.FACING);
+        assert world != null;
+        TileEntity te = world.getTileEntity(pos.offset(facing));
+        // if we have a TE and its an item handler, try extracting from that
+        if (te != null) {
+            LazyOptional<IItemHandler> handler = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing.getOpposite());
+            if (handler.isPresent()) {
+                // add the invalidator
+                handler.addListener((handler1) -> clearCachedInventories());
+                // cache and return
+                return facingHandler = handler;
+            }
+        }
+        // no item handler, cache empty
+        return facingHandler = LazyOptional.empty();
+    }
+
+    /**
+     * Called when a neighbor updates to invalidate the inventory cache
+     */
+    public void clearCachedInventories() {
+        this.facingHandler = null;
     }
 
     public void findRoutes() {

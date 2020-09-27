@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -24,6 +25,8 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
@@ -71,6 +74,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public void updateInvNodePaths() {
         for (BlockPos pos : inventoryNodes) {
             InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
+            if (te == null) continue;
             te.findRoutes();
         }
     }
@@ -85,6 +89,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public boolean removeFromInvNodes(BlockPos pos) {
         boolean inv = inventoryNodes.remove(pos);
+        if (inv) {
+            extractorNodes.remove(pos);
+            inserterNodes.remove(pos);
+        }
         boolean all = removeFromAllNodes(pos);
         return (inv && all);
     }
@@ -127,6 +135,38 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return super.addNode(pos);
     }
 
+    public void handleExtractors() {
+        IItemHandler EMPTY = new ItemStackHandler(0);
+        for (BlockPos pos : extractorNodes) {
+            InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
+            if (te == null) continue;
+            IItemHandler sourceitemHandler = te.getHandler().orElse(EMPTY);
+            if (sourceitemHandler.getSlots() > 0 && inventoryNodes.size() > 0) {
+                for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
+                    if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
+                        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(inventoryNodes.iterator().next());
+                        IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
+
+                        if (destitemHandler.getSlots() > 0) {
+                            ItemStack stack = sourceitemHandler.extractItem(i, 1, true);
+                            ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true);
+                            if (simulated.getCount() < stack.getCount()) {
+                                int count = stack.getCount() - simulated.getCount();
+                                ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false);
+                                ItemHandlerHelper.insertItem(destitemHandler, extractedStack, false);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void findDestination(BlockPos fromPos) {
+
+    }
+
     @Override
     public void tick() {
         //Client only
@@ -137,7 +177,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //Server Only
         if (!world.isRemote) {
             energyStorage.receiveEnergy(1000, false); //Testing
-
+            handleExtractors();
         }
     }
 
