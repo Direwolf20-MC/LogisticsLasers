@@ -77,6 +77,7 @@ public class NodeTileBase extends TileBase {
         Set<BlockPos> nodes = new HashSet<>();
         for (BlockPos pos : connectedNodes) {
             NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
+            if (te == null) continue;
             if (te.isFindingNodes()) continue;
             if (nodes.add(pos)) {
                 nodes.addAll(te.findAllConnectedNodes());
