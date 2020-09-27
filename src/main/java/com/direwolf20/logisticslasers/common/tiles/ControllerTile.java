@@ -102,7 +102,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     @Override
     public boolean addNode(BlockPos pos) {
         NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
-        if (!te.getControllerPos().equals(getControllerPos()))
+        if (te.hasController() && !te.getControllerPos().equals(getControllerPos()))
             return false;
         return super.addNode(pos);
     }
