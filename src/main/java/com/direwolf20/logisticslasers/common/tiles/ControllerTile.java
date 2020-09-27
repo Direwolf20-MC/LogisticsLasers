@@ -142,7 +142,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
             if (te == null) continue;
             IItemHandler sourceitemHandler = te.getHandler().orElse(EMPTY);
-            if (sourceitemHandler.getSlots() > 0 && inventoryNodes.size() > 0) {
+            if (sourceitemHandler.getSlots() > 0 && inserterNodes.size() > 0) {
                 for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
                     if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
                         InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(inserterNodes.iterator().next());
