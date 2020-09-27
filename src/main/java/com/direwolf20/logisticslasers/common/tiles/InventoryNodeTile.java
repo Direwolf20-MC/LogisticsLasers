@@ -16,9 +16,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 public class InventoryNodeTile extends NodeTileBase implements INamedContainerProvider {
 
@@ -33,13 +31,18 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
 
     @Override
     public void addToController() {
-        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
         te.addToInvNodes(pos);
+        //findRoutes();
     }
 
     @Override
     public void removeFromController() {
-        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        routeList.clear();
+        System.out.println(routeList);
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
         te.removeFromInvNodes(pos);
     }
 
@@ -52,21 +55,15 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         routeList.clear();
         ControllerTile te = getControllerTE();
         if (te == null) return;
-        Set<BlockPos> todoList = te.getInventoryNodes();
+        Set<BlockPos> todoList = new HashSet<>(te.getInventoryNodes());
+        todoList.remove(pos);
         for (BlockPos pos : todoList) {
-            routeList.put(pos, findRouteToPos(pos));
+            ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
+            routePath.remove(this.pos);
+            Collections.reverse(routePath);
+            routeList.put(pos, routePath);
         }
-    }
-
-    public ArrayList<BlockPos> findRouteToPos(BlockPos pos) {
-        ArrayList<BlockPos> route = new ArrayList<>();
-        Set<BlockPos> connections = getConnectedNodes();
-        double testDistance = 10000;
-        for (BlockPos testPos : connections) {
-            double distance = pos.distanceSq(testPos);
-            if (distance < testDistance) testDistance = distance;
-        }
-        return route;
+        System.out.println(routeList);
     }
 
     @Nullable

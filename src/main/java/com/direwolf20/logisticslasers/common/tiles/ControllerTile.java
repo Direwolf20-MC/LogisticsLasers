@@ -48,6 +48,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return inventoryNodes;
     }
 
+    public void updateInvNodePaths() {
+        for (BlockPos pos : inventoryNodes) {
+            InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
+            te.findRoutes();
+        }
+    }
+
     public boolean addToInvNodes(BlockPos pos) {
         if (inventoryNodes.add(pos)) {
             addToAllNodes(pos);
@@ -57,7 +64,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public boolean removeFromInvNodes(BlockPos pos) {
-        return (inventoryNodes.remove(pos) && allNodes.remove(pos));
+        boolean inv = inventoryNodes.remove(pos);
+        boolean all = removeFromAllNodes(pos);
+        return (inv && all);
     }
 
     @Override
@@ -66,11 +75,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public boolean addToAllNodes(BlockPos pos) {
-        return allNodes.add(pos);
+        boolean success = allNodes.add(pos);
+        return success;
     }
 
     public boolean removeFromAllNodes(BlockPos pos) {
-        return allNodes.remove(pos);
+        boolean success = allNodes.remove(pos);
+        return success;
     }
 
     @Override

@@ -10,6 +10,8 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.Constants;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,7 +29,7 @@ public class NodeTileBase extends TileBase {
     }
 
     public ControllerTile getControllerTE() {
-        TileEntity te = world.getTileEntity(controllerPos);
+        TileEntity te = world.getTileEntity(getControllerPos());
         return te instanceof ControllerTile ? (ControllerTile) te : null;
     }
 
@@ -48,7 +50,7 @@ public class NodeTileBase extends TileBase {
             this.controllerPos = controllerPos;
             addToController();
         }
-        System.out.println("Setting Controller position of Node at : " + this.getPos() + " to " + controllerPos);
+        //System.out.println("Setting Controller position of Node at : " + this.getPos() + " to " + controllerPos);
         updateNeighbors();
     }
 
@@ -62,6 +64,12 @@ public class NodeTileBase extends TileBase {
         ControllerTile te = getControllerTE();
         if (te == null) return;
         te.removeFromAllNodes(pos);
+    }
+
+    public void haveControllerUpdateInv() {
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
+        te.updateInvNodePaths();
     }
 
     public Set<BlockPos> findAllConnectedNodes() {
@@ -110,7 +118,7 @@ public class NodeTileBase extends TileBase {
     public boolean addNode(BlockPos pos) {
         boolean success = connectedNodes.add(pos);
         if (success) {
-            System.out.println("Connecting " + this.getPos() + " to " + pos);
+            //System.out.println("Connecting " + this.getPos() + " to " + pos);
             markDirtyClient();
         }
         return success;
@@ -119,11 +127,34 @@ public class NodeTileBase extends TileBase {
     public boolean removeNode(BlockPos pos) {
         boolean success = connectedNodes.remove(pos);
         if (success) {
-            System.out.println("Disconnecting " + this.getPos() + " to " + pos);
+            //System.out.println("Disconnecting " + this.getPos() + " to " + pos);
             validateController();
             markDirtyClient();
         }
         return success;
+    }
+
+    public ArrayList<BlockPos> findRouteToPos(BlockPos targetPos, Set<BlockPos> checkedPos) {
+        ArrayList<BlockPos> route = new ArrayList<>();
+        if (targetPos.equals(pos)) {
+            route.add(pos);
+            return route;
+        }
+        ArrayList<BlockPos> connections = new ArrayList<>(getConnectedNodes());
+        connections.sort(Comparator.comparingDouble(blockPos -> blockPos.distanceSq(targetPos)));
+        for (BlockPos testPos : connections) {
+            if (checkedPos.contains(testPos))
+                continue;
+            checkedPos.add(testPos);
+            NodeTileBase te = (NodeTileBase) world.getTileEntity(testPos);
+            ArrayList<BlockPos> tempList = te.findRouteToPos(targetPos, checkedPos);
+            if (tempList.contains(testPos)) {
+                tempList.add(pos);
+                return tempList;
+
+            }
+        }
+        return route;
     }
 
     /**
@@ -148,14 +179,21 @@ public class NodeTileBase extends TileBase {
                 te.setControllerPos(getControllerPos(), this.getPos());
             }
         }
+        if (success) {
+            haveControllerUpdateInv();
+        }
+
         return success;
     }
 
     public boolean removeConnection(BlockPos pos) {
+        ControllerTile controllerTE = getControllerTE();
         boolean success = removeNode(pos);
         if (success) {
             NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
             te.removeNode(this.pos);
+            if (controllerTE != null)
+                controllerTE.updateInvNodePaths();
         }
         return success;
     }
@@ -171,6 +209,7 @@ public class NodeTileBase extends TileBase {
                 ((NodeTileBase) te).removeNode(this.pos);
             }
         }
+        haveControllerUpdateInv();
         removeFromController();
     }
 
