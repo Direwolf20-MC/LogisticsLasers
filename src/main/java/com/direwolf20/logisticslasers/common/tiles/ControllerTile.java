@@ -82,6 +82,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public boolean addToInvNodes(BlockPos pos) {
         if (inventoryNodes.add(pos)) {
             addToAllNodes(pos);
+            checkInvNode(pos);
             return true;
         }
         return false;
