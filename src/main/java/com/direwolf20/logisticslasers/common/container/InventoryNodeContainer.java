@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.container;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
+import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -10,23 +11,22 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
 public class InventoryNodeContainer extends Container {
     public static final int SLOTS = 9;
-    public ItemStackHandler handler;
+    public InventoryNodeHandler handler;
 
     // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public InventoryNodeTile tile;
 
     public InventoryNodeContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        this((InventoryNodeTile) playerInventory.player.world.getTileEntity(extraData.readBlockPos()), windowId, playerInventory, new ItemStackHandler(SLOTS));
+        this((InventoryNodeTile) playerInventory.player.world.getTileEntity(extraData.readBlockPos()), windowId, playerInventory, new InventoryNodeHandler(SLOTS));
     }
 
-    public InventoryNodeContainer(@Nullable InventoryNodeTile tile, int windowId, PlayerInventory playerInventory, ItemStackHandler handler) {
+    public InventoryNodeContainer(@Nullable InventoryNodeTile tile, int windowId, PlayerInventory playerInventory, InventoryNodeHandler handler) {
         super(ModBlocks.INVENTORY_NODE_CONTAINER.get(), windowId);
         this.handler = handler;
         this.tile = tile;
@@ -92,6 +92,11 @@ public class InventoryNodeContainer extends Container {
     public boolean canInteractWith(PlayerEntity playerIn) {
         BlockPos pos = this.tile.getPos();
         return this.tile != null && !this.tile.isRemoved() && playerIn.getDistanceSq(new Vector3d(pos.getX(), pos.getY(), pos.getZ()).add(0.5D, 0.5D, 0.5D)) <= 64D;
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
     }
 /*
     static class RestrictedSlot extends SlotItemHandler {

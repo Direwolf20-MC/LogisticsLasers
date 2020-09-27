@@ -3,6 +3,8 @@ package com.direwolf20.logisticslasers.common.tiles;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardExtractor;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,6 +24,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,6 +38,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private LazyOptional<FEEnergyStorage> energy;
     //Data about the nodes this controller manages
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
+    private final Set<BlockPos> extractorNodes = new HashSet<>();
+    private final Set<BlockPos> inserterNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
 
 
@@ -42,6 +47,21 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         super(ModBlocks.CONTROLLER_TILE.get());
         this.energyStorage = new FEEnergyStorage(this, 0, 1000000);
         this.energy = LazyOptional.of(() -> this.energyStorage);
+    }
+
+    public void checkInvNode(BlockPos pos) {
+        InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
+        extractorNodes.remove(pos);
+        inserterNodes.remove(pos);
+        if (!te.hasController()) return;
+
+        ItemStackHandler handler = te.getInventoryStacks();
+        for (int i = 0; i < handler.getSlots(); i++) {
+            if (handler.getStackInSlot(i).getItem() instanceof CardExtractor)
+                extractorNodes.add(pos);
+            if (handler.getStackInSlot(i).getItem() instanceof CardInserter)
+                inserterNodes.add(pos);
+        }
     }
 
     public Set<BlockPos> getInventoryNodes() {
@@ -164,6 +184,20 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             BlockPos blockPos = NBTUtil.readBlockPos(invnodes.getCompound(i).getCompound("pos"));
             inventoryNodes.add(blockPos);
         }
+
+        extractorNodes.clear();
+        ListNBT extractorNodes = tag.getList("extractorNodes", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < extractorNodes.size(); i++) {
+            BlockPos blockPos = NBTUtil.readBlockPos(extractorNodes.getCompound(i).getCompound("pos"));
+            this.extractorNodes.add(blockPos);
+        }
+
+        inserterNodes.clear();
+        ListNBT inserterNodes = tag.getList("inserterNodes", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < inserterNodes.size(); i++) {
+            BlockPos blockPos = NBTUtil.readBlockPos(inserterNodes.getCompound(i).getCompound("pos"));
+            this.inserterNodes.add(blockPos);
+        }
     }
 
     @Override
@@ -184,6 +218,22 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             invnodes.add(comp);
         }
         tag.put("invnodes", invnodes);
+
+        ListNBT extractorNodes = new ListNBT();
+        for (BlockPos blockPos : this.extractorNodes) {
+            CompoundNBT comp = new CompoundNBT();
+            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
+            extractorNodes.add(comp);
+        }
+        tag.put("extractorNodes", extractorNodes);
+
+        ListNBT inserterNodes = new ListNBT();
+        for (BlockPos blockPos : this.inserterNodes) {
+            CompoundNBT comp = new CompoundNBT();
+            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
+            inserterNodes.add(comp);
+        }
+        tag.put("inserterNodes", inserterNodes);
         return super.write(tag);
     }
 

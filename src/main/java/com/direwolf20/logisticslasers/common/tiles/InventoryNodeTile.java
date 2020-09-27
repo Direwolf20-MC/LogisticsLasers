@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,12 +23,18 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
 
     private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
-    private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(InventoryNodeContainer.SLOTS));
+    private LazyOptional<InventoryNodeHandler> inventory = LazyOptional.of(() -> new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this));
 
     public InventoryNodeTile() {
         super(ModBlocks.INVENTORY_NODE_TILE.get());
     }
 
+    public void notifyControllerOfChanges() {
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
+        System.out.println("Telling controller at " + getControllerPos() + " to check inventory at " + this.pos);
+        te.checkInvNode(this.pos);
+    }
 
     @Override
     public void addToController() {
@@ -47,7 +54,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     }
 
     public ItemStackHandler getInventoryStacks() {
-        ItemStackHandler handler = inventory.orElse(new ItemStackHandler(InventoryNodeContainer.SLOTS));
+        ItemStackHandler handler = inventory.orElse(new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this));
         return handler;
     }
 
@@ -70,7 +77,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         assert world != null;
-        return new InventoryNodeContainer(this, i, playerInventory, this.inventory.orElse(new ItemStackHandler(InventoryNodeContainer.SLOTS)));
+        return new InventoryNodeContainer(this, i, playerInventory, this.inventory.orElse(new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this)));
     }
 
     @Override
