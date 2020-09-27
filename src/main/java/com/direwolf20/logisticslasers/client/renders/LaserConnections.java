@@ -3,6 +3,8 @@ package com.direwolf20.logisticslasers.client.renders;
 import com.direwolf20.logisticslasers.client.renderhelpers.LaserRendering;
 import com.direwolf20.logisticslasers.common.blocks.baseblocks.BaseNode;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.Minecraft;
@@ -17,14 +19,13 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LaserConnections {
     public static long lastRefreshTime;
-    public static HashMap<BlockPos, BlockPos> lasers = new HashMap<>();
+    public static SetMultimap<BlockPos, BlockPos> lasers = HashMultimap.create();
 
     public static void renderLasers(RenderWorldLastEvent evt) {
         if (((System.currentTimeMillis() - lastRefreshTime) / 1000) >= 10) {
@@ -114,13 +115,13 @@ public class LaserConnections {
                 }
             }
         }
-        System.out.println("Done");
     }
 
     public static boolean canAdd(BlockPos sourcePos, BlockPos targetPos) {
         if (!lasers.containsKey(targetPos))
             return true;
-        if (!lasers.get(targetPos).equals(sourcePos))
+        Set<BlockPos> tempSet = lasers.get(targetPos);
+        if (!tempSet.contains(sourcePos))
             return true;
         return false;
     }
