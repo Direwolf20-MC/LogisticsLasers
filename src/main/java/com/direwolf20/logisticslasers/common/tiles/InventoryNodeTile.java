@@ -18,6 +18,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class InventoryNodeTile extends NodeTileBase implements INamedContainerProvider {
 
@@ -45,6 +46,27 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     public ItemStackHandler getInventoryStacks() {
         ItemStackHandler handler = inventory.orElse(new ItemStackHandler(InventoryNodeContainer.SLOTS));
         return handler;
+    }
+
+    public void findRoutes() {
+        routeList.clear();
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
+        Set<BlockPos> todoList = te.getInventoryNodes();
+        for (BlockPos pos : todoList) {
+            routeList.put(pos, findRouteToPos(pos));
+        }
+    }
+
+    public ArrayList<BlockPos> findRouteToPos(BlockPos pos) {
+        ArrayList<BlockPos> route = new ArrayList<>();
+        Set<BlockPos> connections = getConnectedNodes();
+        double testDistance = 10000;
+        for (BlockPos testPos : connections) {
+            double distance = pos.distanceSq(testPos);
+            if (distance < testDistance) testDistance = distance;
+        }
+        return route;
     }
 
     @Nullable

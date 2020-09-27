@@ -26,6 +26,11 @@ public class NodeTileBase extends TileBase {
         return controllerPos;
     }
 
+    public ControllerTile getControllerTE() {
+        TileEntity te = world.getTileEntity(controllerPos);
+        return te instanceof ControllerTile ? (ControllerTile) te : null;
+    }
+
     public boolean isFindingNodes() {
         return isFindingNodes;
     }
@@ -48,12 +53,14 @@ public class NodeTileBase extends TileBase {
     }
 
     public void addToController() {
-        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
         te.addToAllNodes(pos);
     }
 
     public void removeFromController() {
-        ControllerTile te = (ControllerTile) world.getTileEntity(controllerPos);
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
         te.removeFromAllNodes(pos);
     }
 

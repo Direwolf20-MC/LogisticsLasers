@@ -114,6 +114,7 @@ public class LaserConnections {
                 }
             }
         }
+        System.out.println("Done");
     }
 
     public static boolean canAdd(BlockPos sourcePos, BlockPos targetPos) {

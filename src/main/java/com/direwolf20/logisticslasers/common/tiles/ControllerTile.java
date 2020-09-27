@@ -10,6 +10,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
@@ -17,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 
@@ -39,6 +42,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         super(ModBlocks.CONTROLLER_TILE.get());
         this.energyStorage = new FEEnergyStorage(this, 0, 1000000);
         this.energy = LazyOptional.of(() -> this.energyStorage);
+    }
+
+    public Set<BlockPos> getInventoryNodes() {
+        return inventoryNodes;
     }
 
     public boolean addToInvNodes(BlockPos pos) {
@@ -133,11 +140,39 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public void read(BlockState state, CompoundNBT tag) {
         super.read(state, tag);
         energy.ifPresent(h -> h.deserializeNBT(tag.getCompound("energy")));
+        allNodes.clear();
+        ListNBT allnodes = tag.getList("allnodes", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < allnodes.size(); i++) {
+            BlockPos blockPos = NBTUtil.readBlockPos(allnodes.getCompound(i).getCompound("pos"));
+            allNodes.add(blockPos);
+        }
+
+        inventoryNodes.clear();
+        ListNBT invnodes = tag.getList("invnodes", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < invnodes.size(); i++) {
+            BlockPos blockPos = NBTUtil.readBlockPos(invnodes.getCompound(i).getCompound("pos"));
+            inventoryNodes.add(blockPos);
+        }
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         energy.ifPresent(h -> tag.put("energy", h.serializeNBT()));
+        ListNBT allnodes = new ListNBT();
+        for (BlockPos blockPos : allNodes) {
+            CompoundNBT comp = new CompoundNBT();
+            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
+            allnodes.add(comp);
+        }
+        tag.put("allnodes", allnodes);
+
+        ListNBT invnodes = new ListNBT();
+        for (BlockPos blockPos : inventoryNodes) {
+            CompoundNBT comp = new CompoundNBT();
+            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
+            invnodes.add(comp);
+        }
+        tag.put("invnodes", invnodes);
         return super.write(tag);
     }
 
