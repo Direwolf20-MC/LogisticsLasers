@@ -10,6 +10,7 @@ import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -161,6 +162,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 if (sourceitemHandler.getStackInSlot(i).isEmpty())
                     continue; //If the slot is empty, move onto the next slot
 
+                int extractAmt = 1;
+                ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found
+
                 for (BlockPos toPos : inserterNodes) { //If we found an item to transfer, start looping through the inserters
                     InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
                     if (destTE == null || !(destTE instanceof InventoryNodeTile))
@@ -168,7 +172,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
                     if (destitemHandler.getSlots() == 0) continue; //If its empty, move onto the next inserter
 
-                    ItemStack stack = sourceitemHandler.extractItem(i, 1, true); //Pretend to remove the 1 item from the stack we found
                     ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
                     if (simulated.equals(stack))
                         continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
@@ -185,9 +188,36 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    public ItemStack handleLostStack(ItemStack stack, BlockPos lostAt) {
+        for (BlockPos toPos : inserterNodes) { //Start looping through the inserters
+            InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
+            if (destTE == null || !(destTE instanceof InventoryNodeTile))
+                continue; //This shouldn't really happen, but make sure the inventory node is still there
+            IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
+            if (destitemHandler.getSlots() == 0) continue; //If its empty, move onto the next inserter
+
+            ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
+            if (simulated.equals(stack))
+                continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
+
+            int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
+            ItemStack extractedStack = stack.split(count);
+            System.out.println(stack + " became: " + extractedStack);
+            if (!transferItemStack(lostAt, toPos, extractedStack)) { //Attempt to send items
+                stack.grow(count); //If failed for some reason, put back into the stack
+            } else {
+                if (stack.isEmpty())
+                    break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
+                else
+                    continue;
+            }
+        }
+        return stack;
+    }
+
 
     public boolean transferItemStack(BlockPos fromPos, BlockPos toPos, ItemStack itemStack) {
-        ticksPerBlock = 10;
+        ticksPerBlock = 4;
         TileEntity te = world.getTileEntity(fromPos);
         if (!(te instanceof InventoryNodeTile)) return false;
         ArrayList<BlockPos> route = ((InventoryNodeTile) te).getRouteTo(toPos);
@@ -227,10 +257,15 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void executeTask(ControllerTask task) {
+        System.out.println(task.taskType + ": " + task.fromPos + "->" + task.toPos + ": " + task.itemStack);
         if (task.isParticle()) {
             doParticles(task);
         } else if (task.isInsert()) {
-            doInsert(task);
+            ItemStack remainingStack = doInsert(task);
+            if (!remainingStack.isEmpty()) {
+                ItemStack stillRemaining = handleLostStack(remainingStack, task.toPos);
+                Block.spawnAsEntity(world, task.toPos, stillRemaining); //TODO Implement storing in the controller
+            }
         } else if (task.isExtract()) {
 
         }
@@ -242,19 +277,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 8, 0.1f, 0.1f, 0.1f, 0);
     }
 
-    public boolean doInsert(ControllerTask task) {
+    public ItemStack doInsert(ControllerTask task) {
         InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(task.toPos);
         IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
 
         if (destitemHandler.getSlots() > 0) {
             ItemStack stack = task.itemStack;
-            ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true);
-            if (simulated.isEmpty()) { //TODO: Allow partial inserts
-                ItemHandlerHelper.insertItem(destitemHandler, stack, false);
-                return true;
-            }
+            ItemStack postInsertStack = ItemHandlerHelper.insertItem(destitemHandler, stack, false);
+            return postInsertStack;
         }
-        return false;
+        return task.itemStack;
     }
 
 
@@ -268,10 +300,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //Server Only
         if (!world.isRemote) {
             energyStorage.receiveEnergy(1000, false); //Testing
-            if (world.getGameTime() % 2 == 0)
-                handleExtractors();
-            else
-                handleTasks();
+            handleExtractors();
+            handleTasks();
         }
     }
 
