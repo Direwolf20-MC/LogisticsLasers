@@ -149,15 +149,21 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return super.addNode(pos);
     }
 
+    public IItemHandler getAttachedInventory(BlockPos pos) {
+        InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(pos);
+        if (sourceTE == null || !(sourceTE instanceof InventoryNodeTile))
+            return null; //Make sure the inventory node is still there
+        IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
+        if (sourceitemHandler.getSlots() == 0) return null; //If its empty, return null
+        return sourceitemHandler;
+    }
+
     public void handleExtractors() {
         boolean successfullySent = false;
         if (inserterNodes.size() == 0) return; //If theres nowhere to put items, nope out!
         for (BlockPos fromPos : extractorNodes) { //Loop through all the extractors!
-            InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
-            if (sourceTE == null || !(sourceTE instanceof InventoryNodeTile))
-                continue; //This shouldn't really happen, but make sure the inventory node is still there
-            IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
-            if (sourceitemHandler.getSlots() == 0) return; //If its empty, move onto the next extractor
+            IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
+            if (sourceitemHandler == null) continue; //If its empty, move onto the next extractor
 
             for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                 if (successfullySent) break;
@@ -168,11 +174,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found
 
                 for (BlockPos toPos : inserterNodes) { //If we found an item to transfer, start looping through the inserters
-                    InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
-                    if (destTE == null || !(destTE instanceof InventoryNodeTile))
-                        continue; //This shouldn't really happen, but make sure the inventory node is still there
-                    IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
-                    if (destitemHandler.getSlots() == 0) continue; //If its empty, move onto the next inserter
+                    if (toPos.equals(fromPos)) continue; //No sending to yourself!
+                    IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+                    if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
                     ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
                     if (simulated.equals(stack))
@@ -193,11 +197,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public ItemStack handleLostStack(ItemStack stack, BlockPos lostAt) {
         for (BlockPos toPos : inserterNodes) { //Start looping through the inserters
-            InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
-            if (destTE == null || !(destTE instanceof InventoryNodeTile))
-                continue; //This shouldn't really happen, but make sure the inventory node is still there
-            IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
-            if (destitemHandler.getSlots() == 0) continue; //If its empty, move onto the next inserter
+            IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+            if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
             ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
             if (simulated.equals(stack))
@@ -280,16 +281,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public ItemStack doInsert(ControllerTask task) {
-        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(task.toPos);
-        if (destTE == null || !(destTE instanceof InventoryNodeTile)) return task.itemStack;
-        IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
+        IItemHandler destitemHandler = getAttachedInventory(task.toPos);
+        if (destitemHandler == null) return task.itemStack;
 
-        if (destitemHandler.getSlots() > 0) {
-            ItemStack stack = task.itemStack;
-            ItemStack postInsertStack = ItemHandlerHelper.insertItem(destitemHandler, stack, false);
-            return postInsertStack;
-        }
-        return task.itemStack;
+        ItemStack stack = task.itemStack;
+        ItemStack postInsertStack = ItemHandlerHelper.insertItem(destitemHandler, stack, false);
+        return postInsertStack;
     }
 
 
