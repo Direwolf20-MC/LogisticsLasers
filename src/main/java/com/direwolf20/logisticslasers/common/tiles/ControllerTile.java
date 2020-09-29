@@ -20,9 +20,11 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -85,7 +87,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         for (BlockPos pos : inventoryNodes) {
             InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
             if (te == null) continue;
-            te.findRoutes();
+            te.clearRouteList();
         }
     }
 
@@ -147,17 +149,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void handleExtractors() {
-        for (BlockPos pos : extractorNodes) {
-            InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(pos);
+        for (BlockPos fromPos : extractorNodes) {
+            InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
             if (sourceTE == null) continue;
             IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY);
             if (sourceitemHandler.getSlots() > 0 && inserterNodes.size() > 0) {
                 for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
                     if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
-                        BlockPos destPos = inserterNodes.iterator().next();
-                        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(destPos);
-                        ArrayList<BlockPos> route = sourceTE.getRouteTo(destPos);
-                        if (route == null || route.size() <= 0) return;
+                        BlockPos toPos = inserterNodes.iterator().next();
+                        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
+
                         IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
 
                         if (destitemHandler.getSlots() > 0) {
@@ -166,23 +167,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                             if (simulated.getCount() < stack.getCount()) {
                                 int count = stack.getCount() - simulated.getCount();
                                 ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false);
-                                //ItemHandlerHelper.insertItem(destitemHandler, extractedStack, false);
-                                ticksPerBlock = 10;
-                                long tempGameTime = world.getGameTime() + 1;
-                                ControllerTask task;
-                                for (int r = 0; r < route.size(); r++) {
-                                    if (r == route.size() - 1) {
-                                        task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, extractedStack);
-                                        taskList.put(tempGameTime, task);
-                                    } else {
-                                        BlockPos from = route.get(r);
-                                        BlockPos to = route.get(r + 1);
-                                        task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, extractedStack);
-                                        taskList.put(tempGameTime, task);
-                                        double distance = from.distanceSq(to);
-                                        int duration = 20;
-                                        tempGameTime += duration;
-                                    }
+                                if (!transferItemStack(fromPos, toPos, extractedStack)) {
+                                    ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false);
                                 }
                                 return;
                             }
@@ -193,8 +179,34 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
-    public void findDestination(BlockPos fromPos) {
 
+    public boolean transferItemStack(BlockPos fromPos, BlockPos toPos, ItemStack itemStack) {
+        TileEntity te = world.getTileEntity(fromPos);
+        if (!(te instanceof InventoryNodeTile)) return false;
+        ArrayList<BlockPos> route = ((InventoryNodeTile) te).getRouteTo(toPos);
+        if (route == null || route.size() <= 0) {
+            return false;
+        }
+
+        long tempGameTime = world.getGameTime() + 1;
+        ControllerTask task;
+        for (int r = 0; r < route.size(); r++) {
+            if (r == route.size() - 1) {
+                task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, itemStack);
+                taskList.put(tempGameTime, task);
+            } else {
+                BlockPos from = route.get(r);
+                BlockPos to = route.get(r + 1);
+                task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, itemStack);
+                taskList.put(tempGameTime, task);
+                Vector3d fromVec = new Vector3d(from.getX(), from.getY(), from.getZ());
+                Vector3d toVec = new Vector3d(to.getX(), to.getY(), to.getZ());
+                double distance = fromVec.distanceTo(toVec);
+                int duration = (int) distance * ticksPerBlock;
+                tempGameTime += duration;
+            }
+        }
+        return true;
     }
 
     public void handleTasks() {

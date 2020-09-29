@@ -1,7 +1,6 @@
 package com.direwolf20.logisticslasers.common.items;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
-import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowParticleData;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.VectorHelper;
 import net.minecraft.block.Blocks;
@@ -9,7 +8,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
@@ -20,7 +18,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 
 public class Wrench extends Item {
     public Wrench() {
@@ -43,10 +40,6 @@ public class Wrench extends Item {
 
         if (world.isRemote) //No client
             return new ActionResult<>(ActionResultType.PASS, wrench);
-
-        ItemFlowParticleData data = new ItemFlowParticleData(new ItemStack(Items.BEDROCK, 1), -167.5, 76.5, -650.5, 4);
-        ServerWorld serverWorld = (ServerWorld) world;
-        serverWorld.spawnParticle(data, -169.5, 76.5, -648.5, 5, 0.15f, 0.15f, 0.15f, 0);
 
         int range = 20;
         BlockRayTraceResult lookingAt = VectorHelper.getLookingAt((PlayerEntity) player, RayTraceContext.FluidMode.NONE, range);

@@ -38,6 +38,8 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     }
 
     public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+        if (!routeList.containsKey(pos))
+            findRouteFor(pos);
         return routeList.get(pos);
     }
 
@@ -59,7 +61,6 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     @Override
     public void removeFromController() {
         routeList.clear();
-        System.out.println(routeList);
         ControllerTile te = getControllerTE();
         if (te == null) return;
         te.removeFromInvNodes(pos);
@@ -100,8 +101,24 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         this.facingHandler = null;
     }
 
-    public void findRoutes() {
+    public boolean findRouteFor(BlockPos pos) {
+        System.out.println("Finding route for: " + pos);
+        routeList.remove(pos);
+        ControllerTile te = getControllerTE();
+        if (te == null) return false;
+        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
+        Collections.reverse(routePath);
+        routeList.put(pos, routePath);
+        System.out.println("Found route: " + routePath);
+        return !routePath.isEmpty();
+    }
+
+    public void clearRouteList() {
         routeList.clear();
+    }
+
+    public void findAllRoutes() {
+        clearRouteList();
         ControllerTile te = getControllerTE();
         if (te == null) return;
         Set<BlockPos> todoList = new HashSet<>(te.getInventoryNodes());
