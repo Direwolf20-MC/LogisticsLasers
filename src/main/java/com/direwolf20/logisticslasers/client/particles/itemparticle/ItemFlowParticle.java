@@ -27,7 +27,7 @@ public class ItemFlowParticle extends BreakingParticle {
         this.particleGravity = 0.0f;
         double distance = target.distanceTo(source);
         this.maxAge = (int) distance * ticksPerBlock;
-        //System.out.println(path + ":" + distance + ":" + maxAge);
+        //System.out.println(source +":"+target);
         this.canCollide = false;
     }
 

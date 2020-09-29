@@ -37,6 +37,10 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         super(ModBlocks.INVENTORY_NODE_TILE.get());
     }
 
+    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+        return routeList.get(pos);
+    }
+
     public void notifyControllerOfChanges() {
         ControllerTile te = getControllerTE();
         if (te == null) return;
@@ -104,7 +108,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         todoList.remove(pos);
         for (BlockPos pos : todoList) {
             ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-            routePath.remove(this.pos);
+            //routePath.remove(this.pos);
             Collections.reverse(routePath);
             routeList.put(pos, routePath);
         }

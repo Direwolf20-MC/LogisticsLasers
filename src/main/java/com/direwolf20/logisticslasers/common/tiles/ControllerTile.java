@@ -1,11 +1,15 @@
 package com.direwolf20.logisticslasers.common.tiles;
 
+import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowParticleData;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardExtractor;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
+import com.direwolf20.logisticslasers.common.util.ControllerTask;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -21,6 +25,7 @@ import net.minecraft.util.IIntArray;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
@@ -31,6 +36,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,7 +50,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> extractorNodes = new HashSet<>();
     private final Set<BlockPos> inserterNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
+    private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
 
+    private final IItemHandler EMPTY = new ItemStackHandler(0);
+
+    private int ticksPerBlock = 4;
 
     public ControllerTile() {
         super(ModBlocks.CONTROLLER_TILE.get());
@@ -137,15 +147,17 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void handleExtractors() {
-        IItemHandler EMPTY = new ItemStackHandler(0);
         for (BlockPos pos : extractorNodes) {
-            InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
-            if (te == null) continue;
-            IItemHandler sourceitemHandler = te.getHandler().orElse(EMPTY);
+            InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(pos);
+            if (sourceTE == null) continue;
+            IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY);
             if (sourceitemHandler.getSlots() > 0 && inserterNodes.size() > 0) {
                 for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
                     if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
-                        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(inserterNodes.iterator().next());
+                        BlockPos destPos = inserterNodes.iterator().next();
+                        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(destPos);
+                        ArrayList<BlockPos> route = sourceTE.getRouteTo(destPos);
+                        if (route == null || route.size() <= 0) return;
                         IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
 
                         if (destitemHandler.getSlots() > 0) {
@@ -154,7 +166,24 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                             if (simulated.getCount() < stack.getCount()) {
                                 int count = stack.getCount() - simulated.getCount();
                                 ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false);
-                                ItemHandlerHelper.insertItem(destitemHandler, extractedStack, false);
+                                //ItemHandlerHelper.insertItem(destitemHandler, extractedStack, false);
+                                ticksPerBlock = 10;
+                                long tempGameTime = world.getGameTime() + 1;
+                                ControllerTask task;
+                                for (int r = 0; r < route.size(); r++) {
+                                    if (r == route.size() - 1) {
+                                        task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, extractedStack);
+                                        taskList.put(tempGameTime, task);
+                                    } else {
+                                        BlockPos from = route.get(r);
+                                        BlockPos to = route.get(r + 1);
+                                        task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, extractedStack);
+                                        taskList.put(tempGameTime, task);
+                                        double distance = from.distanceSq(to);
+                                        int duration = 20;
+                                        tempGameTime += duration;
+                                    }
+                                }
                                 return;
                             }
                         }
@@ -168,6 +197,50 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     }
 
+    public void handleTasks() {
+        long gameTime = world.getGameTime();
+        Set<ControllerTask> tasksThisTick = taskList.get(gameTime);
+
+        for (ControllerTask task : tasksThisTick) {
+            System.out.println("Executing task: " + task);
+            executeTask(task);
+        }
+        taskList.removeAll(gameTime);
+    }
+
+    public void executeTask(ControllerTask task) {
+        if (task.isParticle()) {
+            doParticles(task);
+        } else if (task.isInsert()) {
+            doInsert(task);
+        } else if (task.isExtract()) {
+
+        }
+    }
+
+    public void doParticles(ControllerTask task) {
+        System.out.println("Spawning Particle at: " + task.fromPos + " to: " + task.toPos);
+        ItemFlowParticleData data = new ItemFlowParticleData(task.itemStack, task.toPos.getX() + 0.5, task.toPos.getY() + 0.5, task.toPos.getZ() + 0.5, ticksPerBlock);
+        ServerWorld serverWorld = (ServerWorld) world;
+        serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 5, 0.15f, 0.15f, 0.15f, 0);
+    }
+
+    public boolean doInsert(ControllerTask task) {
+        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(task.toPos);
+        IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
+
+        if (destitemHandler.getSlots() > 0) {
+            ItemStack stack = task.itemStack;
+            ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true);
+            if (simulated.isEmpty()) { //TODO: Allow partial inserts
+                ItemHandlerHelper.insertItem(destitemHandler, stack, false);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     @Override
     public void tick() {
         //Client only
@@ -178,7 +251,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //Server Only
         if (!world.isRemote) {
             energyStorage.receiveEnergy(1000, false); //Testing
-            handleExtractors();
+            if (world.getGameTime() % 2 == 0)
+                handleExtractors();
+            else
+                handleTasks();
         }
     }
 

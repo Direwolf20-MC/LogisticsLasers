@@ -44,9 +44,9 @@ public class Wrench extends Item {
         if (world.isRemote) //No client
             return new ActionResult<>(ActionResultType.PASS, wrench);
 
-        ItemFlowParticleData data = new ItemFlowParticleData(new ItemStack(Items.BEDROCK, 1), -169.5, 76.5, -648.5, 4);
+        ItemFlowParticleData data = new ItemFlowParticleData(new ItemStack(Items.BEDROCK, 1), -167.5, 76.5, -650.5, 4);
         ServerWorld serverWorld = (ServerWorld) world;
-        serverWorld.spawnParticle(data, -169.5, 76.5, -645.5, 5, 0.15f, 0.15f, 0.15f, 0);
+        serverWorld.spawnParticle(data, -169.5, 76.5, -648.5, 5, 0.15f, 0.15f, 0.15f, 0);
 
         int range = 20;
         BlockRayTraceResult lookingAt = VectorHelper.getLookingAt((PlayerEntity) player, RayTraceContext.FluidMode.NONE, range);
