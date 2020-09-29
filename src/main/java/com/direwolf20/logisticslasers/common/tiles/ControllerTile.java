@@ -205,7 +205,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
             int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
             ItemStack extractedStack = stack.split(count);
-            System.out.println(stack + " became: " + extractedStack);
             if (!transferItemStack(lostAt, toPos, extractedStack)) { //Attempt to send items
                 stack.grow(count); //If failed for some reason, put back into the stack
             } else {
@@ -260,7 +259,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void executeTask(ControllerTask task) {
-        System.out.println(task.taskType + ": " + task.fromPos + "->" + task.toPos + ": " + task.itemStack);
+        //System.out.println(task.taskType + ": " + task.fromPos + "->" + task.toPos + ": " + task.itemStack);
         if (task.isParticle()) {
             doParticles(task);
         } else if (task.isInsert()) {
@@ -282,6 +281,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public ItemStack doInsert(ControllerTask task) {
         InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(task.toPos);
+        if (destTE == null || !(destTE instanceof InventoryNodeTile)) return task.itemStack;
         IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
 
         if (destitemHandler.getSlots() > 0) {
