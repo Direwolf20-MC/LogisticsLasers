@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.container;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
+import com.direwolf20.logisticslasers.common.container.customslot.CardSlot;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -11,7 +12,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
@@ -36,15 +36,15 @@ public class InventoryNodeContainer extends Container {
 
     public void setup(PlayerInventory inventory) {
         //Slots
-        addSlot(new SlotItemHandler(handler, 0, 62, 17));
-        addSlot(new SlotItemHandler(handler, 1, 80, 17));
-        addSlot(new SlotItemHandler(handler, 2, 98, 17));
-        addSlot(new SlotItemHandler(handler, 3, 62, 35));
-        addSlot(new SlotItemHandler(handler, 4, 80, 35));
-        addSlot(new SlotItemHandler(handler, 5, 98, 35));
-        addSlot(new SlotItemHandler(handler, 6, 62, 53));
-        addSlot(new SlotItemHandler(handler, 7, 80, 53));
-        addSlot(new SlotItemHandler(handler, 8, 98, 53));
+        addSlot(new CardSlot(handler, 0, 62, 17));
+        addSlot(new CardSlot(handler, 1, 80, 17));
+        addSlot(new CardSlot(handler, 2, 98, 17));
+        addSlot(new CardSlot(handler, 3, 62, 35));
+        addSlot(new CardSlot(handler, 4, 80, 35));
+        addSlot(new CardSlot(handler, 5, 98, 35));
+        addSlot(new CardSlot(handler, 6, 62, 53));
+        addSlot(new CardSlot(handler, 7, 80, 53));
+        addSlot(new CardSlot(handler, 8, 98, 53));
         // Slots for the hotbar
         for (int row = 0; row < 9; ++row) {
             int x = 8 + row * 18;
@@ -98,18 +98,4 @@ public class InventoryNodeContainer extends Container {
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
     }
-/*
-    static class RestrictedSlot extends SlotItemHandler {
-        public RestrictedSlot(IItemHandler itemHandler, int index, int xPosition, int yPosition) {
-            super(itemHandler, index, xPosition, yPosition);
-        }
-
-        @Override
-        public boolean isItemValid(@Nonnull ItemStack stack) {
-            if (getSlotIndex() == 0)
-                return (stack.getItem() instanceof AntiGooDust);
-
-            return super.isItemValid(stack);
-        }
-    }*/
 }
