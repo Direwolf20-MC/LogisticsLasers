@@ -150,6 +150,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void handleExtractors() {
+        boolean successfullySent = false;
         if (inserterNodes.size() == 0) return; //If theres nowhere to put items, nope out!
         for (BlockPos fromPos : extractorNodes) { //Loop through all the extractors!
             InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
@@ -159,6 +160,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (sourceitemHandler.getSlots() == 0) return; //If its empty, move onto the next extractor
 
             for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
+                if (successfullySent) break;
                 if (sourceitemHandler.getStackInSlot(i).isEmpty())
                     continue; //If the slot is empty, move onto the next slot
 
@@ -178,7 +180,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
                     int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
                     ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
-                    if (!transferItemStack(fromPos, toPos, extractedStack)) { //Attempt to send items
+                    successfullySent = transferItemStack(fromPos, toPos, extractedStack);
+                    if (!successfullySent) { //Attempt to send items
                         ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
                     } else {
                         break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
