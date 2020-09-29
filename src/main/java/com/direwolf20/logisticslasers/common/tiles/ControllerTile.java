@@ -149,38 +149,41 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void handleExtractors() {
+        if (inserterNodes.size() == 0) return;
         for (BlockPos fromPos : extractorNodes) {
             InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
             if (sourceTE == null) continue;
             IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY);
-            if (sourceitemHandler.getSlots() > 0 && inserterNodes.size() > 0) {
-                for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
-                    if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
-                        BlockPos toPos = inserterNodes.iterator().next();
-                        InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
+            if (sourceitemHandler.getSlots() == 0) return;
 
-                        IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
+            for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
+                if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
+                    BlockPos toPos = inserterNodes.iterator().next();
+                    InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
 
-                        if (destitemHandler.getSlots() > 0) {
-                            ItemStack stack = sourceitemHandler.extractItem(i, 1, true);
-                            ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true);
-                            if (simulated.getCount() < stack.getCount()) {
-                                int count = stack.getCount() - simulated.getCount();
-                                ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false);
-                                if (!transferItemStack(fromPos, toPos, extractedStack)) {
-                                    ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false);
-                                }
-                                return;
+                    IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
+
+                    if (destitemHandler.getSlots() > 0) {
+                        ItemStack stack = sourceitemHandler.extractItem(i, 1, true);
+                        ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true);
+                        if (simulated.getCount() < stack.getCount()) {
+                            int count = stack.getCount() - simulated.getCount();
+                            ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false);
+                            if (!transferItemStack(fromPos, toPos, extractedStack)) {
+                                ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false);
                             }
+                            return;
                         }
                     }
                 }
             }
+
         }
     }
 
 
     public boolean transferItemStack(BlockPos fromPos, BlockPos toPos, ItemStack itemStack) {
+        ticksPerBlock = 10;
         TileEntity te = world.getTileEntity(fromPos);
         if (!(te instanceof InventoryNodeTile)) return false;
         ArrayList<BlockPos> route = ((InventoryNodeTile) te).getRouteTo(toPos);
@@ -214,7 +217,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         Set<ControllerTask> tasksThisTick = taskList.get(gameTime);
 
         for (ControllerTask task : tasksThisTick) {
-            System.out.println("Executing task: " + task);
             executeTask(task);
         }
         taskList.removeAll(gameTime);
@@ -231,10 +233,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void doParticles(ControllerTask task) {
-        System.out.println("Spawning Particle at: " + task.fromPos + " to: " + task.toPos);
         ItemFlowParticleData data = new ItemFlowParticleData(task.itemStack, task.toPos.getX() + 0.5, task.toPos.getY() + 0.5, task.toPos.getZ() + 0.5, ticksPerBlock);
         ServerWorld serverWorld = (ServerWorld) world;
-        serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 5, 0.15f, 0.15f, 0.15f, 0);
+        serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 8, 0.1f, 0.1f, 0.1f, 0);
     }
 
     public boolean doInsert(ControllerTask task) {

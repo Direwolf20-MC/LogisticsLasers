@@ -6,9 +6,12 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.vector.Vector3d;
 
+import java.util.Random;
+
 public class ItemFlowParticle extends BreakingParticle {
 
     private double targetX, targetY, targetZ;
+    Random random = new Random();
 
     public ItemFlowParticle(ClientWorld world, double x, double y, double z, double targetX, double targetY, double targetZ, ItemStack itemStack, int ticksPerBlock) {
         this(world, x, y, z, itemStack);
@@ -29,6 +32,10 @@ public class ItemFlowParticle extends BreakingParticle {
         this.maxAge = (int) distance * ticksPerBlock;
         //System.out.println(source +":"+target);
         this.canCollide = false;
+        float minSize = 0.015f;
+        float maxSize = 0.035f;
+        float partSize = minSize + random.nextFloat() * (maxSize - minSize);
+        this.particleScale = partSize;
     }
 
     public ItemFlowParticle(ClientWorld world, double x, double y, double z, ItemStack itemStack) {

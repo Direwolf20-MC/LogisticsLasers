@@ -91,7 +91,8 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
             }
         }
         // no item handler, cache empty
-        return facingHandler = LazyOptional.empty();
+        facingHandler = null;
+        return LazyOptional.empty();
     }
 
     /**
