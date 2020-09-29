@@ -149,35 +149,39 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public void handleExtractors() {
-        if (inserterNodes.size() == 0) return;
-        for (BlockPos fromPos : extractorNodes) {
+        if (inserterNodes.size() == 0) return; //If theres nowhere to put items, nope out!
+        for (BlockPos fromPos : extractorNodes) { //Loop through all the extractors!
             InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
-            if (sourceTE == null) continue;
-            IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY);
-            if (sourceitemHandler.getSlots() == 0) return;
+            if (sourceTE == null || !(sourceTE instanceof InventoryNodeTile))
+                continue; //This shouldn't really happen, but make sure the inventory node is still there
+            IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
+            if (sourceitemHandler.getSlots() == 0) return; //If its empty, move onto the next extractor
 
-            for (int i = 0; i < sourceitemHandler.getSlots(); i++) {
-                if (!sourceitemHandler.getStackInSlot(i).isEmpty()) {
-                    BlockPos toPos = inserterNodes.iterator().next();
+            for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
+                if (sourceitemHandler.getStackInSlot(i).isEmpty())
+                    continue; //If the slot is empty, move onto the next slot
+
+                for (BlockPos toPos : inserterNodes) { //If we found an item to transfer, start looping through the inserters
                     InventoryNodeTile destTE = (InventoryNodeTile) world.getTileEntity(toPos);
+                    if (destTE == null || !(destTE instanceof InventoryNodeTile))
+                        continue; //This shouldn't really happen, but make sure the inventory node is still there
+                    IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
+                    if (destitemHandler.getSlots() == 0) continue; //If its empty, move onto the next inserter
 
-                    IItemHandler destitemHandler = destTE.getHandler().orElse(EMPTY);
+                    ItemStack stack = sourceitemHandler.extractItem(i, 1, true); //Pretend to remove the 1 item from the stack we found
+                    ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
+                    if (simulated.equals(stack))
+                        continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
 
-                    if (destitemHandler.getSlots() > 0) {
-                        ItemStack stack = sourceitemHandler.extractItem(i, 1, true);
-                        ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true);
-                        if (simulated.getCount() < stack.getCount()) {
-                            int count = stack.getCount() - simulated.getCount();
-                            ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false);
-                            if (!transferItemStack(fromPos, toPos, extractedStack)) {
-                                ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false);
-                            }
-                            return;
-                        }
+                    int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
+                    ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
+                    if (!transferItemStack(fromPos, toPos, extractedStack)) { //Attempt to send items
+                        ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                    } else {
+                        break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
                     }
                 }
             }
-
         }
     }
 
