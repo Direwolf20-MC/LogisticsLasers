@@ -2,7 +2,6 @@ package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
-import com.direwolf20.logisticslasers.common.container.customhandler.FilterSlotHandler;
 import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
@@ -136,23 +135,26 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         System.out.println(routeList);
     }
 
-    public Set<ItemStack> getFilters(BaseCard.CardType cardType) {
-        Set<ItemStack> filteredItems = new HashSet<>();
+    public ArrayList<ItemStack> getCards() {
+        ArrayList<ItemStack> cards = new ArrayList<>();
+        ItemStackHandler itemStackHandler = getInventoryStacks();
+        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+            cards.add(itemStackHandler.getStackInSlot(i));
+        }
+        return cards;
+    }
+
+    public ArrayList<ItemStack> getCards(BaseCard.CardType cardType) {
+        ArrayList<ItemStack> cards = new ArrayList<>();
         ItemStackHandler itemStackHandler = getInventoryStacks();
         for (int i = 0; i < itemStackHandler.getSlots(); i++) {
             ItemStack itemStack = itemStackHandler.getStackInSlot(i);
             if (itemStack.isEmpty()) continue;
-            BaseCard slotItem = (BaseCard) itemStack.getItem();
-            if (slotItem.getCardType() == cardType) {
-                FilterSlotHandler filterSlotHandler = BaseCard.getInventory(itemStack);
-                for (int j = 0; j < filterSlotHandler.getSlots(); j++) {
-                    ItemStack filterItem = filterSlotHandler.getStackInSlot(j);
-                    if (!filterItem.isEmpty())
-                        filteredItems.add(filterItem);
-                }
-            }
+            BaseCard cardItem = (BaseCard) itemStack.getItem();
+            if (cardItem.getCardType() == cardType)
+                cards.add(itemStack);
         }
-        return filteredItems;
+        return cards;
     }
 
     @Nullable

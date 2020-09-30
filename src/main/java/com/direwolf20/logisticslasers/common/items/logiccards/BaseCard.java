@@ -7,6 +7,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class BaseCard extends Item {
 
     protected BaseCard.CardType CARDTYPE;
@@ -39,5 +42,16 @@ public abstract class BaseCard extends Item {
         FilterSlotHandler handler = new FilterSlotHandler(BasicFilterContainer.SLOTS, stack);
         handler.deserializeNBT(compound.getCompound("inv"));
         return !compound.contains("inv") ? setInventory(stack, new FilterSlotHandler(BasicFilterContainer.SLOTS, stack)) : handler;
+    }
+
+    public static Set<Item> getFilteredItems(ItemStack stack) {
+        Set<Item> filteredItems = new HashSet<>();
+        FilterSlotHandler filterSlotHandler = getInventory(stack);
+        for (int i = 0; i < filterSlotHandler.getSlots(); i++) {
+            ItemStack itemStack = filterSlotHandler.getStackInSlot(i);
+            if (!itemStack.isEmpty())
+                filteredItems.add(itemStack.getItem());
+        }
+        return filteredItems;
     }
 }
