@@ -2,13 +2,16 @@ package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.container.customhandler.FilterSlotHandler;
 import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
@@ -131,6 +134,25 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
             routeList.put(pos, routePath);
         }
         System.out.println(routeList);
+    }
+
+    public Set<ItemStack> getFilters(BaseCard.CardType cardType) {
+        Set<ItemStack> filteredItems = new HashSet<>();
+        ItemStackHandler itemStackHandler = getInventoryStacks();
+        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+            ItemStack itemStack = itemStackHandler.getStackInSlot(i);
+            if (itemStack.isEmpty()) continue;
+            BaseCard slotItem = (BaseCard) itemStack.getItem();
+            if (slotItem.getCardType() == cardType) {
+                FilterSlotHandler filterSlotHandler = BaseCard.getInventory(itemStack);
+                for (int j = 0; j < filterSlotHandler.getSlots(); j++) {
+                    ItemStack filterItem = filterSlotHandler.getStackInSlot(j);
+                    if (!filterItem.isEmpty())
+                        filteredItems.add(filterItem);
+                }
+            }
+        }
+        return filteredItems;
     }
 
     @Nullable

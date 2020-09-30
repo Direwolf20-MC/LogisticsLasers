@@ -6,7 +6,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -15,8 +14,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 public class CardExtractor extends BaseCard {
+
     public CardExtractor() {
         super();
+        CARDTYPE = CardType.EXTRACT;
     }
 
     @Override
@@ -29,10 +30,4 @@ public class CardExtractor extends BaseCard {
         return new ActionResult<>(ActionResultType.PASS, itemstack);
     }
 
-    public static FilterSlotHandler getInventory(ItemStack stack) {
-        CompoundNBT compound = stack.getOrCreateTag();
-        FilterSlotHandler handler = new FilterSlotHandler(BasicFilterContainer.SLOTS, stack);
-        handler.deserializeNBT(compound.getCompound("inv"));
-        return !compound.contains("inv") ? setInventory(stack, new FilterSlotHandler(BasicFilterContainer.SLOTS, stack)) : handler;
-    }
 }

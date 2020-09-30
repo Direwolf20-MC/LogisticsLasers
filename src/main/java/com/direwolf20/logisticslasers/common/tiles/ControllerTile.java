@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowPart
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardExtractor;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
@@ -16,6 +17,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -165,10 +167,21 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
             if (sourceitemHandler == null) continue; //If its empty, move onto the next extractor
 
+            InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
+            Set<ItemStack> filteredItemStacks = sourceTE.getFilters(BaseCard.CardType.EXTRACT);
+            Set<Item> filteredItems = new HashSet<>();
+            for (ItemStack stack : filteredItemStacks) {
+                filteredItems.add(stack.getItem());
+            }
+
             for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                 if (successfullySent) break;
-                if (sourceitemHandler.getStackInSlot(i).isEmpty())
+                ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
+                if (stackInSlot.isEmpty())
                     continue; //If the slot is empty, move onto the next slot
+
+                if (!filteredItems.contains(stackInSlot.getItem()))
+                    continue;
 
                 int extractAmt = 1;
                 ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found
