@@ -93,9 +93,4 @@ public class InventoryNodeContainer extends Container {
         BlockPos pos = this.tile.getPos();
         return this.tile != null && !this.tile.isRemoved() && playerIn.getDistanceSq(new Vector3d(pos.getX(), pos.getY(), pos.getZ()).add(0.5D, 0.5D, 0.5D)) <= 64D;
     }
-
-    @Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
-    }
 }

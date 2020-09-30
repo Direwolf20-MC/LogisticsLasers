@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.client;
 
 import com.direwolf20.logisticslasers.client.screens.ControllerScreen;
 import com.direwolf20.logisticslasers.client.screens.InventoryNodeScreen;
+import com.direwolf20.logisticslasers.client.screens.cards.BasicFilterScreen;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.client.renderer.RenderType;
@@ -23,6 +24,7 @@ public final class ClientSetup {
     private static void registerContainerScreens() {
         ScreenManager.registerFactory(ModBlocks.CONTROLLER_CONTAINER.get(), ControllerScreen::new);
         ScreenManager.registerFactory(ModBlocks.INVENTORY_NODE_CONTAINER.get(), InventoryNodeScreen::new);
+        ScreenManager.registerFactory(ModBlocks.BASIC_FILTER_CONTAINER.get(), BasicFilterScreen::new);
     }
 
     /**

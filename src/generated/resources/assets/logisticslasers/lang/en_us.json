@@ -4,6 +4,7 @@
   "block.logisticslasers.controllerscreen": "Laser Controller",
   "block.logisticslasers.inventorynode": "Inventory Node",
   "block.logisticslasers.inventorynodescreen": "Inventory Node",
+  "item.logisticslasers.basicfilterscreen": "Basic Filter",
   "item.logisticslasers.card_extractor": "Extractor Module",
   "item.logisticslasers.card_inserter": "Inserter Module",
   "item.logisticslasers.wrench": "Laser Wrench",

@@ -22,6 +22,7 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(ModItems.CARD_INSERTER, "Inserter Module");
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
+        add("item.logisticslasers.basicfilterscreen", "Basic Filter");
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");
         add("block.logisticslasers.inventorynodescreen", "Inventory Node");
         add("message.logisticslasers.controllerat", "Controller Located at: %d");

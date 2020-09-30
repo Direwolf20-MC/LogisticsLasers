@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.client.ClientSetup;
 import com.direwolf20.logisticslasers.client.events.ClientEvents;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.items.ModItems;
+import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -62,6 +63,7 @@ public class LogisticsLasers
 
     private void setup(final FMLCommonSetupEvent event)
     {
+        PacketHandler.register();
         // some preinit code
     }
 
