@@ -1,7 +1,6 @@
 package com.direwolf20.logisticslasers.common.container;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
-import com.direwolf20.logisticslasers.common.container.customhandler.FilterSlotHandler;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.PlayerEntity;
@@ -10,21 +9,22 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
 public class BasicFilterContainer extends Container {
     public static final int SLOTS = 15;
-    public FilterSlotHandler handler;
+    public ItemStackHandler handler;
 
     // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
 
     public BasicFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        this(ItemStack.EMPTY, windowId, playerInventory, new FilterSlotHandler(SLOTS, ItemStack.EMPTY));
+        this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS));
     }
 
-    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, FilterSlotHandler handler) {
+    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler) {
         super(ModBlocks.BASIC_FILTER_CONTAINER.get(), windowId);
         this.handler = handler;
         this.filterItemStack = card;

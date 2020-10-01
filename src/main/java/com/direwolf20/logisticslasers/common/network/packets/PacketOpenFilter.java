@@ -1,7 +1,6 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
-import com.direwolf20.logisticslasers.common.container.customhandler.FilterSlotHandler;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
@@ -11,6 +10,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.Supplier;
 
@@ -45,7 +45,7 @@ public class PacketOpenFilter {
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
                 ItemStack itemStack = slot.getStack();
 
-                FilterSlotHandler handler = getInventory(itemStack);
+                ItemStackHandler handler = getInventory(itemStack);
                 NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
                         (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler), new StringTextComponent("")));
             });
