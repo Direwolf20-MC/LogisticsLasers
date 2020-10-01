@@ -2,9 +2,18 @@ package com.direwolf20.logisticslasers.common.items.logiccards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashSet;
@@ -30,6 +39,16 @@ public abstract class BaseCard extends Item {
 
     public CardType getCardType() {
         return CARDTYPE;
+    }
+
+    @Override
+    public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity player, Hand hand) {
+        ItemStack itemstack = player.getHeldItem(hand);
+        if (world.isRemote) return new ActionResult<>(ActionResultType.PASS, itemstack);
+        ItemStackHandler handler = getInventory(itemstack);
+        NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
+                (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemstack, windowId, playerInventory, handler), new StringTextComponent("")));
+        return new ActionResult<>(ActionResultType.PASS, itemstack);
     }
 
     public static ItemStackHandler setInventory(ItemStack stack, ItemStackHandler handler) {
