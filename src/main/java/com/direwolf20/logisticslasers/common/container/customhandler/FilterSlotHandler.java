@@ -1,6 +1,5 @@
 package com.direwolf20.logisticslasers.common.container.customhandler;
 
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -12,8 +11,8 @@ public class FilterSlotHandler extends ItemStackHandler {
         this.stack = itemStack;
     }
 
-    @Override
+    /*@Override
     protected void onContentsChanged(int slot) {
         BaseCard.setInventory(stack, this);
-    }
+    }*/
 }

@@ -2,6 +2,8 @@ package com.direwolf20.logisticslasers.client.screens;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.network.PacketHandler;
+import com.direwolf20.logisticslasers.common.network.packets.PacketOpenFilter;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -54,5 +56,30 @@ public class InventoryNodeScreen extends ContainerScreen<InventoryNodeContainer>
 
     protected static TranslationTextComponent getTrans(String key, Object... args) {
         return new TranslationTextComponent(LogisticsLasers.MOD_ID + "." + key, args);
+    }
+
+    @Override
+    public boolean mouseClicked(double x, double y, int btn) {
+        if (hoveredSlot == null || hoveredSlot.getStack().isEmpty())
+            return super.mouseClicked(x, y, btn);
+
+        if (btn == 1) { //Right click
+            int slot = hoveredSlot.slotNumber;
+
+            PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber));
+            //FilterSlotHandler handler = getInventory(itemstack);
+            /*NetworkHooks.openGui((ServerPlayerEntity) getMinecraft().player, new SimpleNamedContainerProvider(
+                    (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemstack, windowId, playerInventory, handler), new StringTextComponent("")));*/
+            return true;
+        }
+        return super.mouseClicked(x, y, btn);
+    }
+
+    @Override
+    public boolean mouseReleased(double x, double y, int btn) {
+        if (hoveredSlot == null)
+            return super.mouseReleased(x, y, btn);
+
+        return super.mouseReleased(x, y, btn);
     }
 }

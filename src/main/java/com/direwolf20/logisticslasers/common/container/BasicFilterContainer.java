@@ -3,6 +3,7 @@ package com.direwolf20.logisticslasers.common.container;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customhandler.FilterSlotHandler;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -101,5 +102,11 @@ public class BasicFilterContainer extends Container {
         return true;
         /*ItemStack stack = playerIn.getHeldItemMainhand();
         return stack.equals(this.filterItemStack) && !stack.isEmpty();*/
+    }
+
+    @Override
+    public void onContainerClosed(PlayerEntity playerIn) {
+        BaseCard.setInventory(filterItemStack, handler);
+        super.onContainerClosed(playerIn);
     }
 }
