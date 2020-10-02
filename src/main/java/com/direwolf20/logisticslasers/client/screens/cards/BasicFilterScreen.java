@@ -4,19 +4,25 @@ import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
+import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/basicfilterscreen.png");
@@ -42,6 +48,25 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
     @Override
     public void init() {
         super.init();
+
+        if (!container.showPriority) return;
+
+        List<Widget> leftWidgets = new ArrayList<>();
+
+        Button plusPriority;
+        leftWidgets.add(plusPriority = new Button(guiLeft + 25, guiTop + 25, 15, 10, new StringTextComponent("+"), (button) -> {
+            PacketHandler.sendToServer(new PacketChangePriority(1));
+        }));
+        Button minusPriority;
+        leftWidgets.add(minusPriority = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("-"), (button) -> {
+            PacketHandler.sendToServer(new PacketChangePriority(-1));
+        }));
+
+        // Lay the buttons out, too lazy to figure out the math every damn time.
+        // Ordered by where you add them.
+        for (int i = 0; i < leftWidgets.size(); i++) {
+            addButton(leftWidgets.get(i));
+        }
     }
 
     @Override
@@ -54,6 +79,9 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
     @Override
     protected void drawGuiContainerForegroundLayer(MatrixStack stack, int mouseX, int mouseY) {
         Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.basicfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
+        if (!container.showPriority) return;
+        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 15, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + container.getPriority()).getString(), 18, 25, Color.DARK_GRAY.getRGB());
     }
 
     protected static TranslationTextComponent getTrans(String key, Object... args) {

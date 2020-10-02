@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
+import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
@@ -43,12 +44,36 @@ public abstract class BaseCard extends Item {
 
     @Override
     public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity player, Hand hand) {
-        ItemStack itemstack = player.getHeldItem(hand);
-        if (world.isRemote) return new ActionResult<>(ActionResultType.PASS, itemstack);
-        ItemStackHandler handler = getInventory(itemstack);
+        ItemStack itemStack = player.getHeldItem(hand);
+        if (world.isRemote) return new ActionResult<>(ActionResultType.PASS, itemStack);
+        ItemStackHandler handler = getInventory(itemStack);
+        IIntArray tempArray = new IIntArray() {
+            @Override
+            public int get(int index) {
+                switch (index) {
+                    case 0:
+                        return getPriority(itemStack);
+                    default:
+                        throw new IllegalArgumentException("Invalid index: " + index);
+                }
+            }
+
+            @Override
+            public void set(int index, int value) {
+                throw new IllegalStateException("Cannot set values through IIntArray");
+            }
+
+            @Override
+            public int size() {
+                return 1;
+            }
+        };
+        boolean showPriority = itemStack.getItem() instanceof CardInserter;
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
-                (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemstack, windowId, playerInventory, handler), new StringTextComponent("")));
-        return new ActionResult<>(ActionResultType.PASS, itemstack);
+                (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, tempArray), new StringTextComponent("")), (buf -> {
+            buf.writeBoolean(showPriority);
+        }));
+        return new ActionResult<>(ActionResultType.PASS, itemStack);
     }
 
     public static ItemStackHandler setInventory(ItemStack stack, ItemStackHandler handler) {
@@ -72,5 +97,15 @@ public abstract class BaseCard extends Item {
                 filteredItems.add(itemStack.getItem());
         }
         return filteredItems;
+    }
+
+    public static int setPriority(ItemStack card, int priority) {
+        card.getOrCreateTag().putInt("priority", priority);
+        return priority;
+    }
+
+    public static int getPriority(ItemStack card) {
+        CompoundNBT compound = card.getOrCreateTag();
+        return !compound.contains("priority") ? setPriority(card, 0) : compound.getInt("priority");
     }
 }

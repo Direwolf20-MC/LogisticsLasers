@@ -11,6 +11,8 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIntArray;
+import net.minecraft.util.IntArray;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.ItemStackHandler;
@@ -21,40 +23,33 @@ public class BasicFilterContainer extends Container {
     public static final int SLOTS = 15;
     public ItemStackHandler handler;
     public BlockPos sourceContainer = BlockPos.ZERO;
+    public IIntArray data;
+    public boolean showPriority;
 
-    // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
+    // ItemStack can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
 
     public BasicFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS));
+        this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(2));
+        showPriority = extraData.getBoolean(0);
     }
 
-    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler) {
-        super(ModBlocks.BASIC_FILTER_CONTAINER.get(), windowId);
-        this.handler = handler;
-        this.filterItemStack = card;
-        this.setup(playerInventory);
+    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
+        this(card, windowId, playerInventory, handler, BlockPos.ZERO, cardData);
     }
 
-    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos) {
+    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
         super(ModBlocks.BASIC_FILTER_CONTAINER.get(), windowId);
         this.handler = handler;
         this.filterItemStack = card;
         this.setup(playerInventory);
         this.sourceContainer = sourcePos;
+        this.data = cardData;
+        trackIntArray(cardData);
     }
 
     public void setup(PlayerInventory inventory) {
         //Slots
-        /*addSlot(new BasicFilterSlot(handler, 0, 62, 17));
-        addSlot(new BasicFilterSlot(handler, 1, 80, 17));
-        addSlot(new BasicFilterSlot(handler, 2, 98, 17));
-        addSlot(new BasicFilterSlot(handler, 3, 62, 35));
-        addSlot(new BasicFilterSlot(handler, 4, 80, 35));
-        addSlot(new BasicFilterSlot(handler, 5, 98, 35));
-        addSlot(new BasicFilterSlot(handler, 6, 62, 53));
-        addSlot(new BasicFilterSlot(handler, 7, 80, 53));
-        addSlot(new BasicFilterSlot(handler, 8, 98, 53));*/
         int startX = 44;
         int startY = 17;
 
@@ -130,5 +125,9 @@ public class BasicFilterContainer extends Container {
             }
         }
         super.onContainerClosed(playerIn);
+    }
+
+    public int getPriority() {
+        return this.data.get(0);
     }
 }

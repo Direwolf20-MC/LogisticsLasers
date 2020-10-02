@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
+import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
 import com.direwolf20.logisticslasers.common.network.packets.PacketOpenFilter;
 import net.minecraft.entity.player.PlayerEntity;
@@ -33,6 +34,7 @@ public class PacketHandler {
         //Going to Server side
         registerMessage(PacketFilterSlot.class, PacketFilterSlot::encode, PacketFilterSlot::decode, PacketFilterSlot.Handler::handle);
         registerMessage(PacketOpenFilter.class, PacketOpenFilter::encode, PacketOpenFilter::decode, PacketOpenFilter.Handler::handle);
+        registerMessage(PacketChangePriority.class, PacketChangePriority::encode, PacketChangePriority::decode, PacketChangePriority.Handler::handle);
 
         //Going to Client Side
         //registerMessage(AntigooSync.class, AntigooSync::encode, AntigooSync::decode, AntigooSync.Handler::handle);

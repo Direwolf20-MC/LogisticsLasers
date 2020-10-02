@@ -1,12 +1,15 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.IIntArray;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -51,8 +54,32 @@ public class PacketOpenFilter {
                 ItemStack itemStack = slot.getStack();
 
                 ItemStackHandler handler = getInventory(itemStack);
+                IIntArray tempArray = new IIntArray() {
+                    @Override
+                    public int get(int index) {
+                        switch (index) {
+                            case 0:
+                                return BaseCard.getPriority(itemStack);
+                            default:
+                                throw new IllegalArgumentException("Invalid index: " + index);
+                        }
+                    }
+
+                    @Override
+                    public void set(int index, int value) {
+                        throw new IllegalStateException("Cannot set values through IIntArray");
+                    }
+
+                    @Override
+                    public int size() {
+                        return 1;
+                    }
+                };
+                boolean showPriority = itemStack.getItem() instanceof CardInserter;
                 NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                        (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos), new StringTextComponent("")));
+                        (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                    buf.writeBoolean(showPriority);
+                }));
             });
 
             ctx.get().setPacketHandled(true);
