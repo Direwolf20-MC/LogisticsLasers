@@ -3,12 +3,16 @@ package com.direwolf20.logisticslasers.common.container;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
@@ -16,6 +20,7 @@ import javax.annotation.Nullable;
 public class BasicFilterContainer extends Container {
     public static final int SLOTS = 15;
     public ItemStackHandler handler;
+    public BlockPos sourceContainer = BlockPos.ZERO;
 
     // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
@@ -29,6 +34,14 @@ public class BasicFilterContainer extends Container {
         this.handler = handler;
         this.filterItemStack = card;
         this.setup(playerInventory);
+    }
+
+    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos) {
+        super(ModBlocks.BASIC_FILTER_CONTAINER.get(), windowId);
+        this.handler = handler;
+        this.filterItemStack = card;
+        this.setup(playerInventory);
+        this.sourceContainer = sourcePos;
     }
 
     public void setup(PlayerInventory inventory) {
@@ -106,7 +119,16 @@ public class BasicFilterContainer extends Container {
 
     @Override
     public void onContainerClosed(PlayerEntity playerIn) {
-        BaseCard.setInventory(filterItemStack, handler);
+        World world = playerIn.getEntityWorld();
+        if (!world.isRemote) {
+            BaseCard.setInventory(filterItemStack, handler);
+            if (!sourceContainer.equals(BlockPos.ZERO)) {
+                TileEntity te = world.getTileEntity(sourceContainer);
+                if (te instanceof InventoryNodeTile) {
+                    ((InventoryNodeTile) te).notifyControllerOfChanges();
+                }
+            }
+        }
         super.onContainerClosed(playerIn);
     }
 }

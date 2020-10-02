@@ -66,7 +66,7 @@ public class InventoryNodeScreen extends ContainerScreen<InventoryNodeContainer>
         if (btn == 1) { //Right click
             int slot = hoveredSlot.slotNumber;
 
-            PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber));
+            PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber, container.tile.getPos()));
             //FilterSlotHandler handler = getInventory(itemstack);
             /*NetworkHooks.openGui((ServerPlayerEntity) getMinecraft().player, new SimpleNamedContainerProvider(
                     (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemstack, windowId, playerInventory, handler), new StringTextComponent("")));*/

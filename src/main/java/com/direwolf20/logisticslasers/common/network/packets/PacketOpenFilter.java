@@ -7,6 +7,7 @@ import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
@@ -18,17 +19,21 @@ import static com.direwolf20.logisticslasers.common.items.logiccards.BaseCard.ge
 
 public class PacketOpenFilter {
     private int slotNumber;
+    private BlockPos sourcePos;
 
-    public PacketOpenFilter(int slotNumber) {
+    public PacketOpenFilter(int slotNumber, BlockPos pos) {
         this.slotNumber = slotNumber;
+        this.sourcePos = pos;
     }
 
     public static void encode(PacketOpenFilter msg, PacketBuffer buffer) {
         buffer.writeInt(msg.slotNumber);
+        buffer.writeBlockPos(msg.sourcePos);
     }
 
     public static PacketOpenFilter decode(PacketBuffer buffer) {
-        return new PacketOpenFilter(buffer.readInt());
+        return new PacketOpenFilter(buffer.readInt(), buffer.readBlockPos());
+
     }
 
     public static class Handler {
@@ -47,7 +52,7 @@ public class PacketOpenFilter {
 
                 ItemStackHandler handler = getInventory(itemStack);
                 NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                        (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler), new StringTextComponent("")));
+                        (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos), new StringTextComponent("")));
             });
 
             ctx.get().setPacketHandled(true);
