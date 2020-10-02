@@ -51,14 +51,19 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     //Data about the energy stored in this tile entity
     public FEEnergyStorage energyStorage;
     private LazyOptional<FEEnergyStorage> energy;
+
     //Data about the nodes this controller manages
+    //Persistent data
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
-    private final Set<BlockPos> extractorNodes = new HashSet<>();
-    private final Set<BlockPos> inserterNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
+
+    //Non-Persistent data
+    private final Set<BlockPos> extractorNodes = new HashSet<>();
+    private final Set<BlockPos> inserterNodes = new HashSet<>();
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>();
 
+    
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
     private int ticksPerBlock = 4;
@@ -77,6 +82,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public void refreshAllInvNodes() {
         System.out.println("Scanning all inventory nodes");
+        extractorNodes.clear();
+        inserterNodes.clear();
+        filterCardCache.clear();
         for (BlockPos pos : inventoryNodes) {
             checkInvNode(pos);
         }
