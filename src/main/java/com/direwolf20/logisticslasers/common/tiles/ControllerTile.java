@@ -59,11 +59,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
 
     //Non-Persistent data
-    private final Set<BlockPos> extractorNodes = new HashSet<>();
-    private final Set<BlockPos> inserterNodes = new HashSet<>();
-    private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>();
+    private final Set<BlockPos> extractorNodes = new HashSet<>(); //All Inventory nodes that contain an extractor card.
+    private final Set<BlockPos> inserterNodes = new HashSet<>(); //All Inventory nodes that contain an inserter card
+    private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
 
-    
+
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
     private int ticksPerBlock = 4;
@@ -74,12 +74,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         this.energy = LazyOptional.of(() -> this.energyStorage);
     }
 
-    public void addToFilterCache(BlockPos pos, ItemStack itemStack) {
-        ArrayList<ItemStack> tempArray = filterCardCache.getOrDefault(pos, new ArrayList<>());
-        tempArray.add(itemStack);
-        filterCardCache.put(pos, tempArray);
-    }
-
+    /**
+     * This method clears the non-persistent inventory node data variables and regenerates them from scratch
+     */
     public void refreshAllInvNodes() {
         System.out.println("Scanning all inventory nodes");
         extractorNodes.clear();
@@ -90,6 +87,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    /**
+     * Given a @param pos, look up the inventory node at that position in the world, and cache each of the cards in the cardCache Variable
+     * Also populates the extractorNodes and inserterNodes variables, so we know which inventory nodes send/receive items.
+     * This method is called by refreshAllInvNodes() or on demand when the contents of an inventory node's container is changed
+     */
     public void checkInvNode(BlockPos pos) {
         InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
         extractorNodes.remove(pos);
@@ -109,10 +111,20 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    //Adds an itemstack to the filterCardCache variable
+    public void addToFilterCache(BlockPos pos, ItemStack itemStack) {
+        ArrayList<ItemStack> tempArray = filterCardCache.getOrDefault(pos, new ArrayList<>());
+        tempArray.add(itemStack);
+        filterCardCache.put(pos, tempArray);
+    }
+
     public Set<BlockPos> getInventoryNodes() {
         return inventoryNodes;
     }
 
+    /**
+     * Clears the cached route list of all inventory nodes - used when a network change occurs to rebuild the route table.
+     */
     public void updateInvNodePaths() {
         for (BlockPos pos : inventoryNodes) {
             InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
@@ -146,13 +158,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public boolean addToAllNodes(BlockPos pos) {
-        boolean success = allNodes.add(pos);
-        return success;
+        return allNodes.add(pos);
     }
 
     public boolean removeFromAllNodes(BlockPos pos) {
-        boolean success = allNodes.remove(pos);
-        return success;
+        return allNodes.remove(pos);
     }
 
     @Override
@@ -162,12 +172,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     @Override
     public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
-        System.out.println("Not Setting Controller Pos at: " + getControllerPos());
+        return; //NOOP
     }
 
     @Override
     public BlockPos validateController() {
-        return this.getPos();
+        return this.getPos();  //I AM THE CONTROLLER!!!
     }
 
     @Override
@@ -178,6 +188,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return super.addNode(pos);
     }
 
+    /**
+     * Get the item handler attached to an inventory node (Like an adjacent chest or furnace) at @param pos
+     *
+     * @return the item handler
+     */
     public IItemHandler getAttachedInventory(BlockPos pos) {
         InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(pos);
         if (sourceTE == null || !(sourceTE instanceof InventoryNodeTile))
@@ -187,6 +202,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return sourceitemHandler;
     }
 
+    /**
+     * Go through each of the extractorNodes and extract a single item based on the extractorCards they have. Send to an appropriate inserter.
+     */
     public void handleExtractors() {
         boolean successfullySent = false;
         if (inserterNodes.size() == 0) return; //If theres nowhere to put items, nope out!
@@ -234,6 +252,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    /**
+     * If a @param stack attempts to insert into an already full inventory, we need to re-route it. From the position it failed to insert to (@param lostAt) try to send it to another
+     * Valid inserter
+     *
+     * @return the remains of the itemstack that could not be inserted anywhere else in the network
+     */
     public ItemStack handleLostStack(ItemStack stack, BlockPos lostAt) {
         for (BlockPos toPos : inserterNodes) { //Start looping through the inserters
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
@@ -258,6 +282,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
 
+    /**
+     * Send a @param itemStack from @param fromPos to @param toPos, scheduling each step along the way for particle rendering purposes
+     *
+     * @return if this was successful
+     */
     public boolean transferItemStack(BlockPos fromPos, BlockPos toPos, ItemStack itemStack) {
         ticksPerBlock = 4;
         TileEntity te = world.getTileEntity(fromPos);
@@ -288,6 +317,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return true;
     }
 
+    /**
+     * Handle all scheduled tasks due at the current gametime.
+     * TODO Deal with gametime being in the past (Unloaded chunks situation)
+     */
     public void handleTasks() {
         long gameTime = world.getGameTime();
         Set<ControllerTask> tasksThisTick = taskList.get(gameTime);
@@ -298,6 +331,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         taskList.removeAll(gameTime);
     }
 
+    /**
+     * Given a @param task, execute whatever that task is. See the ControllerTask class.
+     */
     public void executeTask(ControllerTask task) {
         //System.out.println(task.taskType + ": " + task.fromPos + "->" + task.toPos + ": " + task.itemStack);
         if (task.isParticle()) {
@@ -313,12 +349,20 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    /**
+     * Called by ExecuteTask - spawn particles from one node to another for transit
+     */
     public void doParticles(ControllerTask task) {
         ItemFlowParticleData data = new ItemFlowParticleData(task.itemStack, task.toPos.getX() + 0.5, task.toPos.getY() + 0.5, task.toPos.getZ() + 0.5, ticksPerBlock);
         ServerWorld serverWorld = (ServerWorld) world;
         serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 8, 0.1f, 0.1f, 0.1f, 0);
     }
 
+    /**
+     * Called by ExecuteTask - attempt to insert an item into the destination inventory.
+     *
+     * @return the remains of the itemstack (Anything that failed to insert)
+     */
     public ItemStack doInsert(ControllerTask task) {
         IItemHandler destitemHandler = getAttachedInventory(task.toPos);
         if (destitemHandler == null) return task.itemStack;
