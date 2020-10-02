@@ -42,6 +42,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,6 +57,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> inserterNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
+    private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>();
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -67,17 +69,34 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         this.energy = LazyOptional.of(() -> this.energyStorage);
     }
 
+    public void addToFilterCache(BlockPos pos, ItemStack itemStack) {
+        ArrayList<ItemStack> tempArray = filterCardCache.getOrDefault(pos, new ArrayList<>());
+        tempArray.add(itemStack);
+        filterCardCache.put(pos, tempArray);
+    }
+
+    public void refreshAllInvNodes() {
+        System.out.println("Scanning all inventory nodes");
+        for (BlockPos pos : inventoryNodes) {
+            checkInvNode(pos);
+        }
+    }
+
     public void checkInvNode(BlockPos pos) {
         InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
         extractorNodes.remove(pos);
         inserterNodes.remove(pos);
+        filterCardCache.remove(pos);
         if (!te.hasController()) return;
 
         ItemStackHandler handler = te.getInventoryStacks();
         for (int i = 0; i < handler.getSlots(); i++) {
-            if (handler.getStackInSlot(i).getItem() instanceof CardExtractor)
+            ItemStack stack = handler.getStackInSlot(i);
+            if (stack.isEmpty()) continue;
+            addToFilterCache(pos, stack);
+            if (stack.getItem() instanceof CardExtractor)
                 extractorNodes.add(pos);
-            if (handler.getStackInSlot(i).getItem() instanceof CardInserter)
+            if (stack.getItem() instanceof CardInserter)
                 inserterNodes.add(pos);
         }
     }
@@ -168,11 +187,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
             if (sourceitemHandler == null) continue; //If its empty, move onto the next extractor
 
-            InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(fromPos);
-            ArrayList<ItemStack> extractCards = sourceTE.getCards(BaseCard.CardType.EXTRACT);
-
-            for (ItemStack extractCard : extractCards) {
+            for (ItemStack extractCard : filterCardCache.get(fromPos)) {
                 if (successfullySent) break;
+                if (!(extractCard.getItem() instanceof CardExtractor)) continue;
                 Set<Item> filteredItems = BaseCard.getFilteredItems(extractCard);
                 for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                     if (successfullySent) break;
@@ -314,6 +331,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //Server Only
         if (!world.isRemote) {
             energyStorage.receiveEnergy(1000, false); //Testing
+            if (inventoryNodes.size() > 0 && (extractorNodes.isEmpty() && inserterNodes.isEmpty()))
+                refreshAllInvNodes();
             handleExtractors();
             handleTasks();
         }
@@ -363,7 +382,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             inventoryNodes.add(blockPos);
         }
 
-        extractorNodes.clear();
+        /*extractorNodes.clear();
         ListNBT extractorNodes = tag.getList("extractorNodes", Constants.NBT.TAG_COMPOUND);
         for (int i = 0; i < extractorNodes.size(); i++) {
             BlockPos blockPos = NBTUtil.readBlockPos(extractorNodes.getCompound(i).getCompound("pos"));
@@ -375,7 +394,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         for (int i = 0; i < inserterNodes.size(); i++) {
             BlockPos blockPos = NBTUtil.readBlockPos(inserterNodes.getCompound(i).getCompound("pos"));
             this.inserterNodes.add(blockPos);
-        }
+        }*/
     }
 
     @Override
@@ -397,7 +416,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         tag.put("invnodes", invnodes);
 
-        ListNBT extractorNodes = new ListNBT();
+        /*ListNBT extractorNodes = new ListNBT();
         for (BlockPos blockPos : this.extractorNodes) {
             CompoundNBT comp = new CompoundNBT();
             comp.put("pos", NBTUtil.writeBlockPos(blockPos));
@@ -411,7 +430,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             comp.put("pos", NBTUtil.writeBlockPos(blockPos));
             inserterNodes.add(comp);
         }
-        tag.put("inserterNodes", inserterNodes);
+        tag.put("inserterNodes", inserterNodes);*/
         return super.write(tag);
     }
 
