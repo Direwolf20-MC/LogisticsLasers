@@ -94,6 +94,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         extractorNodes.remove(pos);
         inserterNodes.remove(pos);
         filterCardCache.remove(pos);
+        removeBlockPosFromPriorities(pos);
         if (!te.hasController()) return;
 
         ItemStackHandler handler = te.getInventoryStacks();
@@ -105,6 +106,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 extractorNodes.add(pos);
             if (stack.getItem() instanceof CardInserter)
                 inserterNodes.add(pos);
+        }
+    }
+
+    public void removeBlockPosFromPriorities(BlockPos pos) {
+        for (Map.Entry<Integer, Set<BlockPos>> priorityMap : insertPriorities.entrySet()) {
+            priorityMap.getValue().remove(pos);
         }
     }
 
@@ -151,6 +158,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (inv) {
             extractorNodes.remove(pos);
             inserterNodes.remove(pos);
+            filterCardCache.remove(pos);
         }
         boolean all = removeFromAllNodes(pos);
         return (inv && all);
@@ -213,9 +221,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public ArrayList<ItemStack> getInsertFilters(BlockPos pos) {
-        ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
-        tempList.removeIf(s -> !(s.getItem() instanceof CardInserter));
-        return tempList;
+        if (filterCardCache.containsKey(pos)) {
+            ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
+            tempList.removeIf(s -> !(s.getItem() instanceof CardInserter));
+            return tempList;
+        }
+        return new ArrayList<ItemStack>();
     }
 
     /**
@@ -244,22 +255,30 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found
 
-                    for (BlockPos toPos : inserterNodes) { //If we found an item to transfer, start looping through the inserters
-                        if (toPos.equals(fromPos)) continue; //No sending to yourself!
-                        IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
-                        if (destitemHandler == null) continue; //If its empty, move onto the next inserter
+                    for (int priority : insertPriorities.keySet()) {
+                        if (successfullySent) break;
+                        for (BlockPos toPos : insertPriorities.get(priority)) { //If we found an item to transfer, start looping through the inserters
+                            if (successfullySent) break;
+                            if (toPos.equals(fromPos)) continue; //No sending to yourself!
+                            for (ItemStack insertCard : getInsertFilters(toPos)) {
+                                Set<Item> filteredInsertItems = BaseCard.getFilteredItems(insertCard);
+                                if (!filteredInsertItems.contains(stack.getItem())) continue;
+                                IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+                                if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
-                        ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
-                        if (simulated.equals(stack))
-                            continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
+                                ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
+                                if (simulated.equals(stack))
+                                    continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
 
-                        int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
-                        ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
-                        successfullySent = transferItemStack(fromPos, toPos, extractedStack);
-                        if (!successfullySent) { //Attempt to send items
-                            ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
-                        } else {
-                            break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
+                                int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
+                                ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
+                                successfullySent = transferItemStack(fromPos, toPos, extractedStack);
+                                if (!successfullySent) { //Attempt to send items
+                                    ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                                } else {
+                                    break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
+                                }
+                            }
                         }
                     }
                 }
