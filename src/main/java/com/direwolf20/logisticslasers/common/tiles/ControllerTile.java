@@ -41,10 +41,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ControllerTile extends NodeTileBase implements ITickableTileEntity, INamedContainerProvider {
 
@@ -58,11 +55,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> allNodes = new HashSet<>();
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
 
-    //Non-Persistent data
+    //Non-Persistent data (Generated if empty)
     private final Set<BlockPos> extractorNodes = new HashSet<>(); //All Inventory nodes that contain an extractor card.
     private final Set<BlockPos> inserterNodes = new HashSet<>(); //All Inventory nodes that contain an inserter card
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
-
+    private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder());
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -116,6 +113,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ArrayList<ItemStack> tempArray = filterCardCache.getOrDefault(pos, new ArrayList<>());
         tempArray.add(itemStack);
         filterCardCache.put(pos, tempArray);
+        if (!(itemStack.getItem() instanceof CardInserter)) return;
+
+        //If Inserter - add to the insertPriorities
+        int priority = BaseCard.getPriority(itemStack);
+        Set<BlockPos> tempSet = insertPriorities.getOrDefault(priority, new HashSet<>());
+        tempSet.add(pos);
+        insertPriorities.put(priority, tempSet);
     }
 
     public Set<BlockPos> getInventoryNodes() {
@@ -202,6 +206,18 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return sourceitemHandler;
     }
 
+    public ArrayList<ItemStack> getExtractFilters(BlockPos pos) {
+        ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
+        tempList.removeIf(s -> !(s.getItem() instanceof CardExtractor));
+        return tempList;
+    }
+
+    public ArrayList<ItemStack> getInsertFilters(BlockPos pos) {
+        ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
+        tempList.removeIf(s -> !(s.getItem() instanceof CardInserter));
+        return tempList;
+    }
+
     /**
      * Go through each of the extractorNodes and extract a single item based on the extractorCards they have. Send to an appropriate inserter.
      */
@@ -213,9 +229,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
             if (sourceitemHandler == null) continue; //If its empty, move onto the next extractor
 
-            for (ItemStack extractCard : filterCardCache.get(fromPos)) {
+            for (ItemStack extractCard : getExtractFilters(fromPos)) {
                 if (successfullySent) break;
-                if (!(extractCard.getItem() instanceof CardExtractor)) continue;
                 Set<Item> filteredItems = BaseCard.getFilteredItems(extractCard);
                 for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                     if (successfullySent) break;
