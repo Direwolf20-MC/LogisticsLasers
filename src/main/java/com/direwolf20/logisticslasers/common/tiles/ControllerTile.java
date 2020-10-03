@@ -320,7 +320,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack that could not be inserted anywhere else in the network
      */
     public ItemStack handleLostStack(ItemStack stack, BlockPos lostAt) {
-        for (BlockPos toPos : inserterNodes) { //Start looping through the inserters
+        for (BlockPos toPos : findDestinationForItemstack(stack, lostAt)) { //Start looping through the inserters
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
             if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
