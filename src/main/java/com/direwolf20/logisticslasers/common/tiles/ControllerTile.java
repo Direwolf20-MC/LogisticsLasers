@@ -11,6 +11,7 @@ import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import javafx.util.Pair;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -229,6 +230,28 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return new ArrayList<ItemStack>();
     }
 
+    public Pair<BlockPos, Integer> findDestinationForItemstack(ItemStack itemStack, BlockPos fromPos) {
+        for (int priority : insertPriorities.keySet()) {
+            for (BlockPos toPos : insertPriorities.get(priority)) { //If we found an item to transfer, start looping through the inserters
+                if (toPos.equals(fromPos)) continue; //No sending to yourself!
+                for (ItemStack insertCard : getInsertFilters(toPos)) { //Loop through all the cached insertCards
+                    Set<Item> filteredInsertItems = BaseCard.getFilteredItems(insertCard); //Get the list of items this card allows
+                    if (!filteredInsertItems.contains(itemStack.getItem()))
+                        continue; //Move onto the next card if this card doesn't accept this item
+                    IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+                    if (destitemHandler == null) continue; //If its empty, move onto the next inserter
+
+                    ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, itemStack, true); //Pretend to insert it into the target inventory
+                    if (!simulated.equals(itemStack)) {
+                        int count = itemStack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
+                        return new Pair<BlockPos, Integer>(toPos, count); //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
+                    }
+                }
+            }
+        }
+        return new Pair<BlockPos, Integer>(BlockPos.ZERO, 0);
+    }
+
     /**
      * Go through each of the extractorNodes and extract a single item based on the extractorCards they have. Send to an appropriate inserter.
      */
@@ -254,33 +277,19 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
                     int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found
+                    Pair<BlockPos, Integer> toPos = findDestinationForItemstack(stack, fromPos);
+                    if (toPos.getKey().equals(BlockPos.ZERO))
+                        continue;
 
-                    for (int priority : insertPriorities.keySet()) {
-                        if (successfullySent) break;
-                        for (BlockPos toPos : insertPriorities.get(priority)) { //If we found an item to transfer, start looping through the inserters
-                            if (successfullySent) break;
-                            if (toPos.equals(fromPos)) continue; //No sending to yourself!
-                            for (ItemStack insertCard : getInsertFilters(toPos)) {
-                                Set<Item> filteredInsertItems = BaseCard.getFilteredItems(insertCard);
-                                if (!filteredInsertItems.contains(stack.getItem())) continue;
-                                IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
-                                if (destitemHandler == null) continue; //If its empty, move onto the next inserter
-
-                                ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
-                                if (simulated.equals(stack))
-                                    continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
-
-                                int count = stack.getCount() - simulated.getCount(); //If we had a full stack of 64 items, but only 32 fit into the chest, get the appropriate amount
-                                ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
-                                successfullySent = transferItemStack(fromPos, toPos, extractedStack);
-                                if (!successfullySent) { //Attempt to send items
-                                    ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
-                                } else {
-                                    break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
-                                }
-                            }
-                        }
+                    ItemStack extractedStack = sourceitemHandler.extractItem(i, toPos.getValue(), false); //Actually remove the items this time
+                    successfullySent = transferItemStack(fromPos, toPos.getKey(), extractedStack);
+                    if (!successfullySent) { //Attempt to send items
+                        ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                    } else {
+                        break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
                     }
+
+
                 }
             }
         }
