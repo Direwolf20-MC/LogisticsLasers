@@ -72,6 +72,7 @@ public abstract class BaseCard extends Item {
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
                 (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, tempArray), new StringTextComponent("")), (buf -> {
             buf.writeBoolean(showPriority);
+            buf.writeBoolean(getWhiteList(itemStack));
         }));
         return new ActionResult<>(ActionResultType.PASS, itemStack);
     }
@@ -107,5 +108,15 @@ public abstract class BaseCard extends Item {
     public static int getPriority(ItemStack card) {
         CompoundNBT compound = card.getOrCreateTag();
         return !compound.contains("priority") ? setPriority(card, 0) : compound.getInt("priority");
+    }
+
+    public static boolean setWhiteList(ItemStack card, boolean whitelist) {
+        card.getOrCreateTag().putBoolean("whitelist", whitelist);
+        return whitelist;
+    }
+
+    public static boolean getWhiteList(ItemStack card) {
+        CompoundNBT compound = card.getOrCreateTag();
+        return !compound.contains("whitelist") ? setWhiteList(card, true) : compound.getBoolean("whitelist");
     }
 }

@@ -251,8 +251,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 if (toPos.equals(fromPos)) continue; //No sending to yourself!
                 for (ItemStack insertCard : getInsertFilters(toPos)) { //Loop through all the cached insertCards
                     Set<Item> filteredInsertItems = BaseCard.getFilteredItems(insertCard); //Get the list of items this card allows
-                    if (!filteredInsertItems.contains(itemStack.getItem()))
-                        continue; //Move onto the next card if this card doesn't accept this item
+                    if (BaseCard.getWhiteList(insertCard)) {
+                        if (!filteredInsertItems.contains(itemStack.getItem()))
+                            continue; //Move onto the next card if this card doesn't accept this item
+                    } else {
+                        if (filteredInsertItems.contains(itemStack.getItem()))
+                            continue; //Move onto the next card if this card doesn't accept this item
+                    }
                     tempArray.add(toPos);
 
                 }
@@ -282,8 +287,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (stackInSlot.isEmpty())
                         continue; //If the slot is empty, move onto the next slot
 
-                    if (!filteredItems.contains(stackInSlot.getItem()))
-                        continue;
+                    if (BaseCard.getWhiteList(extractCard)) {
+                        if (!filteredItems.contains(stackInSlot.getItem()))
+                            continue;
+                    } else {
+                        if (filteredItems.contains(stackInSlot.getItem()))
+                            continue;
+                    }
 
                     int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found

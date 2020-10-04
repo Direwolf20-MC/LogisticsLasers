@@ -25,6 +25,7 @@ public class BasicFilterContainer extends Container {
     public BlockPos sourceContainer = BlockPos.ZERO;
     public IIntArray data;
     public boolean showPriority;
+    public boolean isWhiteList;
 
     // ItemStack can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
@@ -32,6 +33,7 @@ public class BasicFilterContainer extends Container {
     public BasicFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
         this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(2));
         showPriority = extraData.getBoolean(0);
+        isWhiteList = extraData.getBoolean((1));
     }
 
     public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {

@@ -19,6 +19,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import java.util.function.Supplier;
 
 import static com.direwolf20.logisticslasers.common.items.logiccards.BaseCard.getInventory;
+import static com.direwolf20.logisticslasers.common.items.logiccards.BaseCard.getWhiteList;
 
 public class PacketOpenFilter {
     private int slotNumber;
@@ -79,6 +80,7 @@ public class PacketOpenFilter {
                 NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
                         (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
                     buf.writeBoolean(showPriority);
+                    buf.writeBoolean(getWhiteList(itemStack));
                 }));
             });
 

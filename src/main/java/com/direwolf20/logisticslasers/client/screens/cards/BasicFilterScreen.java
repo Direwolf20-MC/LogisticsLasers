@@ -1,11 +1,13 @@
 package com.direwolf20.logisticslasers.client.screens.cards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
+import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
 import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
+import com.direwolf20.logisticslasers.common.network.packets.PacketToggleWhitelist;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -28,10 +30,12 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/basicfilterscreen.png");
 
     protected final BasicFilterContainer container;
+    private boolean isWhitelist;
 
     public BasicFilterScreen(BasicFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
         this.container = container;
+        isWhitelist = container.isWhiteList;
     }
 
     public ResourceLocation getBackground() {
@@ -49,18 +53,25 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
     public void init() {
         super.init();
 
-        if (!container.showPriority) return;
-
         List<Widget> leftWidgets = new ArrayList<>();
+        WhiteListButton blackwhitelist;
+        leftWidgets.add(blackwhitelist = new WhiteListButton(guiLeft + 10, guiTop + 40, 20, 20, isWhitelist, (button) -> {
+            isWhitelist = !isWhitelist;
+            ((WhiteListButton) button).setWhitelist(isWhitelist);
+            PacketHandler.sendToServer(new PacketToggleWhitelist());
+        }));
 
-        Button plusPriority;
-        leftWidgets.add(plusPriority = new Button(guiLeft + 25, guiTop + 25, 15, 10, new StringTextComponent("+"), (button) -> {
-            PacketHandler.sendToServer(new PacketChangePriority(1));
-        }));
-        Button minusPriority;
-        leftWidgets.add(minusPriority = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("-"), (button) -> {
-            PacketHandler.sendToServer(new PacketChangePriority(-1));
-        }));
+
+        if (container.showPriority) {
+            Button plusPriority;
+            leftWidgets.add(plusPriority = new Button(guiLeft + 30, guiTop + 25, 15, 10, new StringTextComponent("+"), (button) -> {
+                PacketHandler.sendToServer(new PacketChangePriority(1));
+            }));
+            Button minusPriority;
+            leftWidgets.add(minusPriority = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("-"), (button) -> {
+                PacketHandler.sendToServer(new PacketChangePriority(-1));
+            }));
+        }
 
         // Lay the buttons out, too lazy to figure out the math every damn time.
         // Ordered by where you add them.
