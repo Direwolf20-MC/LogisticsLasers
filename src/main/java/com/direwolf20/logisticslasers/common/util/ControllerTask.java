@@ -11,6 +11,8 @@ public class ControllerTask {
     public BlockPos toPos;
     public TaskType taskType;
     public ItemStack itemStack;
+    public UUID parentGUID;
+    public boolean isCancelled;
 
     public enum TaskType {
         PARTICLE,
@@ -18,12 +20,17 @@ public class ControllerTask {
         INSERT
     }
 
-    public ControllerTask(BlockPos from, BlockPos to, TaskType type, ItemStack stack) {
+    public ControllerTask(BlockPos from, BlockPos to, TaskType type, ItemStack stack, UUID parentGUID) {
         this.guid = UUID.randomUUID();
         this.fromPos = from;
         this.toPos = to;
         this.taskType = type;
         this.itemStack = stack;
+        this.parentGUID = parentGUID;
+    }
+
+    public void cancel() {
+        this.isCancelled = true;
     }
 
     public boolean isParticle() {

@@ -369,14 +369,15 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         long tempGameTime = world.getGameTime() + 1;
         ControllerTask task;
+        UUID parentGuid = UUID.randomUUID();
         for (int r = 0; r < route.size(); r++) {
             if (r == route.size() - 1) {
-                task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, itemStack);
+                task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, itemStack, parentGuid);
                 taskList.put(tempGameTime, task);
             } else {
                 BlockPos from = route.get(r);
                 BlockPos to = route.get(r + 1);
-                task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, itemStack);
+                task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, itemStack, parentGuid);
                 taskList.put(tempGameTime, task);
                 Vector3d fromVec = new Vector3d(from.getX(), from.getY(), from.getZ());
                 Vector3d toVec = new Vector3d(to.getX(), to.getY(), to.getZ());
@@ -397,7 +398,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         Set<ControllerTask> tasksThisTick = taskList.get(gameTime);
 
         for (ControllerTask task : tasksThisTick) {
-            executeTask(task);
+            if (!task.isCancelled)
+                executeTask(task);
         }
         taskList.removeAll(gameTime);
     }
@@ -408,7 +410,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public void executeTask(ControllerTask task) {
         //System.out.println(task.taskType + ": " + task.fromPos + "->" + task.toPos + ": " + task.itemStack);
         if (task.isParticle()) {
-            doParticles(task);
+            ItemStack remainingStack = doParticles(task);
+            if (!remainingStack.isEmpty()) {
+                cancelTask(task.parentGUID);
+                Block.spawnAsEntity(world, task.fromPos, remainingStack); //TODO Implement storing in the controller
+            }
         } else if (task.isInsert()) {
             ItemStack remainingStack = doInsert(task);
             if (!remainingStack.isEmpty()) {
@@ -423,10 +429,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     /**
      * Called by ExecuteTask - spawn particles from one node to another for transit
      */
-    public void doParticles(ControllerTask task) {
+    public ItemStack doParticles(ControllerTask task) {
+        TileEntity fromTE = world.getTileEntity(task.fromPos);
+        TileEntity toTE = world.getTileEntity(task.toPos);
+        if (!(fromTE instanceof NodeTileBase) || !(toTE instanceof NodeTileBase)) {
+            return task.itemStack;
+        }
         ItemFlowParticleData data = new ItemFlowParticleData(task.itemStack, task.toPos.getX() + 0.5, task.toPos.getY() + 0.5, task.toPos.getZ() + 0.5, ticksPerBlock);
         ServerWorld serverWorld = (ServerWorld) world;
         serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 8, 0.1f, 0.1f, 0.1f, 0);
+        return ItemStack.EMPTY;
     }
 
     /**
@@ -442,6 +454,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ItemStack stack = task.itemStack;
         ItemStack postInsertStack = ItemHandlerHelper.insertItem(destitemHandler, stack, false);
         return postInsertStack;
+    }
+
+    public void cancelTask(UUID parentGUID) {
+        for (long gameTime : taskList.keySet()) {
+            Set<ControllerTask> tasks = taskList.get(gameTime);
+            for (ControllerTask task : tasks) {
+                if (task.parentGUID == parentGUID)
+                    task.cancel();
+            }
+        }
     }
 
 
