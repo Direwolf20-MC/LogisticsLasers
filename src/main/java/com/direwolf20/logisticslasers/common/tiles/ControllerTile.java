@@ -435,6 +435,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack (Anything that failed to insert)
      */
     public ItemStack doInsert(ControllerTask task) {
+        if (!findDestinationForItemstack(task.itemStack, task.fromPos).contains(task.toPos)) return task.itemStack;
         IItemHandler destitemHandler = getAttachedInventory(task.toPos);
         if (destitemHandler == null) return task.itemStack;
 
