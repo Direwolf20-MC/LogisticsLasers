@@ -402,55 +402,55 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      */
     public void handleStockers() {
         if (providerNodes.size() == 0) return; //If theres nowhere to get items from, nope out!
-        for (BlockPos fromPos : stockerNodes) { //Loop through all the extractors!
+        for (BlockPos stockerPos : stockerNodes) { //Loop through all the stocker cards!
             boolean successfullySent = false;
-            IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
-            if (sourceitemHandler == null) continue; //If its empty, move onto the next stocker
+            IItemHandler stockerItemHandler = getAttachedInventory(stockerPos); //Get the inventory handler of the block the stocker's inventory node is facing
+            if (stockerItemHandler == null) continue; //If its empty, move onto the next stocker
 
-            for (ItemStack stockerCard : getStockerFilters(fromPos)) {
-                if (successfullySent) break;
-                Set<Item> filteredItems = BaseCard.getFilteredItems(stockerCard);
+            for (ItemStack stockerCard : getStockerFilters(stockerPos)) { //Find all stocker cards in this node
+                if (successfullySent) break; //If this node already requested an item this tick, cancel out
+                Set<Item> filteredItems = BaseCard.getFilteredItems(stockerCard); //Get all the items we should be requesting
                 for (Item item : filteredItems) { //Loop through each itemstack in the requested set of items
-                    int countOfItem = 0;
+                    ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item), stockerPos); //Find a list of possible Providers TODO: Proper Itemstack
+                    if (possibleProviders.isEmpty()) continue;
+                    int countOfItem = 0; //How many are currently in the inventory
                     int desiredAmt = 10; //ToDo filter based
-                    for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
-                        ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
+                    for (int i = 0; i < stockerItemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
+                        ItemStack stackInSlot = stockerItemHandler.getStackInSlot(i);
                         if (stackInSlot.isEmpty())
                             continue; //If the slot is empty, move onto the next slot
                         if (!stackInSlot.getItem().equals(item))
                             continue; //Don't count different items, duh!
                         countOfItem += stackInSlot.getCount();
                         if (countOfItem >= desiredAmt)
-                            break; //We're done if we found enough of the item
+                            break; //We're done going through the chest if we found enough of the item
                     }
 
                     if (countOfItem >= desiredAmt)
-                        break; //We're done if we found enough of the item
+                        break; //We're done checking for this item if we found enough of the item
 
-                    countOfItem += countItemsInFlight(item, fromPos);
+                    countOfItem += countItemsInFlight(item, stockerPos); //Count the items in flight to this destination
 
                     if (countOfItem >= desiredAmt)
-                        break; //We're done if we found enough of the item
+                        break; ///We're done checking for this item if we found enough of the item including items in flight
 
                     int extractAmt = desiredAmt - countOfItem;
                     ItemStack stack = new ItemStack(item, extractAmt); //Create an item stack
-                    ArrayList<BlockPos> possibleDestinations = findProviderForItemstack(stack, fromPos); //Find a list of possible Providers
-                    if (possibleDestinations.isEmpty()) continue;
-                    for (BlockPos toPos : possibleDestinations) { //Loop through all possible Providers
-                        IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
-                        if (destitemHandler == null) continue; //If its empty, move onto the next inserter
+                    for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
+                        IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
+                        if (providerItemHandler == null) continue; //If its empty, move onto the next provider
 
-                        ItemStack simulated = ItemHandlerUtil.extractItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
+                        ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack, true); //Pretend to extract the stack from the provider's inventory
 
                         if (simulated.getCount() == 0) {
                             continue; //If the stack we removed has zero items in it
                         }
                         int count = simulated.getCount(); //How many items were successfully removed from the inventory
                         stack.setCount(count);
-                        ItemStack extractedStack = ItemHandlerUtil.extractItem(destitemHandler, stack, false); //Actually remove the items this time
-                        successfullySent = transferItemStack(toPos, fromPos, extractedStack);
+                        ItemStack extractedStack = ItemHandlerUtil.extractItem(providerItemHandler, stack, false); //Actually remove the items this time
+                        successfullySent = transferItemStack(providerPos, stockerPos, extractedStack);
                         if (!successfullySent) { //Attempt to send items
-                            ItemHandlerHelper.insertItem(destitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                            ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
                         } else {
                             break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
                         }
@@ -577,7 +577,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 count += parentTask.itemStack.getCount();
             }
         }
-        System.out.println("Found " + count + " " + item + " in flight to " + toPos);
         return count;
     }
 
