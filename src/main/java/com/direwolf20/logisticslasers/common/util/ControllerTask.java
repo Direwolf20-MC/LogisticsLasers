@@ -3,6 +3,7 @@ package com.direwolf20.logisticslasers.common.util;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class ControllerTask {
@@ -20,7 +21,7 @@ public class ControllerTask {
         INSERT
     }
 
-    public ControllerTask(BlockPos from, BlockPos to, TaskType type, ItemStack stack, UUID parentGUID) {
+    public ControllerTask(BlockPos from, BlockPos to, TaskType type, ItemStack stack, @Nullable UUID parentGUID) {
         this.guid = UUID.randomUUID();
         this.fromPos = from;
         this.toPos = to;

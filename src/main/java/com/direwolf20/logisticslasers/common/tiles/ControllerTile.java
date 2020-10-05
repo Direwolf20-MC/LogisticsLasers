@@ -53,6 +53,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
+    private final HashMap<ControllerTask, ArrayList<ControllerTask>> parentTaskMap = new HashMap<>();
 
     //Non-Persistent data (Generated if empty)
     private final Set<BlockPos> extractorNodes = new HashSet<>(); //All Inventory nodes that contain an extractor card.
@@ -426,6 +427,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (countOfItem >= desiredAmt)
                         break; //We're done if we found enough of the item
 
+                    countOfItem += countItemsInFlight(item, fromPos);
+
+                    if (countOfItem >= desiredAmt)
+                        break; //We're done if we found enough of the item
+
                     int extractAmt = desiredAmt - countOfItem;
                     ItemStack stack = new ItemStack(item, extractAmt); //Create an item stack
                     ArrayList<BlockPos> possibleDestinations = findProviderForItemstack(stack, fromPos); //Find a list of possible Providers
@@ -501,16 +507,20 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         long tempGameTime = world.getGameTime() + 1;
         ControllerTask task;
-        UUID parentGuid = UUID.randomUUID();
+        ControllerTask parentTask = new ControllerTask(fromPos, toPos, ControllerTask.TaskType.INSERT, itemStack, null);
+        UUID parentGuid = parentTask.guid;
+        ArrayList<ControllerTask> taskArrayList = new ArrayList<>();
         for (int r = 0; r < route.size(); r++) {
             if (r == route.size() - 1) {
                 task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, itemStack, parentGuid);
                 taskList.put(tempGameTime, task);
+                taskArrayList.add(task);
             } else {
                 BlockPos from = route.get(r);
                 BlockPos to = route.get(r + 1);
                 task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, itemStack, parentGuid);
                 taskList.put(tempGameTime, task);
+                taskArrayList.add(task);
                 Vector3d fromVec = new Vector3d(from.getX(), from.getY(), from.getZ());
                 Vector3d toVec = new Vector3d(to.getX(), to.getY(), to.getZ());
                 double distance = fromVec.distanceTo(toVec);
@@ -518,6 +528,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 tempGameTime += duration;
             }
         }
+        parentTaskMap.put(parentTask, taskArrayList);
         return true;
     }
 
@@ -532,8 +543,42 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         for (ControllerTask task : tasksThisTick) {
             if (!task.isCancelled)
                 executeTask(task);
+            ControllerTask parentTask = findParentTaskByGUID(task.parentGUID);
+            if (parentTask == null) {
+                System.out.println("Something weird happened");
+            } else {
+                ArrayList<ControllerTask> taskArrayList = parentTaskMap.get(parentTask);
+                taskArrayList.remove(task);
+                if (taskArrayList.isEmpty())
+                    parentTaskMap.remove(parentTask);
+                else
+                    parentTaskMap.put(parentTask, taskArrayList);
+            }
         }
         taskList.removeAll(gameTime);
+    }
+
+    /**
+     * Given the @param guid of a task, find it in the parentTaskList and @return the task associated with it
+     */
+    public ControllerTask findParentTaskByGUID(UUID guid) {
+        for (ControllerTask parentTask : parentTaskMap.keySet()) {
+            if (parentTask.guid == guid) {
+                return parentTask;
+            }
+        }
+        return null;
+    }
+
+    public int countItemsInFlight(Item item, BlockPos toPos) {
+        int count = 0;
+        for (ControllerTask parentTask : parentTaskMap.keySet()) {
+            if (parentTask.itemStack.getItem().equals(item) && parentTask.toPos.equals(toPos)) {
+                count += parentTask.itemStack.getCount();
+            }
+        }
+        System.out.println("Found " + count + " " + item + " in flight to " + toPos);
+        return count;
     }
 
     /**
