@@ -20,6 +20,8 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(ModItems.WRENCH, "Laser Wrench");
         addItem(ModItems.CARD_EXTRACTOR, "Extractor Module");
         addItem(ModItems.CARD_INSERTER, "Inserter Module");
+        addItem(ModItems.CARD_STOCKER, "Stocker Module");
+        addItem(ModItems.CARD_PROVIDER, "Provider Module");
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
         add("item.logisticslasers.basicfilterscreen", "Basic Filter");

@@ -31,6 +31,8 @@ public abstract class BaseCard extends Item {
     public enum CardType {
         EXTRACT,
         INSERT,
+        PROVIDE,
+        STOCK,
         CRAFT
     }
 

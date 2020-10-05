@@ -8,6 +8,8 @@
   "item.logisticslasers.basicfilterscreen.priority": "Priority: %d",
   "item.logisticslasers.card_extractor": "Extractor Module",
   "item.logisticslasers.card_inserter": "Inserter Module",
+  "item.logisticslasers.card_provider": "Provider Module",
+  "item.logisticslasers.card_stocker": "Stocker Module",
   "item.logisticslasers.wrench": "Laser Wrench",
   "message.logisticslasers.connectionfailed": "Connection failed to: %d",
   "message.logisticslasers.connectionmade": "Connection made to: %d",

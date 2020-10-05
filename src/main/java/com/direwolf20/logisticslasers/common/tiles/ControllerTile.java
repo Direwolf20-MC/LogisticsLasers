@@ -4,11 +4,10 @@ import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowPart
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardExtractor;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
+import com.direwolf20.logisticslasers.common.items.logiccards.*;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
+import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import net.minecraft.block.Block;
@@ -58,9 +57,14 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     //Non-Persistent data (Generated if empty)
     private final Set<BlockPos> extractorNodes = new HashSet<>(); //All Inventory nodes that contain an extractor card.
     private final Set<BlockPos> inserterNodes = new HashSet<>(); //All Inventory nodes that contain an inserter card
+    private final Set<BlockPos> providerNodes = new HashSet<>(); //All Inventory nodes that contain an provider card
+    private final Set<BlockPos> stockerNodes = new HashSet<>(); //All Inventory nodes that contain an stocker card
+
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
-    private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder());
-    private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>();
+
+    private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder()); //A sorted list of inserter cards by priority
+    private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
+    private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -79,7 +83,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         System.out.println("Scanning all inventory nodes");
         extractorNodes.clear();
         inserterNodes.clear();
+        providerNodes.clear();
+        stockerNodes.clear();
+
         filterCardCache.clear();
+        inserterCache.clear();
+        providerCache.clear();
         for (BlockPos pos : inventoryNodes) {
             checkInvNode(pos);
         }
@@ -94,6 +103,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
         extractorNodes.remove(pos);
         inserterNodes.remove(pos);
+        providerNodes.remove(pos);
+        stockerNodes.remove(pos);
+
         filterCardCache.remove(pos);
         removeBlockPosFromPriorities(pos);
         if (!te.hasController()) return;
@@ -109,6 +121,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 inserterNodes.add(pos);
                 inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
             }
+            if (stack.getItem() instanceof CardProvider) {
+                providerNodes.add(pos);
+                providerCache.clear(); //Any change to inserter cards will affect the inserter cache
+            }
+            if (stack.getItem() instanceof CardStocker)
+                stockerNodes.add(pos);
         }
     }
 
@@ -161,9 +179,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (inv) {
             extractorNodes.remove(pos);
             inserterNodes.remove(pos);
+            providerNodes.remove(pos);
+            stockerNodes.remove(pos);
+
             filterCardCache.remove(pos);
-            System.out.println("Clearing Inserter Cache");
             inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
+            providerCache.clear(); //Any chance to provider cards will affect the provider cache
         }
         boolean all = removeFromAllNodes(pos);
         return (inv && all);
@@ -208,6 +229,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Get the item handler attached to an inventory node (Like an adjacent chest or furnace) at @param pos
+     *
      * @return the item handler
      */
     public IItemHandler getAttachedInventory(BlockPos pos) {
@@ -220,15 +242,36 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public ArrayList<ItemStack> getExtractFilters(BlockPos pos) {
-        ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
-        tempList.removeIf(s -> !(s.getItem() instanceof CardExtractor));
-        return tempList;
+        if (filterCardCache.containsKey(pos)) {
+            ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
+            tempList.removeIf(s -> !(s.getItem() instanceof CardExtractor));
+            return tempList;
+        }
+        return new ArrayList<>();
     }
 
     public ArrayList<ItemStack> getInsertFilters(BlockPos pos) {
         if (filterCardCache.containsKey(pos)) {
             ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
             tempList.removeIf(s -> !(s.getItem() instanceof CardInserter));
+            return tempList;
+        }
+        return new ArrayList<>();
+    }
+
+    public ArrayList<ItemStack> getProviderFilters(BlockPos pos) {
+        if (filterCardCache.containsKey(pos)) {
+            ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
+            tempList.removeIf(s -> !(s.getItem() instanceof CardProvider));
+            return tempList;
+        }
+        return new ArrayList<>();
+    }
+
+    public ArrayList<ItemStack> getStockerFilters(BlockPos pos) {
+        if (filterCardCache.containsKey(pos)) {
+            ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
+            tempList.removeIf(s -> !(s.getItem() instanceof CardStocker));
             return tempList;
         }
         return new ArrayList<>();
@@ -264,6 +307,37 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         inserterCache.put(itemStack.getItem(), tempArray);
         return inserterCache.get(itemStack.getItem());
+    }
+
+    /**
+     * Given an @param itemStack, find a valid provider either from an existing cache, or looping through all known providers.
+     * Excludes @param fromPos to ensure items are not extracted from the stocking chest
+     *
+     * @return a list of possible destinations
+     */
+    public ArrayList<BlockPos> findProviderForItemstack(ItemStack itemStack, BlockPos fromPos) {
+        if (providerCache.containsKey(itemStack.getItem()))
+            return providerCache.get(itemStack.getItem());
+        System.out.println("Building Provider Cache for: " + itemStack.getItem());
+        ArrayList<BlockPos> tempArray = new ArrayList<>();
+        //for (int priority : insertPriorities.keySet()) { //In case i decide to implement provider priorities
+        for (BlockPos toPos : providerNodes) { //Loop through all provider nodes
+            if (toPos.equals(fromPos)) continue; //No sending to yourself!
+            for (ItemStack providerCard : getProviderFilters(toPos)) { //Loop through all the cached providerCards
+                Set<Item> filteredInsertItems = BaseCard.getFilteredItems(providerCard); //Get the list of items this card allows
+                if (BaseCard.getWhiteList(providerCard)) {
+                    if (!filteredInsertItems.contains(itemStack.getItem()))
+                        continue; //Move onto the next card if this card doesn't accept this item
+                } else {
+                    if (filteredInsertItems.contains(itemStack.getItem()))
+                        continue; //Move onto the next card if this card doesn't accept this item
+                }
+                tempArray.add(toPos);
+            }
+        }
+        //}
+        providerCache.put(itemStack.getItem(), tempArray);
+        return providerCache.get(itemStack.getItem());
     }
 
     /**
@@ -317,6 +391,65 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         }
                     }
 
+                }
+            }
+        }
+    }
+
+    /**
+     * Go through each of the stockerNodes and find a provider offering the item - transfer it to this inventory if found.
+     */
+    public void handleStockers() {
+        if (providerNodes.size() == 0) return; //If theres nowhere to get items from, nope out!
+        for (BlockPos fromPos : stockerNodes) { //Loop through all the extractors!
+            boolean successfullySent = false;
+            IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
+            if (sourceitemHandler == null) continue; //If its empty, move onto the next stocker
+
+            for (ItemStack stockerCard : getStockerFilters(fromPos)) {
+                if (successfullySent) break;
+                Set<Item> filteredItems = BaseCard.getFilteredItems(stockerCard);
+                for (Item item : filteredItems) { //Loop through each itemstack in the requested set of items
+                    int countOfItem = 0;
+                    int desiredAmt = 10; //ToDo filter based
+                    for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
+                        ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
+                        if (stackInSlot.isEmpty())
+                            continue; //If the slot is empty, move onto the next slot
+                        if (!stackInSlot.getItem().equals(item))
+                            continue; //Don't count different items, duh!
+                        countOfItem += stackInSlot.getCount();
+                        if (countOfItem >= desiredAmt)
+                            break; //We're done if we found enough of the item
+                    }
+
+                    if (countOfItem >= desiredAmt)
+                        break; //We're done if we found enough of the item
+
+                    int extractAmt = desiredAmt - countOfItem;
+                    ItemStack stack = new ItemStack(item, extractAmt); //Create an item stack
+                    ArrayList<BlockPos> possibleDestinations = findProviderForItemstack(stack, fromPos); //Find a list of possible Providers
+                    if (possibleDestinations.isEmpty()) continue;
+                    for (BlockPos toPos : possibleDestinations) { //Loop through all possible Providers
+                        IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+                        if (destitemHandler == null) continue; //If its empty, move onto the next inserter
+
+                        ItemStack simulated = ItemHandlerUtil.extractItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
+
+                        if (simulated.getCount() == 0) {
+                            continue; //If the stack we removed has zero items in it
+                        }
+                        int count = simulated.getCount(); //How many items were successfully removed from the inventory
+                        stack.setCount(count);
+                        ItemStack extractedStack = ItemHandlerUtil.extractItem(destitemHandler, stack, false); //Actually remove the items this time
+                        successfullySent = transferItemStack(toPos, fromPos, extractedStack);
+                        if (!successfullySent) { //Attempt to send items
+                            ItemHandlerHelper.insertItem(destitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                        } else {
+                            break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
+                        }
+
+                    }
                 }
             }
         }
@@ -446,7 +579,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack (Anything that failed to insert)
      */
     public ItemStack doInsert(ControllerTask task) {
-        if (!findDestinationForItemstack(task.itemStack, task.fromPos).contains(task.toPos)) return task.itemStack;
+        if (!stockerNodes.contains(task.toPos)) {
+            if (!findDestinationForItemstack(task.itemStack, task.fromPos).contains(task.toPos)) return task.itemStack;
+        }
         IItemHandler destitemHandler = getAttachedInventory(task.toPos);
         if (destitemHandler == null) return task.itemStack;
 
@@ -476,9 +611,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //Server Only
         if (!world.isRemote) {
             energyStorage.receiveEnergy(1000, false); //Testing
-            if (inventoryNodes.size() > 0 && (extractorNodes.isEmpty() && inserterNodes.isEmpty()))
+            if (inventoryNodes.size() > 0 && (extractorNodes.isEmpty() && inserterNodes.isEmpty() && providerNodes.isEmpty() && stockerNodes.isEmpty())) //Todo cleaner
                 refreshAllInvNodes();
             handleExtractors();
+            handleStockers();
             handleTasks();
         }
     }
