@@ -641,7 +641,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         ItemFlowParticleData data = new ItemFlowParticleData(task.itemStack, task.toPos.getX() + 0.5, task.toPos.getY() + 0.5, task.toPos.getZ() + 0.5, ticksPerBlock);
         ServerWorld serverWorld = (ServerWorld) world;
-        serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 8, 0.1f, 0.1f, 0.1f, 0);
+        serverWorld.spawnParticle(data, task.fromPos.getX() + 0.5, task.fromPos.getY() + 0.5, task.fromPos.getZ() + 0.5, 8 * task.itemStack.getCount(), 0.1f, 0.1f, 0.1f, 0);
         return ItemStack.EMPTY;
     }
 
