@@ -107,7 +107,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 extractorNodes.add(pos);
             if (stack.getItem() instanceof CardInserter) {
                 inserterNodes.add(pos);
-                System.out.println("Clearing Inserter Cache");
                 inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
             }
         }
@@ -198,6 +197,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return this.getPos();  //I AM THE CONTROLLER!!!
     }
 
+    //Prevents a block that has another controller from connecting to this controller, including other controllers themselves.
     @Override
     public boolean addNode(BlockPos pos) {
         NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
@@ -208,7 +208,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Get the item handler attached to an inventory node (Like an adjacent chest or furnace) at @param pos
-     *
      * @return the item handler
      */
     public IItemHandler getAttachedInventory(BlockPos pos) {
@@ -527,20 +526,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             BlockPos blockPos = NBTUtil.readBlockPos(invnodes.getCompound(i).getCompound("pos"));
             inventoryNodes.add(blockPos);
         }
-
-        /*extractorNodes.clear();
-        ListNBT extractorNodes = tag.getList("extractorNodes", Constants.NBT.TAG_COMPOUND);
-        for (int i = 0; i < extractorNodes.size(); i++) {
-            BlockPos blockPos = NBTUtil.readBlockPos(extractorNodes.getCompound(i).getCompound("pos"));
-            this.extractorNodes.add(blockPos);
-        }
-
-        inserterNodes.clear();
-        ListNBT inserterNodes = tag.getList("inserterNodes", Constants.NBT.TAG_COMPOUND);
-        for (int i = 0; i < inserterNodes.size(); i++) {
-            BlockPos blockPos = NBTUtil.readBlockPos(inserterNodes.getCompound(i).getCompound("pos"));
-            this.inserterNodes.add(blockPos);
-        }*/
     }
 
     @Override
@@ -561,22 +546,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             invnodes.add(comp);
         }
         tag.put("invnodes", invnodes);
-
-        /*ListNBT extractorNodes = new ListNBT();
-        for (BlockPos blockPos : this.extractorNodes) {
-            CompoundNBT comp = new CompoundNBT();
-            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
-            extractorNodes.add(comp);
-        }
-        tag.put("extractorNodes", extractorNodes);
-
-        ListNBT inserterNodes = new ListNBT();
-        for (BlockPos blockPos : this.inserterNodes) {
-            CompoundNBT comp = new CompoundNBT();
-            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
-            inserterNodes.add(comp);
-        }
-        tag.put("inserterNodes", inserterNodes);*/
         return super.write(tag);
     }
 
