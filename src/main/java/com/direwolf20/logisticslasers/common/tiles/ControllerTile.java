@@ -25,6 +25,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
@@ -377,11 +378,28 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
                         if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
-                        ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Pretend to insert it into the target inventory
+                        ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Now we test 'for real' into the actual itemstack handler
+                        if (simulated.equals(stack)) {
+                            continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
+                        }
+
+                        NonNullList<ItemStack> stacks = NonNullList.withSize(destitemHandler.getSlots(), ItemStack.EMPTY); //Create a temporary list of itemstacks
+                        for (int k = 0; k < destitemHandler.getSlots(); k++) { //Copy the itemstacks in the target chest into the temp handler
+                            ItemStack tempStack = destitemHandler.getStackInSlot(k).copy();
+                            stacks.set(k, tempStack);
+                        }
+                        ItemStackHandler testHandler = new ItemStackHandler(stacks); //Create the handler from the stacks list
+                        for (ItemStack inFlightStack : getItemStacksInFlight(toPos)) { //Add all in-flight stacks to the temp handler
+                            ItemHandlerHelper.insertItem(testHandler, inFlightStack, false);
+                        }
+
+                        simulated = ItemHandlerHelper.insertItem(testHandler, stack, true); //Pretend to insert it into the fake inventory that includes in-flight items
 
                         if (simulated.equals(stack)) {
                             continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
                         }
+
+
                         int count = stack.getCount() - simulated.getCount(); //How many items were successfully removed from the stack
                         ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
                         successfullySent = transferItemStack(fromPos, toPos, extractedStack);
@@ -578,6 +596,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             }
         }
         return count;
+    }
+
+    public Set<ItemStack> getItemStacksInFlight(BlockPos toPos) {
+        Set<ItemStack> flightStacks = new HashSet<>();
+        for (ControllerTask parentTask : parentTaskMap.keySet()) {
+            if (parentTask.toPos.equals(toPos)) {
+                flightStacks.add(parentTask.itemStack.copy());
+            }
+        }
+        return flightStacks;
     }
 
     /**
