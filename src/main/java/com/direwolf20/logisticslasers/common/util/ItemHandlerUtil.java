@@ -180,7 +180,7 @@ public class ItemHandlerUtil {
                     boolean foundStackInCache = false;
                     for (ItemStack cacheStack : itemCounts.keySet()) {
                         if (cacheStack.isItemEqual(stack)) {
-                            itemCounts.put(cacheStack, getCount(stack) + stack.getCount());
+                            itemCounts.put(cacheStack, itemCounts.get(cacheStack) + stack.getCount());
                             foundStackInCache = true;
                             break;
                         }
