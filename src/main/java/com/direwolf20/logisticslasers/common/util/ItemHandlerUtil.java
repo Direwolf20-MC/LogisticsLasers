@@ -34,6 +34,7 @@ public class ItemHandlerUtil {
 
     /**
      * Everything below here was shameless stolen from Mekanism and pupnewfster :)
+     * https://github.com/mekanism/Mekanism/blob/1.16.x/src/main/java/mekanism/common/content/transporter/TransporterManager.java
      * This method allows you to simulate inserting many stacks into an inventory before doing so
      * The purpose of which is to track stacks in transit
      *
@@ -70,6 +71,7 @@ public class ItemHandlerUtil {
             int destCount = inventoryInfo.stackSizes.getInt(slot);
 
             int mergedCount = count + destCount;
+            int toAccept = count;
             boolean needsSimulation = false;
             if (destCount > 0) {
                 if (!areItemsStackable(inventoryInfo.inventory.get(slot), stack) || destCount >= max) {
@@ -85,22 +87,22 @@ public class ItemHandlerUtil {
                     // then we need to increase the size by one for purposes of properly
                     // being able to simulate what the "limit" of the slot is rather
                     // than sending one extra item to the slot only for it to fail
-                    //Note: Some things such as IInventory to IItemHandler wrappers
-                    // don't actually have any restrictions on stack size, so even doing this
-                    // does not help stopping the one extra item from being sent due to the fact
-                    // that it allows inserting larger than the max stack size if it is already
-                    // packages in an amount that is larger than a single stack
-                    if (stack.getCount() <= maxStackSize) {
-                        //Note: Because we check the size of the stack against the max stack size
-                        // even if there are multiple slots that need this, we only end up copying
-                        // our stack a single time to resize it
-                        if (count > maxStackSize) {
-                            //Note: If we have more we are trying to insert than the max stack size, just take the number we are trying to insert
-                            // so that we have an accurate amount for checking the real slot stack size
-                            stack = size(stack, count);
-                        } else {
+                    //Note: Because we check the size of the stack against the max stack size
+                    // even if there are multiple slots that need this, we only end up copying
+                    // our stack a single time to resize it. We do however make sure to update
+                    // the toAccept value again if it is needed.
+                    if (count <= maxStackSize) {
+                        if (stack.getCount() <= maxStackSize) {
                             stack = size(stack, maxStackSize + 1);
                         }
+                        //Update our amount that we expect to accept from simulation to represent the amount we actually
+                        // are trying to insert this way if we can't accept it all then we know that the slot actually
+                        // has a lower limit than it returned for getSlotLimit
+                        toAccept = stack.getCount();
+                    } else if (stack.getCount() <= maxStackSize) {
+                        //Note: If we have more we are trying to insert than the max stack size, just take the number we are trying to insert
+                        // so that we have an accurate amount for checking the real slot stack size
+                        stack = size(stack, count);
                     }
                 } else if (!inFlight) {
                     //Otherwise if we are not in flight yet, we should simulate before we actually start sending the item
@@ -121,9 +123,10 @@ public class ItemHandlerUtil {
                 if (accepted == 0) {
                     // Insert will fail; bail
                     continue;
-                } else if (accepted < count) {
-                    //If we accepted less than our count, the slot actually has a lower limit
-                    // so we mark the amount we accepted as the slot's actual limit
+                } else if (accepted < toAccept) {
+                    //If we accepted less than the amount we expected to, the slot actually has a lower limit
+                    // so we mark the amount we accepted plus the amount already in the slot as the slot's
+                    // actual limit
                     max = handler.getStackInSlot(slot).getCount() + accepted;
                 }
                 if (destCount == 0) {
