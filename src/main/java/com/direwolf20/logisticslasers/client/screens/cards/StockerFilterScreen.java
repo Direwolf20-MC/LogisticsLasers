@@ -1,19 +1,12 @@
 package com.direwolf20.logisticslasers.client.screens.cards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
-import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
-import com.direwolf20.logisticslasers.common.network.packets.PacketToggleWhitelist;
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -23,10 +16,8 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
-public class StockerFilterScreen extends ContainerScreen<StockerFilterContainer> {
+public class StockerFilterScreen extends BaseFilterScreen<StockerFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/basicfilterscreen.png");
 
     protected final StockerFilterContainer container;
@@ -35,7 +26,7 @@ public class StockerFilterScreen extends ContainerScreen<StockerFilterContainer>
     public StockerFilterScreen(StockerFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
         this.container = container;
-        isWhitelist = container.isWhiteList;
+        isWhitelist = container.isWhiteList();
     }
 
     public ResourceLocation getBackground() {
@@ -43,54 +34,9 @@ public class StockerFilterScreen extends ContainerScreen<StockerFilterContainer>
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(stack);
-        super.render(stack, mouseX, mouseY, partialTicks);
-        this.func_230459_a_(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
-    }
-
-    @Override
-    public void init() {
-        super.init();
-
-        List<Widget> leftWidgets = new ArrayList<>();
-        WhiteListButton blackwhitelist;
-        leftWidgets.add(blackwhitelist = new WhiteListButton(guiLeft + 10, guiTop + 40, 20, 20, isWhitelist, (button) -> {
-            isWhitelist = !isWhitelist;
-            ((WhiteListButton) button).setWhitelist(isWhitelist);
-            PacketHandler.sendToServer(new PacketToggleWhitelist());
-        }));
-
-
-        if (container.showPriority) {
-            Button plusPriority;
-            leftWidgets.add(plusPriority = new Button(guiLeft + 30, guiTop + 25, 15, 10, new StringTextComponent("+"), (button) -> {
-                PacketHandler.sendToServer(new PacketChangePriority(1));
-            }));
-            Button minusPriority;
-            leftWidgets.add(minusPriority = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("-"), (button) -> {
-                PacketHandler.sendToServer(new PacketChangePriority(-1));
-            }));
-        }
-
-        // Lay the buttons out, too lazy to figure out the math every damn time.
-        // Ordered by where you add them.
-        for (int i = 0; i < leftWidgets.size(); i++) {
-            addButton(leftWidgets.get(i));
-        }
-    }
-
-    @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1, 1, 1, 1);
-        getMinecraft().getTextureManager().bindTexture(getBackground());
-        this.blit(stack, guiLeft, guiTop, 0, 0, xSize, ySize);
-    }
-
-    @Override
     protected void drawGuiContainerForegroundLayer(MatrixStack stack, int mouseX, int mouseY) {
         Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.stockerfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
-        if (!container.showPriority) return;
+        if (!container.showPriority()) return;
         Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 15, Color.DARK_GRAY.getRGB());
         Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + container.getPriority()).getString(), 18, 25, Color.DARK_GRAY.getRGB());
     }

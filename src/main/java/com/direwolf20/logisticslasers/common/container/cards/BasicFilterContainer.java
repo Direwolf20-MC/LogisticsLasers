@@ -3,10 +3,13 @@ package com.direwolf20.logisticslasers.common.container.cards;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -24,20 +27,27 @@ public class BasicFilterContainer extends Container {
     public ItemStackHandler handler;
     public BlockPos sourceContainer = BlockPos.ZERO;
     public IIntArray data;
-    public boolean showPriority;
-    public boolean isWhiteList;
 
     // ItemStack can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
 
     public BasicFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
         this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(2));
-        showPriority = extraData.getBoolean(0);
-        isWhiteList = extraData.getBoolean((1));
+        filterItemStack = extraData.readItemStack();
     }
 
     public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
         this(card, windowId, playerInventory, handler, BlockPos.ZERO, cardData);
+    }
+
+    public BasicFilterContainer(@Nullable ContainerType<?> type, @Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
+        super(type, windowId);
+        this.handler = handler;
+        this.filterItemStack = card;
+        this.setup(playerInventory);
+        this.sourceContainer = sourcePos;
+        this.data = cardData;
+        trackIntArray(cardData);
     }
 
     public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
@@ -48,6 +58,18 @@ public class BasicFilterContainer extends Container {
         this.sourceContainer = sourcePos;
         this.data = cardData;
         trackIntArray(cardData);
+    }
+
+    public boolean showPriority() {
+        return filterItemStack.getItem() instanceof CardInserter;
+    }
+
+    public boolean showWhiteList() {
+        return !(filterItemStack.getItem() instanceof CardStocker);
+    }
+
+    public boolean isWhiteList() {
+        return BaseCard.getWhiteList(filterItemStack);
     }
 
     public void setup(PlayerInventory inventory) {

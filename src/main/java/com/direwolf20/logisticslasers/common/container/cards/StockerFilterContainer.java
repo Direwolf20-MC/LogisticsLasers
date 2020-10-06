@@ -6,48 +6,45 @@ import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIntArray;
-import net.minecraft.util.IntArray;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
-public class StockerFilterContainer extends Container {
-    public static final int SLOTS = 15;
-    public ItemStackHandler handler;
-    public BlockPos sourceContainer = BlockPos.ZERO;
-    public IIntArray data;
-    public boolean showPriority;
-    public boolean isWhiteList;
-
-    // ItemStack can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
-    public ItemStack filterItemStack;
+public class StockerFilterContainer extends BasicFilterContainer {
 
     public StockerFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(2));
-        showPriority = extraData.getBoolean(0);
-        isWhiteList = extraData.getBoolean((1));
+        super(windowId, playerInventory, extraData);
     }
 
     public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
-        this(card, windowId, playerInventory, handler, BlockPos.ZERO, cardData);
+        super(card, windowId, playerInventory, handler, cardData);
     }
 
     public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
-        super(ModBlocks.STOCKER_FILTER_CONTAINER.get(), windowId);
-        this.handler = handler;
-        this.filterItemStack = card;
-        this.setup(playerInventory);
-        this.sourceContainer = sourcePos;
-        this.data = cardData;
-        trackIntArray(cardData);
+        super(ModBlocks.STOCKER_FILTER_CONTAINER.get(), card, windowId, playerInventory, handler, sourcePos, cardData);
+    }
+
+    //Stocker cards don't use priority or whitelist.
+    @Override
+    public boolean showPriority() {
+        return false;
+    }
+
+    @Override
+    public boolean showWhiteList() {
+        return false;
+    }
+
+    @Override
+    public boolean isWhiteList() {
+        return true;
     }
 
     public void setup(PlayerInventory inventory) {
