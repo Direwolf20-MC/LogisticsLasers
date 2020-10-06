@@ -186,7 +186,7 @@ public class ItemHandlerUtil {
                         }
                     }
                     if (!foundStackInCache)
-                        itemCounts.put(stack, getCount(stack) + stack.getCount());
+                        itemCounts.put(stack, stack.getCount());
                 }
             }
         }
