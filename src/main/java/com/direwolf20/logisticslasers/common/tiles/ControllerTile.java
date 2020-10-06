@@ -419,10 +419,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 if (successfullySent) break; //If this node already requested an item this tick, cancel out
                 Set<ItemStack> filteredItems = BaseCard.getFilteredItems(stockerCard); //Get all the items we should be requesting
                 for (ItemStack item : filteredItems) { //Loop through each itemstack in the requested set of items
-                    ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
-                    possibleProviders.remove(stockerPos); //Remove this chest
-                    if (possibleProviders.isEmpty()) continue; //If nothing can provide to here, stop working
-
                     int countOfItem = invCache.getCount(item); //How many items are currently in the inventory
                     int desiredAmt = item.getCount();
                     if (countOfItem >= desiredAmt) //Compare what we want to the itemstack cache, if we have enough go to next item
@@ -441,6 +437,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (count == 0) continue; //If we can't fit any items in here, nope out!
                     if (count < stack.getCount())
                         stack.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
+
+                    ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
+                    possibleProviders.remove(stockerPos); //Remove this chest
+                    if (possibleProviders.isEmpty()) continue; //If nothing can provide to here, stop working
 
                     for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
                         IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
