@@ -417,31 +417,21 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             for (ItemStack stockerCard : getStockerFilters(stockerPos)) { //Find all stocker cards in this node
                 if (successfullySent) break; //If this node already requested an item this tick, cancel out
                 Set<ItemStack> filteredItems = BaseCard.getFilteredItems(stockerCard); //Get all the items we should be requesting
+                ItemHandlerUtil.InventoryInfo invCache = new ItemHandlerUtil.InventoryInfo(stockerItemHandler);
                 for (ItemStack item : filteredItems) { //Loop through each itemstack in the requested set of items
                     ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
-                    possibleProviders.remove(stockerPos);
-                    if (possibleProviders.isEmpty()) continue;
-                    int countOfItem = 0; //How many are currently in the inventory
+                    possibleProviders.remove(stockerPos); //Remove this chest
+                    if (possibleProviders.isEmpty()) continue; //If nothing can provide to here, stop working
+
+                    int countOfItem = invCache.getCount(item); //How many items are currently in the inventory
                     int desiredAmt = item.getCount();
-                    for (int i = 0; i < stockerItemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
-                        ItemStack stackInSlot = stockerItemHandler.getStackInSlot(i);
-                        if (stackInSlot.isEmpty())
-                            continue; //If the slot is empty, move onto the next slot
-                        if (!stackInSlot.isItemEqual(item))
-                            continue; //Don't count different items, duh!
-                        countOfItem += stackInSlot.getCount();
-                        if (countOfItem >= desiredAmt)
-                            break; //We're done going through the chest if we found enough of the item
-                    }
-
-
-                    if (countOfItem >= desiredAmt)
-                        continue; //We're done checking for this item if we found enough of the item, move onto the next one!
+                    if (countOfItem >= desiredAmt) //Compare what we want to the itemstack cache, if we have enough go to next item
+                        continue;
 
                     countOfItem += countItemsInFlight(item, stockerPos); //Count the items in flight to this destination
 
                     if (countOfItem >= desiredAmt)
-                        break; ///We're done checking for this item if we found enough of the item including items in flight
+                        continue; ///We're done checking for this item if we found enough of the item including items in flight, move onto next item
 
                     int extractAmt = 1;
                     ItemStack stack = new ItemStack(item.getItem(), extractAmt); //Create an item stack

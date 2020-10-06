@@ -2,12 +2,14 @@ package com.direwolf20.logisticslasers.common.util;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 
 public class ItemHandlerUtil {
     @Nonnull
@@ -164,6 +166,7 @@ public class ItemHandlerUtil {
 
         private final NonNullList<ItemStack> inventory;
         private final IntList stackSizes = new IntArrayList();
+        private final HashMap<Item, Integer> itemCounts = new HashMap<>();
 
         public InventoryInfo(IItemHandler handler) {
             inventory = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
@@ -171,7 +174,13 @@ public class ItemHandlerUtil {
                 ItemStack stack = handler.getStackInSlot(i);
                 inventory.set(i, stack);
                 stackSizes.add(stack.getCount());
+                if (!stack.isEmpty())
+                    itemCounts.put(stack.getItem(), getCount(stack) + stack.getCount());
             }
+        }
+
+        public int getCount(ItemStack stack) {
+            return itemCounts.getOrDefault(stack.getItem(), 0);
         }
     }
 }
