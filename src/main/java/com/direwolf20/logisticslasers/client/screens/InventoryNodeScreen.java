@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.client.screens;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketOpenFilter;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -60,7 +61,7 @@ public class InventoryNodeScreen extends ContainerScreen<InventoryNodeContainer>
 
     @Override
     public boolean mouseClicked(double x, double y, int btn) {
-        if (hoveredSlot == null || hoveredSlot.getStack().isEmpty())
+        if (hoveredSlot == null || hoveredSlot.getStack().isEmpty() || !(hoveredSlot.getStack().getItem() instanceof BaseCard))
             return super.mouseClicked(x, y, btn);
 
         if (btn == 1) { //Right click

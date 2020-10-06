@@ -19,7 +19,7 @@ public class ItemHandlerUtil {
         int amtRemaining = stack.getCount();
         for (int i = 0; i < source.getSlots(); i++) {
             ItemStack stackInSlot = source.getStackInSlot(i);
-            if (stackInSlot.getItem().equals(stack.getItem())) {
+            if (stackInSlot.isItemEqual(stack)) {
                 int extractAmt = Math.min(amtRemaining, stackInSlot.getCount());
                 ItemStack tempStack = source.extractItem(i, extractAmt, simulate);
                 amtGotten += tempStack.getCount();

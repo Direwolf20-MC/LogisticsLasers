@@ -434,10 +434,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                             break; //We're done going through the chest if we found enough of the item
                     }
 
-                    if (countOfItem >= desiredAmt)
-                        break; //We're done checking for this item if we found enough of the item
 
-                    countOfItem += countItemsInFlight(item.getItem(), stockerPos); //Count the items in flight to this destination TODO UPDATE
+                    if (countOfItem >= desiredAmt)
+                        continue; //We're done checking for this item if we found enough of the item, move onto the next one!
+
+                    countOfItem += countItemsInFlight(item, stockerPos); //Count the items in flight to this destination
 
                     if (countOfItem >= desiredAmt)
                         break; ///We're done checking for this item if we found enough of the item including items in flight
@@ -455,7 +456,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
                         if (providerItemHandler == null) continue; //If its empty, move onto the next provider
 
-                        ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack, true); //Pretend to extract the stack from the provider's inventory
+                        ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack.copy(), true); //Pretend to extract the stack from the provider's inventory
 
                         if (simulated.getCount() == 0) {
                             continue; //If the stack we removed has zero items in it check another provider
@@ -585,10 +586,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return null;
     }
 
-    public int countItemsInFlight(Item item, BlockPos toPos) {
+    public int countItemsInFlight(ItemStack itemStack, BlockPos toPos) {
         int count = 0;
         for (ControllerTask parentTask : parentTaskMap.keySet()) {
-            if (parentTask.itemStack.getItem().equals(item) && parentTask.toPos.equals(toPos)) {
+            if (parentTask.itemStack.isItemEqual(itemStack) && parentTask.toPos.equals(toPos)) {
                 count += parentTask.itemStack.getCount();
             }
         }
