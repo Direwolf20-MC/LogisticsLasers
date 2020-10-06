@@ -115,6 +115,9 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
     compileOnly fg.deobf("com.feed_the_beast.mods:ftb-gui-library:1.0.0.18")
 
+    //Other mods for dev environment
+    runtimeOnly fg.deobf("ignored:Mekanism:1.16.3-10.0.9")
+
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"

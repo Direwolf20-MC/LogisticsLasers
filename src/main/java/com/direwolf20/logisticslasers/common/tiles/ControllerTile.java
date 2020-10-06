@@ -25,7 +25,6 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IIntArray;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
@@ -370,7 +369,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                             continue;
                     }
 
-                    int extractAmt = 1;
+                    int extractAmt = 16;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the 1 item from the stack we found
                     ArrayList<BlockPos> possibleDestinations = findDestinationForItemstack(stack, fromPos); //Find a list of possible destinations
                     if (possibleDestinations.isEmpty()) continue;
@@ -378,29 +377,15 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
                         if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
-                        ItemStack simulated = ItemHandlerHelper.insertItem(destitemHandler, stack, true); //Now we test 'for real' into the actual itemstack handler
-                        if (simulated.equals(stack)) {
-                            continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
+                        ItemHandlerUtil.InventoryInfo tempInventory = new ItemHandlerUtil.InventoryInfo(destitemHandler); //tempInventory tracks all changes that in-route stacks would make
+                        for (ItemStack inFlightStack : getItemStacksInFlight(toPos)) { //Add all in-flight stacks to the temp inventory
+                            ItemHandlerUtil.simulateInsert(destitemHandler, tempInventory, inFlightStack, inFlightStack.getCount(), true);
                         }
+                        //At this point in the code, the tempInventory represents what the toPos chest will have INCLUDING all in-flight stacks
+                        int remainder = ItemHandlerUtil.simulateInsert(destitemHandler, tempInventory, stack, stack.getCount(), false); //Returns the amount of items that don't fit
+                        int count = stack.getCount() - remainder; //How many items will fit in the inventory
+                        if (count == 0) continue; //If none, try elsewhere!
 
-                        NonNullList<ItemStack> stacks = NonNullList.withSize(destitemHandler.getSlots(), ItemStack.EMPTY); //Create a temporary list of itemstacks
-                        for (int k = 0; k < destitemHandler.getSlots(); k++) { //Copy the itemstacks in the target chest into the temp handler
-                            ItemStack tempStack = destitemHandler.getStackInSlot(k).copy();
-                            stacks.set(k, tempStack);
-                        }
-                        ItemStackHandler testHandler = new ItemStackHandler(stacks); //Create the handler from the stacks list
-                        for (ItemStack inFlightStack : getItemStacksInFlight(toPos)) { //Add all in-flight stacks to the temp handler
-                            ItemHandlerHelper.insertItem(testHandler, inFlightStack, false);
-                        }
-
-                        simulated = ItemHandlerHelper.insertItem(testHandler, stack, true); //Pretend to insert it into the fake inventory that includes in-flight items
-
-                        if (simulated.equals(stack)) {
-                            continue; //If the stack we removed matches the stack we simulated inserting, no changes happened (insert failed), so try another inserter
-                        }
-
-
-                        int count = stack.getCount() - simulated.getCount(); //How many items were successfully removed from the stack
                         ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
                         successfullySent = transferItemStack(fromPos, toPos, extractedStack);
                         if (!successfullySent) { //Attempt to send items
@@ -432,7 +417,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item), stockerPos); //Find a list of possible Providers TODO: Proper Itemstack
                     if (possibleProviders.isEmpty()) continue;
                     int countOfItem = 0; //How many are currently in the inventory
-                    int desiredAmt = 10; //ToDo filter based
+                    int desiredAmt = 32; //ToDo filter based
                     for (int i = 0; i < stockerItemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                         ItemStack stackInSlot = stockerItemHandler.getStackInSlot(i);
                         if (stackInSlot.isEmpty())
@@ -452,7 +437,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (countOfItem >= desiredAmt)
                         break; ///We're done checking for this item if we found enough of the item including items in flight
 
-                    int extractAmt = desiredAmt - countOfItem;
+                    int extractAmt = 1;
                     ItemStack stack = new ItemStack(item, extractAmt); //Create an item stack
                     for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
                         IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
@@ -463,7 +448,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         if (simulated.getCount() == 0) {
                             continue; //If the stack we removed has zero items in it
                         }
-                        int count = simulated.getCount(); //How many items were successfully removed from the inventory
+                        int count = simulated.getCount(); //How many items were successfully removed from the inventory //Todo test inserting
                         stack.setCount(count);
                         ItemStack extractedStack = ItemHandlerUtil.extractItem(providerItemHandler, stack, false); //Actually remove the items this time
                         successfullySent = transferItemStack(providerPos, stockerPos, extractedStack);
