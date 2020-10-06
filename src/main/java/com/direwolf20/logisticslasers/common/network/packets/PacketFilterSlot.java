@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
+import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
@@ -40,7 +41,7 @@ public class PacketFilterSlot {
                     return;
 
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
-                if (slot instanceof BasicFilterSlot)
+                if (slot instanceof BasicFilterSlot || slot instanceof StockerFilterSlot)
                     slot.putStack(msg.stack);
             });
 

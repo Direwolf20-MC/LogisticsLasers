@@ -25,6 +25,8 @@ public class GeneratorLanguage extends LanguageProvider {
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
         add("item.logisticslasers.basicfilterscreen", "Basic Filter");
+        add("item.logisticslasers.stockerfilterscreen", "Stocker Filter");
+
         add("item.logisticslasers.basicfilterscreen.priority", "Priority: %d");
 
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");

@@ -1,7 +1,7 @@
 package com.direwolf20.logisticslasers.common.items.logiccards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
-import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
@@ -91,13 +91,13 @@ public abstract class BaseCard extends Item {
         return !compound.contains("inv") ? setInventory(stack, new ItemStackHandler(BasicFilterContainer.SLOTS)) : handler;
     }
 
-    public static Set<Item> getFilteredItems(ItemStack stack) {
-        Set<Item> filteredItems = new HashSet<>();
+    public static Set<ItemStack> getFilteredItems(ItemStack stack) {
+        Set<ItemStack> filteredItems = new HashSet<>();
         ItemStackHandler filterSlotHandler = getInventory(stack);
         for (int i = 0; i < filterSlotHandler.getSlots(); i++) {
             ItemStack itemStack = filterSlotHandler.getStackInSlot(i);
             if (!itemStack.isEmpty())
-                filteredItems.add(itemStack.getItem());
+                filteredItems.add(itemStack);
         }
         return filteredItems;
     }

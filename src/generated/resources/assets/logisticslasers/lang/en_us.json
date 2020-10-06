@@ -10,6 +10,7 @@
   "item.logisticslasers.card_inserter": "Inserter Module",
   "item.logisticslasers.card_provider": "Provider Module",
   "item.logisticslasers.card_stocker": "Stocker Module",
+  "item.logisticslasers.stockerfilterscreen": "Stocker Filter",
   "item.logisticslasers.wrench": "Laser Wrench",
   "message.logisticslasers.connectionfailed": "Connection failed to: %d",
   "message.logisticslasers.connectionmade": "Connection made to: %d",

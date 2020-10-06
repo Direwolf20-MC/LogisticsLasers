@@ -1,8 +1,10 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
-import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
@@ -77,11 +79,19 @@ public class PacketOpenFilter {
                     }
                 };
                 boolean showPriority = itemStack.getItem() instanceof CardInserter;
-                NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                        (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
-                    buf.writeBoolean(showPriority);
-                    buf.writeBoolean(getWhiteList(itemStack));
-                }));
+                if (itemStack.getItem() instanceof CardStocker) {
+                    NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                            (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                        buf.writeBoolean(showPriority);
+                        buf.writeBoolean(getWhiteList(itemStack));
+                    }));
+                } else {
+                    NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                            (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                        buf.writeBoolean(showPriority);
+                        buf.writeBoolean(getWhiteList(itemStack));
+                    }));
+                }
             });
 
             ctx.get().setPacketHandled(true);

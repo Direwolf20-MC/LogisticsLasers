@@ -109,6 +109,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         filterCardCache.remove(pos);
         inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
+        providerCache.clear(); //Any change to provider cards will affect the provider cache
         removeBlockPosFromPriorities(pos);
         if (!te.hasController()) return;
 
@@ -124,7 +125,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             }
             if (stack.getItem() instanceof CardProvider) {
                 providerNodes.add(pos);
-                providerCache.clear(); //Any change to inserter cards will affect the inserter cache
             }
             if (stack.getItem() instanceof CardStocker)
                 stockerNodes.add(pos);
@@ -278,6 +278,25 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return new ArrayList<>();
     }
 
+    public boolean isStackValidForCard(ItemStack filterCard, ItemStack testStack) {
+        Set<ItemStack> filteredItems = BaseCard.getFilteredItems(filterCard); //Get the list of items this card allows
+        boolean whiteList = BaseCard.getWhiteList(filterCard);
+        if (whiteList) {
+            for (ItemStack stack : filteredItems) {
+                if (stack.isItemEqual(testStack))
+                    return true;
+            }
+            return false;
+        } else {
+            for (ItemStack stack : filteredItems) {
+                if (stack.isItemEqual(testStack))
+                    return false;
+            }
+            return true;
+        }
+
+    }
+
     /**
      * Given an @param itemStack, find a valid destination either from an existing cache, or looping through all known inserters.
      * Excludes @param fromPos to ensure items are not inserted into the source chest
@@ -292,15 +311,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         for (int priority : insertPriorities.keySet()) {
             for (BlockPos toPos : insertPriorities.get(priority)) { //If we found an item to transfer, start looping through the inserters
                 for (ItemStack insertCard : getInsertFilters(toPos)) { //Loop through all the cached insertCards
-                    Set<Item> filteredInsertItems = BaseCard.getFilteredItems(insertCard); //Get the list of items this card allows
-                    if (BaseCard.getWhiteList(insertCard)) {
-                        if (!filteredInsertItems.contains(itemStack.getItem()))
-                            continue; //Move onto the next card if this card doesn't accept this item
-                    } else {
-                        if (filteredInsertItems.contains(itemStack.getItem()))
-                            continue; //Move onto the next card if this card doesn't accept this item
-                    }
-                    tempArray.add(toPos);
+                    if (isStackValidForCard(insertCard, itemStack))
+                        tempArray.add(toPos);
                 }
             }
         }
@@ -322,15 +334,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //for (int priority : insertPriorities.keySet()) { //In case i decide to implement provider priorities
         for (BlockPos toPos : providerNodes) { //Loop through all provider nodes
             for (ItemStack providerCard : getProviderFilters(toPos)) { //Loop through all the cached providerCards
-                Set<Item> filteredInsertItems = BaseCard.getFilteredItems(providerCard); //Get the list of items this card allows
-                if (BaseCard.getWhiteList(providerCard)) {
-                    if (!filteredInsertItems.contains(itemStack.getItem()))
-                        continue; //Move onto the next card if this card doesn't accept this item
-                } else {
-                    if (filteredInsertItems.contains(itemStack.getItem()))
-                        continue; //Move onto the next card if this card doesn't accept this item
-                }
-                tempArray.add(toPos);
+                if (isStackValidForCard(providerCard, itemStack))
+                    tempArray.add(toPos);
             }
         }
         //}
@@ -363,20 +368,14 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             for (ItemStack extractCard : getExtractFilters(fromPos)) { //Get all extractor cards in the inventory node we're working on
                 if (successfullySent)
                     break; //If we've sent something from this card in the last iteration, break out and go to the next inventory node
-                Set<Item> filteredItems = BaseCard.getFilteredItems(extractCard); //Get all the items this card is allowed to extract
                 for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                     if (successfullySent) break;
                     ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
                     if (stackInSlot.isEmpty())
                         continue; //If the slot is empty, move onto the next slot
 
-                    if (BaseCard.getWhiteList(extractCard)) {
-                        if (!filteredItems.contains(stackInSlot.getItem()))
-                            continue;
-                    } else {
-                        if (filteredItems.contains(stackInSlot.getItem()))
-                            continue;
-                    }
+                    if (!isStackValidForCard(extractCard, stackInSlot)) //Move onto the next stack if its not valid for this card
+                        continue;
 
                     int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
@@ -388,13 +387,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
                         if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
-                        /*ItemHandlerUtil.InventoryInfo tempInventory = new ItemHandlerUtil.InventoryInfo(destitemHandler); //tempInventory tracks all changes that in-route stacks would make
-                        for (ItemStack inFlightStack : getItemStacksInFlight(toPos)) { //Add all in-flight stacks to the temp inventory
-                            ItemHandlerUtil.simulateInsert(destitemHandler, tempInventory, inFlightStack, inFlightStack.getCount(), true);
-                        }
-                        //At this point in the code, the tempInventory represents what the toPos chest will have INCLUDING all in-flight stacks
-                        int remainder = ItemHandlerUtil.simulateInsert(destitemHandler, tempInventory, stack, stack.getCount(), false); //Returns the amount of items that don't fit
-                        int count = stack.getCount() - remainder; //How many items will fit in the inventory*/
                         int count = testInsertToInventory(destitemHandler, toPos, stack); //Find out how many items can fit in the destination inventory, including inflight items
                         if (count == 0) continue; //If none, try elsewhere!
 
@@ -424,18 +416,18 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
             for (ItemStack stockerCard : getStockerFilters(stockerPos)) { //Find all stocker cards in this node
                 if (successfullySent) break; //If this node already requested an item this tick, cancel out
-                Set<Item> filteredItems = BaseCard.getFilteredItems(stockerCard); //Get all the items we should be requesting
-                for (Item item : filteredItems) { //Loop through each itemstack in the requested set of items
-                    ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item)); //Find a list of possible Providers TODO: Proper Itemstack
+                Set<ItemStack> filteredItems = BaseCard.getFilteredItems(stockerCard); //Get all the items we should be requesting
+                for (ItemStack item : filteredItems) { //Loop through each itemstack in the requested set of items
+                    ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
                     possibleProviders.remove(stockerPos);
                     if (possibleProviders.isEmpty()) continue;
                     int countOfItem = 0; //How many are currently in the inventory
-                    int desiredAmt = 32; //ToDo filter based
+                    int desiredAmt = item.getCount();
                     for (int i = 0; i < stockerItemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                         ItemStack stackInSlot = stockerItemHandler.getStackInSlot(i);
                         if (stackInSlot.isEmpty())
                             continue; //If the slot is empty, move onto the next slot
-                        if (!stackInSlot.getItem().equals(item))
+                        if (!stackInSlot.isItemEqual(item))
                             continue; //Don't count different items, duh!
                         countOfItem += stackInSlot.getCount();
                         if (countOfItem >= desiredAmt)
@@ -445,13 +437,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (countOfItem >= desiredAmt)
                         break; //We're done checking for this item if we found enough of the item
 
-                    countOfItem += countItemsInFlight(item, stockerPos); //Count the items in flight to this destination
+                    countOfItem += countItemsInFlight(item.getItem(), stockerPos); //Count the items in flight to this destination TODO UPDATE
 
                     if (countOfItem >= desiredAmt)
                         break; ///We're done checking for this item if we found enough of the item including items in flight
 
                     int extractAmt = 1;
-                    ItemStack stack = new ItemStack(item, extractAmt); //Create an item stack
+                    ItemStack stack = new ItemStack(item.getItem(), extractAmt); //Create an item stack
 
                     //Before we even look for the item to insert, lets see if it'll fit here first!
                     int count = testInsertToInventory(stockerItemHandler, stockerPos, stack);

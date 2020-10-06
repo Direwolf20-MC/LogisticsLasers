@@ -1,7 +1,7 @@
-package com.direwolf20.logisticslasers.common.container;
+package com.direwolf20.logisticslasers.common.container.cards;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
-import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
+import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,7 +19,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 
-public class BasicFilterContainer extends Container {
+public class StockerFilterContainer extends Container {
     public static final int SLOTS = 15;
     public ItemStackHandler handler;
     public BlockPos sourceContainer = BlockPos.ZERO;
@@ -30,18 +30,18 @@ public class BasicFilterContainer extends Container {
     // ItemStack can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
 
-    public BasicFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
+    public StockerFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
         this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(2));
         showPriority = extraData.getBoolean(0);
         isWhiteList = extraData.getBoolean((1));
     }
 
-    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
+    public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
         this(card, windowId, playerInventory, handler, BlockPos.ZERO, cardData);
     }
 
-    public BasicFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
-        super(ModBlocks.BASIC_FILTER_CONTAINER.get(), windowId);
+    public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
+        super(ModBlocks.STOCKER_FILTER_CONTAINER.get(), windowId);
         this.handler = handler;
         this.filterItemStack = card;
         this.setup(playerInventory);
@@ -59,7 +59,7 @@ public class BasicFilterContainer extends Container {
             for (int filterCol = 0; filterCol < 5; ++filterCol) {
                 int x = startX + filterCol * 18;
                 int y = startY + filterRow * 18;
-                addSlot(new BasicFilterSlot(handler, filterCol + filterRow * 5, x, y));
+                addSlot(new StockerFilterSlot(handler, filterCol + filterRow * 5, x, y));
             }
         }
 
@@ -86,7 +86,7 @@ public class BasicFilterContainer extends Container {
 
         if (slot != null && slot.getHasStack()) {
             ItemStack currentStack = slot.getStack().copy();
-            currentStack.setCount(1);
+            //currentStack.setCount(1);
 
             if (index < SLOTS) {
                 if (!this.mergeItemStack(currentStack, SLOTS, this.inventorySlots.size(), false)) {

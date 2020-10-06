@@ -2,8 +2,8 @@ package com.direwolf20.logisticslasers.client.screens.cards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
-import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
-import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
+import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
+import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
@@ -26,13 +26,13 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
+public class StockerFilterScreen extends ContainerScreen<StockerFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/basicfilterscreen.png");
 
-    protected final BasicFilterContainer container;
+    protected final StockerFilterContainer container;
     private boolean isWhitelist;
 
-    public BasicFilterScreen(BasicFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
+    public StockerFilterScreen(StockerFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
         this.container = container;
         isWhitelist = container.isWhiteList;
@@ -89,7 +89,7 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
 
     @Override
     protected void drawGuiContainerForegroundLayer(MatrixStack stack, int mouseX, int mouseY) {
-        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.basicfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.stockerfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
         if (!container.showPriority) return;
         Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 15, Color.DARK_GRAY.getRGB());
         Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + container.getPriority()).getString(), 18, 25, Color.DARK_GRAY.getRGB());
@@ -101,7 +101,7 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
 
     @Override
     public boolean mouseClicked(double x, double y, int btn) {
-        if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
+        if (hoveredSlot == null || !(hoveredSlot instanceof StockerFilterSlot))
             return super.mouseClicked(x, y, btn);
 
         // By splitting the stack we can get air easily :) perfect removal basically
@@ -115,7 +115,7 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
 
     @Override
     public boolean mouseReleased(double x, double y, int btn) {
-        if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
+        if (hoveredSlot == null || !(hoveredSlot instanceof StockerFilterSlot))
             return super.mouseReleased(x, y, btn);
 
         return true;
@@ -123,7 +123,7 @@ public class BasicFilterScreen extends ContainerScreen<BasicFilterContainer> {
 
     @Override
     public boolean mouseScrolled(double x, double y, double amt) {
-        if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
+        if (hoveredSlot == null || !(hoveredSlot instanceof StockerFilterSlot))
             return super.mouseScrolled(x, y, amt);
 
         return true;

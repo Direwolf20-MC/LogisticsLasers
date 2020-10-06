@@ -1,6 +1,6 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
-import com.direwolf20.logisticslasers.common.container.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
