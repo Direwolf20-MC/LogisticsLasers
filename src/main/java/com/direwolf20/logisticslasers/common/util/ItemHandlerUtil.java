@@ -168,7 +168,6 @@ public class ItemHandlerUtil {
 
         private final NonNullList<ItemStack> inventory;
         private final IntList stackSizes = new IntArrayList();
-        private final HashMap<ItemStack, Integer> itemCounts = new HashMap<>();
 
         public InventoryInfo(IItemHandler handler) {
             inventory = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
@@ -176,19 +175,29 @@ public class ItemHandlerUtil {
                 ItemStack stack = handler.getStackInSlot(i);
                 inventory.set(i, stack);
                 stackSizes.add(stack.getCount());
+            }
+        }
+    }
+
+    public static class InventoryCounts {
+        private final HashMap<ItemStack, Integer> itemCounts = new HashMap<>();
+
+        public InventoryCounts(IItemHandler handler) {
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getStackInSlot(i);
                 if (!stack.isEmpty()) {
-                    boolean foundStackInCache = false;
-                    for (ItemStack cacheStack : itemCounts.keySet()) {
-                        if (cacheStack.isItemEqual(stack)) {
-                            itemCounts.put(cacheStack, itemCounts.get(cacheStack) + stack.getCount());
-                            foundStackInCache = true;
-                            break;
-                        }
-                    }
-                    if (!foundStackInCache)
-                        itemCounts.put(stack, stack.getCount());
+                    setCount(stack);
                 }
             }
+        }
+
+        public void setCount(ItemStack stack) {
+            for (ItemStack cacheStack : itemCounts.keySet()) {
+                if (cacheStack.isItemEqual(stack)) {
+                    itemCounts.put(cacheStack, itemCounts.get(cacheStack) + stack.getCount());
+                }
+            }
+            itemCounts.put(stack, stack.getCount());
         }
 
         public int getCount(ItemStack stack) {

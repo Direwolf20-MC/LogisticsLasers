@@ -414,10 +414,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             IItemHandler stockerItemHandler = getAttachedInventory(stockerPos); //Get the inventory handler of the block the stocker's inventory node is facing
             if (stockerItemHandler == null) continue; //If its empty, move onto the next stocker
 
+            ItemHandlerUtil.InventoryCounts invCache = new ItemHandlerUtil.InventoryCounts(stockerItemHandler);
             for (ItemStack stockerCard : getStockerFilters(stockerPos)) { //Find all stocker cards in this node
                 if (successfullySent) break; //If this node already requested an item this tick, cancel out
                 Set<ItemStack> filteredItems = BaseCard.getFilteredItems(stockerCard); //Get all the items we should be requesting
-                ItemHandlerUtil.InventoryInfo invCache = new ItemHandlerUtil.InventoryInfo(stockerItemHandler);
                 for (ItemStack item : filteredItems) { //Loop through each itemstack in the requested set of items
                     ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
                     possibleProviders.remove(stockerPos); //Remove this chest
