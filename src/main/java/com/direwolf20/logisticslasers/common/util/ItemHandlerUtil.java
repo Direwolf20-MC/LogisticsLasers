@@ -2,7 +2,6 @@ package com.direwolf20.logisticslasers.common.util;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.IItemHandler;
@@ -166,7 +165,7 @@ public class ItemHandlerUtil {
 
         private final NonNullList<ItemStack> inventory;
         private final IntList stackSizes = new IntArrayList();
-        private final HashMap<Item, Integer> itemCounts = new HashMap<>();
+        private final HashMap<ItemStack, Integer> itemCounts = new HashMap<>();
 
         public InventoryInfo(IItemHandler handler) {
             inventory = NonNullList.withSize(handler.getSlots(), ItemStack.EMPTY);
@@ -174,13 +173,27 @@ public class ItemHandlerUtil {
                 ItemStack stack = handler.getStackInSlot(i);
                 inventory.set(i, stack);
                 stackSizes.add(stack.getCount());
-                if (!stack.isEmpty())
-                    itemCounts.put(stack.getItem(), getCount(stack) + stack.getCount());
+                if (!stack.isEmpty()) {
+                    boolean foundStackInCache = false;
+                    for (ItemStack cacheStack : itemCounts.keySet()) {
+                        if (cacheStack.isItemEqual(stack)) {
+                            itemCounts.put(cacheStack, getCount(stack) + stack.getCount());
+                            foundStackInCache = true;
+                            break;
+                        }
+                    }
+                    if (!foundStackInCache)
+                        itemCounts.put(stack, getCount(stack) + stack.getCount());
+                }
             }
         }
 
         public int getCount(ItemStack stack) {
-            return itemCounts.getOrDefault(stack.getItem(), 0);
+            for (ItemStack cacheStack : itemCounts.keySet()) {
+                if (cacheStack.isItemEqual(stack))
+                    return (itemCounts.get(cacheStack));
+            }
+            return 0;
         }
     }
 }
