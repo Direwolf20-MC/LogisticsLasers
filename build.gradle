@@ -44,7 +44,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                logisticslasers {
                     source sourceSets.main
                 }
             }
@@ -60,7 +60,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                logisticslasers {
                     source sourceSets.main
                 }
             }
@@ -113,7 +113,7 @@ dependencies {
     //JEI
     compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
-    compileOnly fg.deobf("com.feed_the_beast.mods:ftb-gui-library:1.0.0.18")
+    //compileOnly fg.deobf("com.feed_the_beast.mods:ftb-gui-library:1.0.0.18")
 
     //Other mods for dev environment
     runtimeOnly fg.deobf("ignored:Mekanism:1.16.3-10.0.9")
