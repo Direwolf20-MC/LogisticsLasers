@@ -108,6 +108,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         stockerNodes.remove(pos);
 
         filterCardCache.remove(pos);
+        inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
         removeBlockPosFromPriorities(pos);
         if (!te.hasController()) return;
 
@@ -120,7 +121,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 extractorNodes.add(pos);
             if (stack.getItem() instanceof CardInserter) {
                 inserterNodes.add(pos);
-                inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
             }
             if (stack.getItem() instanceof CardProvider) {
                 providerNodes.add(pos);
@@ -378,7 +378,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                             continue;
                     }
 
-                    int extractAmt = 16;
+                    int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
                     ArrayList<BlockPos> possibleDestinations = findDestinationForItemstack(stack); //Find a list of possible destinations
                     possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
