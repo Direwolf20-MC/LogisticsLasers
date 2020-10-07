@@ -88,7 +88,6 @@ public class StockerFilterScreen extends BaseFilterScreen<StockerFilterContainer
     public boolean mouseScrolled(double x, double y, double amt) {
         if (hoveredSlot == null || !(hoveredSlot instanceof StockerFilterSlot))
             return super.mouseScrolled(x, y, amt);
-        
         ItemStack slotStack = hoveredSlot.getStack();
         if (!slotStack.isEmpty()) {
             slotStack.grow((int) amt);
