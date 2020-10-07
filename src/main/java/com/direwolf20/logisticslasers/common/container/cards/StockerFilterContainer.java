@@ -2,7 +2,7 @@ package com.direwolf20.logisticslasers.common.container.cards;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -113,7 +113,7 @@ public class StockerFilterContainer extends BasicFilterContainer {
     public void onContainerClosed(PlayerEntity playerIn) {
         World world = playerIn.getEntityWorld();
         if (!world.isRemote) {
-            CardStocker.setInventory(filterItemStack, handler);
+            BaseCard.setInventory(filterItemStack, handler);
             if (!sourceContainer.equals(BlockPos.ZERO)) {
                 TileEntity te = world.getTileEntity(sourceContainer);
                 if (te instanceof InventoryNodeTile) {

@@ -8,12 +8,14 @@ import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -79,6 +81,17 @@ public abstract class BaseCard extends Item {
 
     public static ItemStackHandler setInventory(ItemStack stack, ItemStackHandler handler) {
         stack.getOrCreateTag().put("inv", handler.serializeNBT());
+        ListNBT countList = new ListNBT();
+        for (int i = 0; i < handler.getSlots(); i++) {
+            CompoundNBT countTag = new CompoundNBT();
+            ItemStack itemStack = handler.getStackInSlot(i);
+            if (itemStack.getCount() > itemStack.getMaxStackSize()) {
+                countTag.putInt("Slot", i);
+                countTag.putInt("Count", itemStack.getCount());
+                countList.add(countTag);
+            }
+        }
+        stack.getOrCreateTag().put("counts", countList);
         return handler;
     }
 
@@ -86,6 +99,14 @@ public abstract class BaseCard extends Item {
         CompoundNBT compound = stack.getOrCreateTag();
         ItemStackHandler handler = new ItemStackHandler(BasicFilterContainer.SLOTS);
         handler.deserializeNBT(compound.getCompound("inv"));
+        ListNBT countList = compound.getList("counts", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < countList.size(); i++) {
+            CompoundNBT countTag = countList.getCompound(i);
+            int slot = countTag.getInt("Slot");
+            ItemStack itemStack = handler.getStackInSlot(slot);
+            itemStack.setCount(countTag.getInt("Count"));
+            handler.setStackInSlot(slot, itemStack);
+        }
         return !compound.contains("inv") ? setInventory(stack, new ItemStackHandler(BasicFilterContainer.SLOTS)) : handler;
     }
 

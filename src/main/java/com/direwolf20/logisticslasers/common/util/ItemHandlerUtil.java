@@ -196,6 +196,7 @@ public class ItemHandlerUtil {
             for (ItemStack cacheStack : itemCounts.keySet()) {
                 if (cacheStack.isItemEqual(stack)) {
                     itemCounts.put(cacheStack, itemCounts.get(cacheStack) + stack.getCount());
+                    return;
                 }
             }
             itemCounts.put(stack, stack.getCount());

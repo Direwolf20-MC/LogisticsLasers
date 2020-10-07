@@ -77,9 +77,8 @@ public class PacketOpenFilter {
                     }
                 };
                 if (itemStack.getItem() instanceof CardStocker) {
-                    ItemStackHandler stockHandler = CardStocker.getInventory(itemStack);
                     NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                            (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, stockHandler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                            (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
                         buf.writeItemStack(itemStack);
                     }));
                 } else {
