@@ -446,7 +446,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
                         if (providerItemHandler == null) continue; //If its empty, move onto the next provider
 
-                        ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack.copy(), true); //Pretend to extract the stack from the provider's inventory
+                        ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack, true); //Pretend to extract the stack from the provider's inventory
 
                         if (simulated.getCount() == 0) {
                             continue; //If the stack we removed has zero items in it check another provider

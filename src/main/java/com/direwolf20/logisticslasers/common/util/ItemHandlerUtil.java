@@ -12,12 +12,13 @@ import java.util.HashMap;
 
 public class ItemHandlerUtil {
     @Nonnull
-    public static ItemStack extractItem(IItemHandler source, @Nonnull ItemStack stack, boolean simulate) {
-        if (source == null || stack.isEmpty())
-            return stack;
+    public static ItemStack extractItem(IItemHandler source, @Nonnull ItemStack incstack, boolean simulate) {
+        if (source == null || incstack.isEmpty())
+            return incstack;
 
         int amtGotten = 0;
-        int amtRemaining = stack.getCount();
+        int amtRemaining = incstack.getCount();
+        ItemStack stack = incstack.copy();
         for (int i = 0; i < source.getSlots(); i++) {
             ItemStack stackInSlot = source.getStackInSlot(i);
             if (stackInSlot.isItemEqual(stack)) {
