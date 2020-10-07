@@ -60,6 +60,11 @@ public class StockerFilterScreen extends BaseFilterScreen<StockerFilterContainer
         } else {
             ItemStack slotStack = hoveredSlot.getStack();
             if (!slotStack.isEmpty()) {
+                if (btn == 2) {
+                    slotStack.setCount(0);
+                    PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, slotStack, slotStack.getCount()));
+                    return true;
+                }
                 int amt = (btn == 0) ? 1 : -1;
                 if (Screen.hasShiftDown()) amt *= 10;
                 if (Screen.hasControlDown()) amt *= 100;
@@ -83,6 +88,12 @@ public class StockerFilterScreen extends BaseFilterScreen<StockerFilterContainer
     public boolean mouseScrolled(double x, double y, double amt) {
         if (hoveredSlot == null || !(hoveredSlot instanceof StockerFilterSlot))
             return super.mouseScrolled(x, y, amt);
+        
+        ItemStack slotStack = hoveredSlot.getStack();
+        if (!slotStack.isEmpty()) {
+            slotStack.grow((int) amt);
+            PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, slotStack, slotStack.getCount()));
+        }
 
         return true;
     }
