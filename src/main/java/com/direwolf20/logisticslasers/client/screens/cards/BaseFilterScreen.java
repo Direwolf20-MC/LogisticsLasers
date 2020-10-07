@@ -110,7 +110,7 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
         stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
         hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
 
-        PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack));
+        PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
         return true;
     }
 

@@ -7,6 +7,7 @@ import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -52,10 +53,21 @@ public class StockerFilterScreen extends BaseFilterScreen<StockerFilterContainer
 
         // By splitting the stack we can get air easily :) perfect removal basically
         ItemStack stack = getMinecraft().player.inventory.getItemStack();
-        stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
-        hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
+        if (!stack.isEmpty()) {
+            stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
+            hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
+            PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
+        } else {
+            ItemStack slotStack = hoveredSlot.getStack();
+            if (!slotStack.isEmpty()) {
+                int amt = (btn == 0) ? 1 : -1;
+                if (Screen.hasShiftDown()) amt *= 10;
+                if (Screen.hasControlDown()) amt *= 100;
+                slotStack.grow(amt);
 
-        PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack));
+                PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, slotStack, slotStack.getCount()));
+            }
+        }
         return true;
     }
 

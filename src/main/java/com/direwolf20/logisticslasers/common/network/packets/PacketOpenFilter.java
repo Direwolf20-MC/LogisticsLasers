@@ -76,20 +76,16 @@ public class PacketOpenFilter {
                         return 1;
                     }
                 };
-                //boolean showPriority = itemStack.getItem() instanceof CardInserter;
                 if (itemStack.getItem() instanceof CardStocker) {
+                    ItemStackHandler stockHandler = CardStocker.getInventory(itemStack);
                     NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                            (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                            (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, stockHandler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
                         buf.writeItemStack(itemStack);
-                        //buf.writeBoolean(showPriority);
-                        //buf.writeBoolean(getWhiteList(itemStack));
                     }));
                 } else {
                     NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
                             (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
                         buf.writeItemStack(itemStack);
-                        //buf.writeBoolean(showPriority);
-                        //buf.writeBoolean(getWhiteList(itemStack));
                     }));
                 }
             });

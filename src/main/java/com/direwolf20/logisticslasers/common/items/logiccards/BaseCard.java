@@ -70,12 +70,9 @@ public abstract class BaseCard extends Item {
                 return 1;
             }
         };
-        //boolean showPriority = itemStack.getItem() instanceof CardInserter;
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
                 (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, tempArray), new StringTextComponent("")), (buf -> {
             buf.writeItemStack(itemStack);
-            //buf.writeBoolean(showPriority);
-            //buf.writeBoolean(getWhiteList(itemStack));
         }));
         return new ActionResult<>(ActionResultType.PASS, itemStack);
     }

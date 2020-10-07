@@ -14,19 +14,22 @@ import java.util.function.Supplier;
 public class PacketFilterSlot {
     private int slotNumber;
     private ItemStack stack;
+    private int count;
 
-    public PacketFilterSlot(int slotNumber, ItemStack stack) {
+    public PacketFilterSlot(int slotNumber, ItemStack stack, int count) {
         this.slotNumber = slotNumber;
         this.stack = stack;
+        this.count = count;
     }
 
     public static void encode(PacketFilterSlot msg, PacketBuffer buffer) {
         buffer.writeInt(msg.slotNumber);
         buffer.writeItemStack(msg.stack);
+        buffer.writeInt(msg.count);
     }
 
     public static PacketFilterSlot decode(PacketBuffer buffer) {
-        return new PacketFilterSlot(buffer.readInt(), buffer.readItemStack());
+        return new PacketFilterSlot(buffer.readInt(), buffer.readItemStack(), buffer.readInt());
     }
 
     public static class Handler {
@@ -41,8 +44,10 @@ public class PacketFilterSlot {
                     return;
 
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
+                ItemStack stack = msg.stack;
+                stack.setCount(msg.count);
                 if (slot instanceof BasicFilterSlot || slot instanceof StockerFilterSlot)
-                    slot.putStack(msg.stack);
+                    slot.putStack(stack);
             });
 
             ctx.get().setPacketHandled(true);

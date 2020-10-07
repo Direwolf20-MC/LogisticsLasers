@@ -2,7 +2,7 @@ package com.direwolf20.logisticslasers.common.container.cards;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -24,7 +24,7 @@ public class StockerFilterContainer extends BasicFilterContainer {
     }
 
     public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
-        super(card, windowId, playerInventory, handler, cardData);
+        this(card, windowId, playerInventory, handler, BlockPos.ZERO, cardData);
     }
 
     public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, BlockPos sourcePos, IIntArray cardData) {
@@ -107,15 +107,13 @@ public class StockerFilterContainer extends BasicFilterContainer {
     @Override
     public boolean canInteractWith(PlayerEntity playerIn) {
         return true;
-        /*ItemStack stack = playerIn.getHeldItemMainhand();
-        return stack.equals(this.filterItemStack) && !stack.isEmpty();*/
     }
 
     @Override
     public void onContainerClosed(PlayerEntity playerIn) {
         World world = playerIn.getEntityWorld();
         if (!world.isRemote) {
-            BaseCard.setInventory(filterItemStack, handler);
+            CardStocker.setInventory(filterItemStack, handler);
             if (!sourceContainer.equals(BlockPos.ZERO)) {
                 TileEntity te = world.getTileEntity(sourceContainer);
                 if (te instanceof InventoryNodeTile) {
