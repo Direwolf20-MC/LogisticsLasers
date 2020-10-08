@@ -60,9 +60,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> inserterNodes = new HashSet<>(); //All Inventory nodes that contain an inserter card
     private final Set<BlockPos> providerNodes = new HashSet<>(); //All Inventory nodes that contain an provider card
     private final Set<BlockPos> stockerNodes = new HashSet<>(); //All Inventory nodes that contain an stocker card
-
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
-
     private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder()); //A sorted list of inserter cards by priority
     private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
     private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
@@ -300,7 +298,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Given an @param itemStack, find a valid destination either from an existing cache, or looping through all known inserters.
-     * Excludes @param fromPos to ensure items are not inserted into the source chest
      *
      * @return a list of possible destinations
      */
