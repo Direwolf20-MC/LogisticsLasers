@@ -16,7 +16,7 @@ public class GeneratorBlockStates extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         buildCubeAll(ModBlocks.CONTROLLER.get());
-
+        buildCubeAll(ModBlocks.CRAFTING_STATION.get());
     }
 
     private void buildCubeAll(Block block) {

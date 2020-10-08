@@ -22,6 +22,7 @@ public class GeneratorItemModels extends ItemModelProvider {
         registerBlockModel(ModBlocks.CONTROLLER.get());
         registerBlockModel(ModBlocks.BASIC_NODE.get());
         registerBlockModel(ModBlocks.INVENTORY_NODE.get());
+        registerBlockModel(ModBlocks.CRAFTING_STATION.get());
 
         for (RegistryObject<Item> item : ModItems.BASICITEMS.getEntries()) {
             registerBasicItem(item.get());

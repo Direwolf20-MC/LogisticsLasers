@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "logisticslasers:block/crafting_station"
+    }
+  }
+}

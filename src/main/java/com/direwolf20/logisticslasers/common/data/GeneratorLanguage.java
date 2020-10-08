@@ -14,6 +14,7 @@ public class GeneratorLanguage extends LanguageProvider {
     @Override
     protected void addTranslations() {
         addBlock(ModBlocks.CONTROLLER, "Laser Controller");
+        addBlock(ModBlocks.CRAFTING_STATION, "Crafting Station");
         addBlock(ModBlocks.BASIC_NODE, "Basic Node");
         addBlock(ModBlocks.INVENTORY_NODE, "Inventory Node");
 
@@ -24,6 +25,7 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(ModItems.CARD_PROVIDER, "Provider Module");
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
+        add("block.logisticslasers.craftingstationscreen", "Crafting Station");
         add("item.logisticslasers.basicfilterscreen", "Basic Filter");
         add("item.logisticslasers.stockerfilterscreen", "Stocker Filter");
 

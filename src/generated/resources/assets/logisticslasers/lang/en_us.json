@@ -2,6 +2,8 @@
   "block.logisticslasers.basicnode": "Basic Node",
   "block.logisticslasers.controller": "Laser Controller",
   "block.logisticslasers.controllerscreen": "Laser Controller",
+  "block.logisticslasers.crafting_station": "Crafting Station",
+  "block.logisticslasers.craftingstationscreen": "Crafting Station",
   "block.logisticslasers.inventorynode": "Inventory Node",
   "block.logisticslasers.inventorynodescreen": "Inventory Node",
   "item.logisticslasers.basicfilterscreen": "Basic Filter",

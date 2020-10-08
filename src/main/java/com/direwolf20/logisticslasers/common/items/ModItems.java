@@ -22,6 +22,7 @@ public class ModItems {
     public static final RegistryObject<Item> CONTROLLER_ITEM = ITEMS.register("controller", () -> new BlockItem(ModBlocks.CONTROLLER.get(), ITEM_GROUP));
     public static final RegistryObject<Item> BASIC_NODE_ITEM = ITEMS.register("basicnode", () -> new BlockItem(ModBlocks.BASIC_NODE.get(), ITEM_GROUP));
     public static final RegistryObject<Item> INVENTORY_NODE_ITEM = ITEMS.register("inventorynode", () -> new BlockItem(ModBlocks.INVENTORY_NODE.get(), ITEM_GROUP));
+    public static final RegistryObject<Item> CRAFTING_STATION_ITEM = ITEMS.register("crafting_station", () -> new BlockItem(ModBlocks.CRAFTING_STATION.get(), ITEM_GROUP));
 
     // Items
     public static final RegistryObject<Item> WRENCH = BASICITEMS.register("wrench", Wrench::new);

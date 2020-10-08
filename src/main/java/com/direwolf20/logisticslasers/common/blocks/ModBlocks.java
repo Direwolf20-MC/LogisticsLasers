@@ -2,11 +2,13 @@ package com.direwolf20.logisticslasers.common.blocks;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
+import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
+import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
@@ -30,6 +32,7 @@ public class ModBlocks {
     public static final RegistryObject<Block> CONTROLLER = BLOCKS.register("controller", Controller::new);
     public static final RegistryObject<Block> BASIC_NODE = BLOCKS.register("basicnode", BasicNode::new);
     public static final RegistryObject<Block> INVENTORY_NODE = BLOCKS.register("inventorynode", InventoryNode::new);
+    public static final RegistryObject<Block> CRAFTING_STATION = BLOCKS.register("crafting_station", CraftingStation::new);
 
     /**
      * TileEntity Registers to the above deferred registers to be loaded in from the mods main class.
@@ -40,6 +43,8 @@ public class ModBlocks {
             TILES_ENTITIES.register("basicnode", () -> TileEntityType.Builder.create(BasicNodeTile::new, ModBlocks.BASIC_NODE.get()).build(null));
     public static final RegistryObject<TileEntityType<InventoryNodeTile>> INVENTORY_NODE_TILE =
             TILES_ENTITIES.register("inventorynode", () -> TileEntityType.Builder.create(InventoryNodeTile::new, ModBlocks.INVENTORY_NODE.get()).build(null));
+    public static final RegistryObject<TileEntityType<CraftingStationTile>> CRAFTING_STATION_TILE =
+            TILES_ENTITIES.register("crafting_station", () -> TileEntityType.Builder.create(CraftingStationTile::new, ModBlocks.CRAFTING_STATION.get()).build(null));
 
     /**
      * Containers
@@ -48,5 +53,5 @@ public class ModBlocks {
     public static final RegistryObject<ContainerType<InventoryNodeContainer>> INVENTORY_NODE_CONTAINER = CONTAINERS.register("inventory_node_container", () -> IForgeContainerType.create(InventoryNodeContainer::new));
     public static final RegistryObject<ContainerType<BasicFilterContainer>> BASIC_FILTER_CONTAINER = CONTAINERS.register("basic_filter_container", () -> IForgeContainerType.create(BasicFilterContainer::new));
     public static final RegistryObject<ContainerType<StockerFilterContainer>> STOCKER_FILTER_CONTAINER = CONTAINERS.register("stocker_filter_container", () -> IForgeContainerType.create(StockerFilterContainer::new));
-
+    public static final RegistryObject<ContainerType<CraftingStationContainer>> CRAFTING_STATION_CONTAINER = CONTAINERS.register("crafting_station_container", () -> IForgeContainerType.create(CraftingStationContainer::new));
 }
