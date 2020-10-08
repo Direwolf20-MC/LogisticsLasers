@@ -186,6 +186,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             filterCardCache.remove(pos);
             inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
             providerCache.clear(); //Any chance to provider cards will affect the provider cache
+            removeBlockPosFromPriorities(pos);
         }
         boolean all = removeFromAllNodes(pos);
         return (inv && all);
@@ -379,7 +380,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
                     int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
-                    ArrayList<BlockPos> possibleDestinations = findDestinationForItemstack(stack); //Find a list of possible destinations
+                    ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
                     possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
                     if (possibleDestinations.isEmpty())
                         continue; //If we can't send this item anywhere, move onto the next item
