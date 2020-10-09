@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.container;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
+import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,20 +21,21 @@ import javax.annotation.Nullable;
 public class CraftingStationContainer extends Container {
     public static final int SLOTS = 37;
     public ItemStackHandler handler;
+    public CraftingStationHandler craftingHandler;
 
     // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public CraftingStationTile tile;
 
     public CraftingStationContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        this((CraftingStationTile) playerInventory.player.world.getTileEntity(extraData.readBlockPos()), windowId, playerInventory, new ItemStackHandler(SLOTS));
+        this((CraftingStationTile) playerInventory.player.world.getTileEntity(extraData.readBlockPos()), windowId, playerInventory, new ItemStackHandler(27));
     }
 
     public CraftingStationContainer(@Nullable CraftingStationTile tile, int windowId, PlayerInventory playerInventory, ItemStackHandler handler) {
         super(ModBlocks.CRAFTING_STATION_CONTAINER.get(), windowId);
         this.handler = handler;
         this.tile = tile;
+        this.craftingHandler = tile.craftMatrixHandler;
         this.setup(playerInventory);
-
     }
 
     public void setup(PlayerInventory inventory) {
@@ -56,7 +58,7 @@ public class CraftingStationContainer extends Container {
             for (int filterCol = 0; filterCol < 3; ++filterCol) {
                 int x = startX + filterCol * 18;
                 int y = startY + filterRow * 18;
-                addSlot(new BasicFilterSlot(handler, 27 + (filterCol + filterRow * 3), x, y));
+                addSlot(new BasicFilterSlot(craftingHandler, (filterCol + filterRow * 3), x, y));
             }
         }
 
@@ -87,7 +89,7 @@ public class CraftingStationContainer extends Container {
             ItemStack currentStack = slot.getStack();
             itemstack = currentStack.copy();
 
-            if (index < SLOTS) {
+            if (index < 27) {
                 if (!this.mergeItemStack(currentStack, SLOTS, this.inventorySlots.size(), false)) {
                     return ItemStack.EMPTY;
                 }

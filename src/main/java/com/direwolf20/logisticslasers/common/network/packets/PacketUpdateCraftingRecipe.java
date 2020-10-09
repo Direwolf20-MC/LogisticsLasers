@@ -1,9 +1,13 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
+import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.crafting.ICraftingRecipe;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -43,6 +47,13 @@ public class PacketUpdateCraftingRecipe {
     }
 
     public static void clientPacketHandler(PacketUpdateCraftingRecipe msg) {
-        System.out.println(msg.recipe);
+        World world = Minecraft.getInstance().world;
+        if (world != null) {
+            CraftingStationTile te = (CraftingStationTile) world.getTileEntity(msg.pos);
+            RecipeManager manager = world.getRecipeManager();
+            ICraftingRecipe recipe = manager.getRecipe(msg.recipe).filter(ICraftingRecipe.class::isInstance).map(ICraftingRecipe.class::cast).get();
+            te.updateRecipe(recipe);
+
+        }
     }
 }

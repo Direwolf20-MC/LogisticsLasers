@@ -2,10 +2,12 @@ package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
+import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketUpdateCraftingRecipe;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -16,9 +18,9 @@ import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ICraftingRecipe;
 import net.minecraft.item.crafting.IRecipeType;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -26,13 +28,16 @@ import net.minecraft.world.GameRules;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.hooks.BasicEventHooks;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
     /**
@@ -41,11 +46,12 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     @Nullable
     private ICraftingRecipe lastRecipe;
 
-    public final CraftingStationInventory craftMatrix = new CraftingStationInventory(new ItemStackHandler(9), 3, 3);
+    public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
+    public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
     public final CraftResultInventory craftResult = new CraftResultInventory();
     private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
-    private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(CraftingStationContainer.SLOTS));
+    private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
 
     public CraftingStationTile() {
         super(ModBlocks.CRAFTING_STATION_TILE.get());
@@ -57,9 +63,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         }
         // assume empty unless we learn otherwise
         ItemStack result = ItemStack.EMPTY;
-        for (int i = 0; i < 9; i++) {
-            craftMatrix.setInventorySlotContents(i, getInventoryStacks().getStackInSlot(27 + i));
-        }
         if (!this.world.isRemote && this.world.getServer() != null) {
             RecipeManager manager = this.world.getServer().getRecipeManager();
 
@@ -117,7 +120,8 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         if (this.world == null || amount == 0) {
             return ItemStack.EMPTY;
         }
-
+        ArrayList<Integer> itemStacksToremove = new ArrayList<>();
+        ItemStackHandler handler = getInventoryStacks();
         // check if the player has access to the result
         if (player instanceof ServerPlayerEntity) {
             if (this.lastRecipe != null) {
@@ -125,6 +129,26 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 if (!this.lastRecipe.isDynamic() && world.getGameRules().getBoolean(GameRules.DO_LIMITED_CRAFTING) && !((ServerPlayerEntity) player).getRecipeBook().isUnlocked(this.lastRecipe)) {
                     return ItemStack.EMPTY;
                 }
+
+                //Check if the inventory slots have enough items to craft this.
+                List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+                for (int i = 0; i < handler.getSlots(); i++) {
+                    ItemStack stackInSlot = handler.getStackInSlot(i);
+                    int count = stackInSlot.getCount();
+                    for (Ingredient ingredient : lastRecipe.getIngredients()) {
+                        if (count == 0) break;
+                        if (ingredient.test(stackInSlot) && count >= 1) {
+                            itemStacksToremove.add(i);
+                            ingredients.remove(ingredient);
+                            count--;
+                        }
+                    }
+                    if (ingredients.isEmpty()) break;
+                }
+
+                if (!ingredients.isEmpty())
+                    return ItemStack.EMPTY;
+
                 // unlock the recipe if it was not unlocked
                 if (this.lastRecipe != null && !this.lastRecipe.isDynamic()) {
                     player.unlockRecipes(Collections.singleton(this.lastRecipe));
@@ -136,38 +160,36 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
             BasicEventHooks.firePlayerCraftingEvent(player, result, this.craftMatrix);
         }
 
-        // update all slots in the inventory
-        // remove remaining items
-        ForgeHooks.setCraftingPlayer(player);
-        NonNullList<ItemStack> remaining = this.lastRecipe.getRemainingItems(craftMatrix);
-        ForgeHooks.setCraftingPlayer(null);
-        for (int i = 0; i < remaining.size(); ++i) {
-            ItemStack original = getInventoryStacks().getStackInSlot(i + 27);
-            ItemStack newStack = remaining.get(i);
-
-            // if the slot contains a stack, decrease by 1
-            if (!original.isEmpty()) {
-                original.shrink(1);
-            }
-
-            // if we have a new item, try merging it in
-            if (!newStack.isEmpty()) {
-                // if empty, set directly
-                if (original.isEmpty()) {
-                    this.setInventorySlotContents(i, newStack);
-                } else if (ItemStack.areItemsEqual(original, newStack) && ItemStack.areItemStackTagsEqual(original, newStack)) {
-                    // if matching, merge
-                    newStack.grow(original.getCount());
-                    this.setInventorySlotContents(i, newStack);
-                } else {
-                    // otherwise, drop the item as the player
-                    if (!player.inventory.addItemStackToInventory(newStack)) {
-                        player.dropItem(newStack, false);
-                    }
-                }
+        //Try to give the item to the player (On their cursor)
+        ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+        ItemStack heldItem = serverPlayer.inventory.getItemStack();
+        boolean success = false;
+        if (heldItem.isEmpty()) {
+            serverPlayer.inventory.setItemStack(result);
+            success = true;
+        } else {
+            if (ItemHandlerHelper.canItemStacksStack(result, heldItem) && (result.getCount() + heldItem.getCount() <= result.getMaxStackSize())) {
+                heldItem.grow(result.getCount());
+                success = true;
             }
         }
-        getInventoryStacks().setStackInSlot(0, result);
+        if (!success) return ItemStack.EMPTY; //If it failed, return without deleting items from contents
+        serverPlayer.sendContainerToPlayer(serverPlayer.openContainer); //Update player's client with the itemstack now on the cursor
+
+        ForgeHooks.setCraftingPlayer(player);
+        List<ItemStack> remaining = this.lastRecipe.getRemainingItems(craftMatrix).stream().filter(o -> !o.isEmpty()).collect(Collectors.toList()); //Get remaining items like buckets
+        ForgeHooks.setCraftingPlayer(null);
+        //Remove items from inventory that we found earlier
+        for (Integer slot : itemStacksToremove) {
+            handler.getStackInSlot(slot).shrink(1);
+        }
+        //Put items into inventory like empty buckets. Drop in world if failed somehow.
+        for (ItemStack remainingStack : remaining) {
+            ItemStack postInsert = ItemHandlerHelper.insertItem(handler, remainingStack, false);
+            if (!postInsert.isEmpty()) {
+                Block.spawnAsEntity(world, pos, postInsert);
+            }
+        }
         return result;
     }
 
@@ -180,6 +202,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         this.lastRecipe = recipe;
         this.craftResult.clear();
     }
+
     /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
         if (!routeList.containsKey(pos))
             findRouteFor(pos);
@@ -208,11 +231,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         if (te == null) return;
         te.removeFromInvNodes(pos);
     }*/
-
-    public ItemStackHandler getInventoryStacks() {
-        ItemStackHandler handler = inventory.orElse(new ItemStackHandler(CraftingStationContainer.SLOTS));
-        return handler;
-    }
 
     /*public boolean findRouteFor(BlockPos pos) {
         System.out.println("Finding route for: " + pos);
@@ -245,24 +263,29 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         System.out.println(routeList);
     }*/
 
-
+    public ItemStackHandler getInventoryStacks() {
+        ItemStackHandler handler = inventory.orElse(new ItemStackHandler(27));
+        return handler;
+    }
 
     @Nullable
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         assert world != null;
-        return new CraftingStationContainer(this, i, playerInventory, this.inventory.orElse(new ItemStackHandler(CraftingStationContainer.SLOTS)));
+        return new CraftingStationContainer(this, i, playerInventory, this.inventory.orElse(new ItemStackHandler(27)));
     }
 
     @Override
     public void read(BlockState state, CompoundNBT tag) {
         super.read(state, tag);
         inventory.ifPresent(h -> h.deserializeNBT(tag.getCompound("inv")));
+        craftMatrixHandler.deserializeNBT(tag.getCompound("craftInv"));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         inventory.ifPresent(h -> tag.put("inv", h.serializeNBT()));
+        tag.put("craftInv", craftMatrixHandler.serializeNBT());
         return super.write(tag);
     }
 

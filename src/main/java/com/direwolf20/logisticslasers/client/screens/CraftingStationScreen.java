@@ -85,6 +85,9 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
     @Override
     public boolean mouseReleased(double x, double y, int btn) {
+        if (hoveredSlot != null && (hoveredSlot instanceof CraftingResultSlot) && !(hoveredSlot.getStack().isEmpty())) {
+            return true;
+        }
         if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
             return super.mouseReleased(x, y, btn);
 
