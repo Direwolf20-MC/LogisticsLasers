@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
+import com.direwolf20.logisticslasers.common.network.packets.PacketDoCraft;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -11,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.CraftingResultSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -65,6 +67,10 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (hoveredSlot != null && (hoveredSlot instanceof CraftingResultSlot) && !(hoveredSlot.getStack().isEmpty())) {
+            PacketHandler.sendToServer(new PacketDoCraft(hoveredSlot.getStack(), hoveredSlot.getStack().getCount()));
+            return true;
+        }
         if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
             return super.mouseClicked(mouseX, mouseY, button);
 

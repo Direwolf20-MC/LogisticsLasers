@@ -1,10 +1,7 @@
 package com.direwolf20.logisticslasers.common.network;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
-import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
-import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
-import com.direwolf20.logisticslasers.common.network.packets.PacketOpenFilter;
-import com.direwolf20.logisticslasers.common.network.packets.PacketToggleWhitelist;
+import com.direwolf20.logisticslasers.common.network.packets.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -37,9 +34,10 @@ public class PacketHandler {
         registerMessage(PacketOpenFilter.class, PacketOpenFilter::encode, PacketOpenFilter::decode, PacketOpenFilter.Handler::handle);
         registerMessage(PacketChangePriority.class, PacketChangePriority::encode, PacketChangePriority::decode, PacketChangePriority.Handler::handle);
         registerMessage(PacketToggleWhitelist.class, PacketToggleWhitelist::encode, PacketToggleWhitelist::decode, PacketToggleWhitelist.Handler::handle);
+        registerMessage(PacketDoCraft.class, PacketDoCraft::encode, PacketDoCraft::decode, PacketDoCraft.Handler::handle);
 
         //Going to Client Side
-        //registerMessage(AntigooSync.class, AntigooSync::encode, AntigooSync::decode, AntigooSync.Handler::handle);
+        registerMessage(PacketUpdateCraftingRecipe.class, PacketUpdateCraftingRecipe::encode, PacketUpdateCraftingRecipe::decode, PacketUpdateCraftingRecipe.Handler::handle);
     }
 
     public static void sendTo(Object msg, ServerPlayerEntity player) {

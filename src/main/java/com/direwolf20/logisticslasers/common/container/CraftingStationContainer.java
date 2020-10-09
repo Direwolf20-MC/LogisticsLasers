@@ -6,6 +6,7 @@ import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.CraftingResultSlot;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -58,6 +59,8 @@ public class CraftingStationContainer extends Container {
                 addSlot(new BasicFilterSlot(handler, 27 + (filterCol + filterRow * 3), x, y));
             }
         }
+
+        this.addSlot(new CraftingResultSlot(inventory.player, tile.craftMatrix, tile.craftResult, 36, 124, 35));
 
         // Slots for the hotbar
         for (int row = 0; row < 9; ++row) {
