@@ -48,9 +48,6 @@ public class CraftingStation extends BaseNode {
         if (!(te instanceof CraftingStationTile))
             return ActionResultType.FAIL;
 
-        if (player.isSneaking()) {
-            ((CraftingStationTile) te).calcResult();
-        }
         NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, pos);
         return super.onBlockActivated(state, worldIn, pos, player, hand, blockRayTraceResult);
     }

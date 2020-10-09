@@ -3,11 +3,11 @@ package com.direwolf20.logisticslasers.common.container;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
+import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.CraftingResultSlot;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -36,6 +36,7 @@ public class CraftingStationContainer extends Container {
         this.tile = tile;
         this.craftingHandler = tile.craftMatrixHandler;
         this.setup(playerInventory);
+        tile.calcResult();
     }
 
     public void setup(PlayerInventory inventory) {
@@ -62,7 +63,7 @@ public class CraftingStationContainer extends Container {
             }
         }
 
-        this.addSlot(new CraftingResultSlot(inventory.player, tile.craftMatrix, tile.craftResult, 36, 124, 35));
+        this.addSlot(new CraftingSlot(tile.craftResult, 0, 124, 35));
 
         // Slots for the hotbar
         for (int row = 0; row < 9; ++row) {

@@ -37,7 +37,7 @@ public class PacketHandler {
         registerMessage(PacketDoCraft.class, PacketDoCraft::encode, PacketDoCraft::decode, PacketDoCraft.Handler::handle);
 
         //Going to Client Side
-        registerMessage(PacketUpdateCraftingRecipe.class, PacketUpdateCraftingRecipe::encode, PacketUpdateCraftingRecipe::decode, PacketUpdateCraftingRecipe.Handler::handle);
+        //registerMessage(PacketUpdateCraftingRecipe.class, PacketUpdateCraftingRecipe::encode, PacketUpdateCraftingRecipe::decode, PacketUpdateCraftingRecipe.Handler::handle);
     }
 
     public static void sendTo(Object msg, ServerPlayerEntity player) {

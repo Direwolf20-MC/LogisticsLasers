@@ -3,8 +3,6 @@ package com.direwolf20.logisticslasers.common.tiles;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
-import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.PacketUpdateCraftingRecipe;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
 import net.minecraft.block.Block;
@@ -12,7 +10,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.CraftResultInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
@@ -21,22 +18,25 @@ import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.GameRules;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.hooks.BasicEventHooks;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -48,7 +48,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
 
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
-    public final CraftResultInventory craftResult = new CraftResultInventory();
+    public final ItemStackHandler craftResult = new ItemStackHandler(1);
     private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
@@ -57,62 +57,36 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         super(ModBlocks.CRAFTING_STATION_TILE.get());
     }
 
-    public ItemStack calcResult() {
+    public void calcResult() {
         if (this.world == null) {
-            return ItemStack.EMPTY;
-        }
-        // assume empty unless we learn otherwise
-        ItemStack result = ItemStack.EMPTY;
-        if (!this.world.isRemote && this.world.getServer() != null) {
-            RecipeManager manager = this.world.getServer().getRecipeManager();
-
-            // first, try the cached recipe
-            ICraftingRecipe recipe = lastRecipe;
-            // if it does not match, find a new recipe
-            if (recipe == null || !recipe.matches(this.craftMatrix, this.world)) {
-                recipe = manager.getRecipe(IRecipeType.CRAFTING, this.craftMatrix, this.world).orElse(null);
-            }
-
-            // if we have a recipe, fetch its result
-            if (recipe != null) {
-                result = recipe.getCraftingResult(this.craftMatrix);
-                // sync if the recipe is different
-                if (recipe != lastRecipe) {
-                    this.lastRecipe = recipe;
-                    this.syncToRelevantPlayers(this::syncRecipe);
-                }
-            }
-        } else if (this.lastRecipe != null && this.lastRecipe.matches(this.craftMatrix, this.world)) {
-            result = this.lastRecipe.getCraftingResult(this.craftMatrix);
-        }
-        craftResult.setInventorySlotContents(0, result);
-        return result;
-    }
-
-    /**
-     * Sends a packet to all players with this container open
-     */
-    public void syncToRelevantPlayers(Consumer<PlayerEntity> action) {
-        if (this.world == null || this.world.isRemote) {
             return;
         }
 
-        this.world.getPlayers().stream()
-                // sync if they are viewing this tile
-                .filter(player -> {
-                    if (player.openContainer instanceof CraftingStationContainer) {
-                        return ((CraftingStationContainer) player.openContainer).tile == this;
-                    }
-                    return false;
-                })
-                // send packets
-                .forEach(action);
-    }
+        if (this.world.isRemote || this.world.getServer() == null) return;
 
-    public void syncRecipe(PlayerEntity player) {
-        // must have a last recipe and a server world
-        if (this.lastRecipe != null && this.world != null && !this.world.isRemote && player instanceof ServerPlayerEntity) {
-            PacketHandler.sendTo(new PacketUpdateCraftingRecipe(this.pos, this.lastRecipe), (ServerPlayerEntity) player);
+        // assume empty unless we learn otherwise
+        ItemStack result = ItemStack.EMPTY;
+        RecipeManager manager = this.world.getServer().getRecipeManager(); //Get the server recipe list i think
+
+        // first, try the cached recipe
+        ICraftingRecipe recipe = lastRecipe;
+        // if it does not match, find a new recipe
+        if (recipe == null || !recipe.matches(this.craftMatrix, this.world)) {
+            recipe = manager.getRecipe(IRecipeType.CRAFTING, this.craftMatrix, this.world).orElse(null);
+        }
+
+        // if we have a recipe, fetch its result
+        if (recipe != null) {
+            result = recipe.getCraftingResult(this.craftMatrix);
+            // sync if the recipe is different
+            if (recipe != lastRecipe) {
+                craftResult.setStackInSlot(0, result);
+                this.lastRecipe = recipe;
+            }
+        } else {
+            //If the recipe is not valid, clear the last recipe and output slot.
+            this.lastRecipe = null;
+            craftResult.setStackInSlot(0, ItemStack.EMPTY);
         }
     }
 
@@ -193,16 +167,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
-    public void setInventorySlotContents(int slot, ItemStack itemstack) {
-        // clear the crafting result when the matrix changes so we recalculate the result
-        this.craftResult.clear();
-    }
-
-    public void updateRecipe(ICraftingRecipe recipe) {
-        this.lastRecipe = recipe;
-        this.craftResult.clear();
-    }
-
     /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
         if (!routeList.containsKey(pos))
             findRouteFor(pos);
@@ -266,6 +230,16 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public ItemStackHandler getInventoryStacks() {
         ItemStackHandler handler = inventory.orElse(new ItemStackHandler(27));
         return handler;
+    }
+
+    //Ensure mods and hoppers and such can interact with this inventory - but only the first 27 slots
+    @Nonnull
+    @Override
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, final @Nullable Direction side) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+            return inventory.cast();
+
+        return super.getCapability(cap, side);
     }
 
     @Nullable
