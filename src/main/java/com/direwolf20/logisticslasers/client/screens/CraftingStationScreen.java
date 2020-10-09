@@ -10,6 +10,7 @@ import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
@@ -68,7 +69,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (hoveredSlot != null && hoveredSlot instanceof CraftingSlot) {
-            PacketHandler.sendToServer(new PacketDoCraft(hoveredSlot.getStack(), hoveredSlot.getStack().getCount()));
+            PacketHandler.sendToServer(new PacketDoCraft(hoveredSlot.getStack(), hoveredSlot.getStack().getCount(), Screen.hasShiftDown()));
             return true;
         }
 

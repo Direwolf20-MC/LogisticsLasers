@@ -13,19 +13,22 @@ import java.util.function.Supplier;
 public class PacketDoCraft {
     ItemStack result;
     int amount;
+    boolean bulk;
 
-    public PacketDoCraft(ItemStack stack, int amt) {
+    public PacketDoCraft(ItemStack stack, int amt, boolean bulk) {
         this.result = stack;
         this.amount = amt;
+        this.bulk = bulk;
     }
 
     public static void encode(PacketDoCraft msg, PacketBuffer buffer) {
         buffer.writeItemStack(msg.result);
         buffer.writeInt(msg.amount);
+        buffer.writeBoolean(msg.bulk);
     }
 
     public static PacketDoCraft decode(PacketBuffer buffer) {
-        return new PacketDoCraft(buffer.readItemStack(), buffer.readInt());
+        return new PacketDoCraft(buffer.readItemStack(), buffer.readInt(), buffer.readBoolean());
     }
 
     public static class Handler {
@@ -41,7 +44,7 @@ public class PacketDoCraft {
 
                 if (container instanceof CraftingStationContainer) {
                     CraftingStationTile te = ((CraftingStationContainer) container).tile;
-                    te.onCraft(sender, msg.result, msg.amount);
+                    te.onCraft(sender, msg.result, msg.amount, msg.bulk);
                 }
 
 
