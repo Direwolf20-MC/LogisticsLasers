@@ -3,7 +3,6 @@ package com.direwolf20.logisticslasers.client.jei;
 import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
-import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ingredient.IGuiIngredient;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
@@ -26,8 +25,7 @@ public class CraftingStationRecipeTransferHandler implements IRecipeTransferHand
     public IRecipeTransferError transferRecipe(CraftingStationContainer container, Object recipe, IRecipeLayout recipeLayout, PlayerEntity player, boolean maxTransfer, boolean doTransfer) {
         if (doTransfer) {
             Map<Integer, ? extends IGuiIngredient<ItemStack>> guiIngredients = recipeLayout.getItemStacks().getGuiIngredients();
-
-            CraftingStationInventory craftMatrix = new CraftingStationInventory(container.craftingHandler, 3, 3);
+            
             for (Map.Entry<Integer, ? extends IGuiIngredient<ItemStack>> entry : guiIngredients.entrySet()) {
                 int recipeSlot = entry.getKey();
                 List<ItemStack> allIngredients = entry.getValue().getAllIngredients();
