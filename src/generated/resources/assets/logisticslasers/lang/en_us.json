@@ -18,5 +18,6 @@
   "message.logisticslasers.connectionmade": "Connection made to: %d",
   "message.logisticslasers.connections": "Connected to: %d",
   "message.logisticslasers.controllerat": "Controller Located at: %d",
+  "message.logisticslasers.failedRequest": "Failed to request %d %d",
   "screen.logisticslasers.energy": "Energy: %s/%s FE"
 }

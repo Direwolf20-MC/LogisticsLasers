@@ -19,9 +19,9 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.GameRules;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +48,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
-    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
 
@@ -177,65 +175,29 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
-    /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
-        if (!routeList.containsKey(pos))
-            findRouteFor(pos);
-        return routeList.get(pos);
-    }*/
-
-    /*public void notifyControllerOfChanges() {
+    public boolean requestItem(ItemStack stack, int amt, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
-        if (te == null) return;
-        System.out.println("Telling controller at " + getControllerPos() + " to check inventory at " + this.pos);
-        te.checkInvNode(this.pos);
+        if (te == null) return false;
+        ItemStack returnedStack = te.provideItemStacksToPos(stack, amt, pos);
+        if (returnedStack.getCount() > 0) {
+            requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), returnedStack.getItem())), false);
+        }
+        return returnedStack.getCount() == 0;
     }
 
     @Override
     public void addToController() {
         ControllerTile te = getControllerTE();
         if (te == null) return;
-        te.addToInvNodes(pos);
-        //findRoutes();
+        te.addToCraftNodes(pos);
     }
 
     @Override
     public void removeFromController() {
-        routeList.clear();
         ControllerTile te = getControllerTE();
         if (te == null) return;
-        te.removeFromInvNodes(pos);
-    }*/
-
-    /*public boolean findRouteFor(BlockPos pos) {
-        System.out.println("Finding route for: " + pos);
-        routeList.remove(pos);
-        ControllerTile te = getControllerTE();
-        if (te == null) return false;
-        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-        Collections.reverse(routePath);
-        routeList.put(pos, routePath);
-        System.out.println("Found route: " + routePath);
-        return !routePath.isEmpty();
+        te.removeFromCraftNodes(pos);
     }
-
-    public void clearRouteList() {
-        routeList.clear();
-    }
-
-    public void findAllRoutes() {
-        clearRouteList();
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        Set<BlockPos> todoList = new HashSet<>(te.getInventoryNodes());
-        todoList.remove(pos);
-        for (BlockPos pos : todoList) {
-            ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-            //routePath.remove(this.pos);
-            Collections.reverse(routePath);
-            routeList.put(pos, routePath);
-        }
-        System.out.println(routeList);
-    }*/
 
     public ItemStackHandler getInventoryStacks() {
         ItemStackHandler handler = inventory.orElse(new ItemStackHandler(27));

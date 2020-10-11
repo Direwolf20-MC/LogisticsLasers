@@ -50,6 +50,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     //Data about the nodes this controller manages
     //Persistent data
+    private final Set<BlockPos> crafterNodes = new HashSet<>();
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
@@ -164,6 +165,14 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    public boolean addToCraftNodes(BlockPos pos) {
+        if (crafterNodes.add(pos)) {
+            addToAllNodes(pos);
+            return true;
+        }
+        return false;
+    }
+
     public boolean addToInvNodes(BlockPos pos) {
         if (inventoryNodes.add(pos)) {
             addToAllNodes(pos);
@@ -186,6 +195,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             providerCache.clear(); //Any chance to provider cards will affect the provider cache
             removeBlockPosFromPriorities(pos);
         }
+        boolean all = removeFromAllNodes(pos);
+        return (inv && all);
+    }
+
+    public boolean removeFromCraftNodes(BlockPos pos) {
+        boolean inv = crafterNodes.remove(pos);
         boolean all = removeFromAllNodes(pos);
         return (inv && all);
     }
@@ -233,12 +248,22 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the item handler
      */
     public IItemHandler getAttachedInventory(BlockPos pos) {
-        InventoryNodeTile sourceTE = (InventoryNodeTile) world.getTileEntity(pos);
-        if (sourceTE == null || !(sourceTE instanceof InventoryNodeTile))
-            return null; //Make sure the inventory node is still there
-        IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
-        if (sourceitemHandler.getSlots() == 0) return null; //If its empty, return null
-        return sourceitemHandler;
+        TileEntity te = world.getTileEntity(pos);
+        if (te == null)
+            return null;
+        if (te instanceof InventoryNodeTile) {
+            InventoryNodeTile sourceTE = (InventoryNodeTile) te;
+            IItemHandler sourceitemHandler = sourceTE.getHandler().orElse(EMPTY); //Get the inventory handler of the block the inventory node is facing
+            if (sourceitemHandler.getSlots() == 0) return null; //If its empty, return null
+            return sourceitemHandler;
+        }
+        if (te instanceof CraftingStationTile) {
+            CraftingStationTile sourceTE = (CraftingStationTile) te;
+            IItemHandler sourceitemHandler = sourceTE.getInventoryStacks(); //Get the inventory handler of the block the inventory node is facing
+            if (sourceitemHandler.getSlots() == 0) return null; //If its empty, return null
+            return sourceitemHandler;
+        }
+        return null;
     }
 
     public ArrayList<ItemStack> getExtractFilters(BlockPos pos) {
@@ -352,6 +377,39 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return count;
     }
 
+    public ItemStack provideItemStacksToPos(ItemStack stack, int amt, BlockPos toPos) {
+        boolean successfullySent = false;
+        ArrayList<BlockPos> possibleProviders = findProviderForItemstack(stack); //Find a list of possible Providers
+        possibleProviders.remove(toPos); //Remove this chest
+        if (possibleProviders.isEmpty()) return stack; //If nothing can provide to here, stop working
+        int desiredAmt = amt;
+        for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
+            IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
+            if (providerItemHandler == null) continue; //If its empty, move onto the next provider
+
+            do {
+                ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack, true); //Pretend to extract the stack from the provider's inventory
+
+                if (simulated.getCount() == 0) {
+                    break; //If the stack we removed has zero items in it check another provider
+                }
+                int extractCount = simulated.getCount(); //How many items were successfully removed from the inventory
+                stack.setCount(extractCount);
+                ItemStack extractedStack = ItemHandlerUtil.extractItem(providerItemHandler, stack, false); //Actually remove the items this time
+                successfullySent = transferItemStack(providerPos, toPos, extractedStack);
+                if (!successfullySent) { //Attempt to send items
+                    ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                    break;
+                } else {
+                    desiredAmt -= extractedStack.getCount();
+                }
+            } while (desiredAmt > 0 || !successfullySent);
+
+        }
+        stack.setCount(desiredAmt);
+        return stack;
+    }
+
     /**
      * Go through each of the extractorNodes and extract a single item based on the extractorCards they have. Send to an appropriate inserter.
      */
@@ -436,7 +494,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (count < stack.getCount())
                         stack.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
 
-                    ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
+                    successfullySent = (provideItemStacksToPos(stack, extractAmt, stockerPos).getCount() == 0);
+                    if (successfullySent) break;
+                    /*ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
                     possibleProviders.remove(stockerPos); //Remove this chest
                     if (possibleProviders.isEmpty()) continue; //If nothing can provide to here, stop working
 
@@ -458,8 +518,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         } else {
                             break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
                         }
-
                     }
+                     */
                 }
             }
         }
@@ -637,7 +697,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack (Anything that failed to insert)
      */
     public ItemStack doInsert(ControllerTask task) {
-        if (!stockerNodes.contains(task.toPos)) {
+        if (!stockerNodes.contains(task.toPos) && !(crafterNodes.contains(task.toPos))) {
             if (!findDestinationForItemstack(task.itemStack).contains(task.toPos)) return task.itemStack;
         }
         IItemHandler destitemHandler = getAttachedInventory(task.toPos);
@@ -720,6 +780,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             BlockPos blockPos = NBTUtil.readBlockPos(invnodes.getCompound(i).getCompound("pos"));
             inventoryNodes.add(blockPos);
         }
+
+        crafterNodes.clear();
+        ListNBT craftnodes = tag.getList("craftnodes", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < craftnodes.size(); i++) {
+            BlockPos blockPos = NBTUtil.readBlockPos(craftnodes.getCompound(i).getCompound("pos"));
+            crafterNodes.add(blockPos);
+        }
     }
 
     @Override
@@ -740,6 +807,14 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             invnodes.add(comp);
         }
         tag.put("invnodes", invnodes);
+
+        ListNBT craftnodes = new ListNBT();
+        for (BlockPos blockPos : crafterNodes) {
+            CompoundNBT comp = new CompoundNBT();
+            comp.put("pos", NBTUtil.writeBlockPos(blockPos));
+            craftnodes.add(comp);
+        }
+        tag.put("craftnodes", craftnodes);
         return super.write(tag);
     }
 
