@@ -20,6 +20,7 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -29,15 +30,13 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.hooks.BasicEventHooks;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -50,7 +49,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
-
+    public ItemStackHandler availableItems = new ItemStackHandler();
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
 
     public CraftingStationTile() {
@@ -177,6 +176,33 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
+    public void getAvailableItems() {
+        ControllerTile te = getControllerTE();
+        if (te == null) return;
+
+        availableItems = new ItemStackHandler();
+        ItemHandlerUtil.InventoryCounts allProviderCounts = new ItemHandlerUtil.InventoryCounts();
+
+        Set<BlockPos> providers = te.getProviderNodes();
+        for (BlockPos pos : providers) {
+            ArrayList<ItemStack> providerFilters = te.getProviderFilters(pos);
+            IItemHandler handler = te.getAttachedInventory(pos);
+            for (ItemStack providerFilter : providerFilters) {
+                allProviderCounts.addHandlerWithFilter(handler, providerFilter);
+            }
+        }
+        HashMap<ItemStack, Integer> providerCounts = allProviderCounts.getItemCounts();
+        availableItems.setSize(providerCounts.size());
+        int i = 0;
+        for (Map.Entry<ItemStack, Integer> entry : providerCounts.entrySet()) {
+            availableItems.setStackInSlot(i, new ItemStack(entry.getKey().getItem(), entry.getValue()));
+            i++;
+        }
+        //serverPlayer.sendContainerToPlayer(serverPlayer.openContainer);
+        markDirtyClient();
+        System.out.println("Refreshed Available Items");
+    }
+
     public boolean requestItem(ItemStack stack, int amt, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
@@ -249,6 +275,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         assert world != null;
+        getAvailableItems();
         return new CraftingStationContainer(this, i, playerInventory, this.inventory.orElse(new ItemStackHandler(27)));
     }
 
@@ -257,12 +284,14 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         super.read(state, tag);
         inventory.ifPresent(h -> h.deserializeNBT(tag.getCompound("inv")));
         craftMatrixHandler.deserializeNBT(tag.getCompound("craftInv"));
+        availableItems.deserializeNBT(tag.getCompound("availableItems"));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         inventory.ifPresent(h -> tag.put("inv", h.serializeNBT()));
         tag.put("craftInv", craftMatrixHandler.serializeNBT());
+        tag.put("availableItems", availableItems.serializeNBT());
         return super.write(tag);
     }
 

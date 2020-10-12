@@ -183,10 +183,32 @@ public class ItemHandlerUtil {
     public static class InventoryCounts {
         private final HashMap<ItemStack, Integer> itemCounts = new HashMap<>();
 
+        public InventoryCounts() {
+
+        }
+
         public InventoryCounts(IItemHandler handler) {
             for (int i = 0; i < handler.getSlots(); i++) {
                 ItemStack stack = handler.getStackInSlot(i);
                 if (!stack.isEmpty()) {
+                    setCount(stack);
+                }
+            }
+        }
+
+        public void addHandler(IItemHandler handler) {
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getStackInSlot(i);
+                if (!stack.isEmpty()) {
+                    setCount(stack);
+                }
+            }
+        }
+
+        public void addHandlerWithFilter(IItemHandler handler, ItemStack filterCard) {
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getStackInSlot(i);
+                if (!stack.isEmpty() && MiscTools.isStackValidForCard(filterCard, stack)) {
                     setCount(stack);
                 }
             }

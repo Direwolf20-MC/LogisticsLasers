@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.container;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
+import com.direwolf20.logisticslasers.common.container.customslot.AvailableItemSlot;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
@@ -22,6 +23,7 @@ public class CraftingStationContainer extends Container {
     public static final int SLOTS = 37;
     public ItemStackHandler handler;
     public CraftingStationHandler craftingHandler;
+    public ItemStackHandler availableItems = new ItemStackHandler();
 
     // Tile can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public CraftingStationTile tile;
@@ -35,6 +37,8 @@ public class CraftingStationContainer extends Container {
         this.handler = handler;
         this.tile = tile;
         this.craftingHandler = tile.craftMatrixHandler;
+        this.availableItems.setSize(tile.availableItems.getSlots());
+        this.availableItems = tile.availableItems;
         this.setup(playerInventory);
         tile.calcResult();
     }
@@ -64,6 +68,23 @@ public class CraftingStationContainer extends Container {
         }
 
         this.addSlot(new CraftingSlot(tile.craftResult, 0, 124, 35));
+
+        int totalItems = availableItems.getSlots();
+        int itemsPerRow = 9;
+        int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
+
+        startX = 200;
+        startY = 17;
+        for (int availRow = 0; availRow < rows; availRow++) {
+            int temp = 0;
+            for (int availCol = 0; availCol < (Math.min(totalItems, itemsPerRow)); availCol++) {
+                int x = startX + availCol * 18;
+                int y = startY + availRow * 18;
+                this.addSlot(new AvailableItemSlot(availableItems, (availCol + availRow * itemsPerRow), x, y));
+                temp++;
+            }
+            totalItems -= temp;
+        }
 
         // Slots for the hotbar
         for (int row = 0; row < 9; ++row) {

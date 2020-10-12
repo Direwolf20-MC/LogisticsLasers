@@ -42,6 +42,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static com.direwolf20.logisticslasers.common.util.MiscTools.isStackValidForCard;
+
 public class ControllerTile extends NodeTileBase implements ITickableTileEntity, INamedContainerProvider {
 
     //Data about the energy stored in this tile entity
@@ -74,6 +76,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         super(ModBlocks.CONTROLLER_TILE.get());
         this.energyStorage = new FEEnergyStorage(this, 0, 1000000);
         this.energy = LazyOptional.of(() -> this.energyStorage);
+    }
+
+    public Set<BlockPos> getProviderNodes() {
+        return providerNodes;
     }
 
     /**
@@ -300,25 +306,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             return tempList;
         }
         return new ArrayList<>();
-    }
-
-    public boolean isStackValidForCard(ItemStack filterCard, ItemStack testStack) {
-        Set<ItemStack> filteredItems = BaseCard.getFilteredItems(filterCard); //Get the list of items this card allows
-        boolean whiteList = BaseCard.getWhiteList(filterCard);
-        if (whiteList) {
-            for (ItemStack stack : filteredItems) {
-                if (stack.isItemEqual(testStack))
-                    return true;
-            }
-            return false;
-        } else {
-            for (ItemStack stack : filteredItems) {
-                if (stack.isItemEqual(testStack))
-                    return false;
-            }
-            return true;
-        }
-
     }
 
     /**
