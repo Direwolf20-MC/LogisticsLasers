@@ -5,6 +5,7 @@ import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
+import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -178,11 +180,40 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public boolean requestItem(ItemStack stack, int amt, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
-        ItemStack returnedStack = te.provideItemStacksToPos(stack, amt, pos);
+        ItemStack returnedStack = te.provideItemStacksToPos(stack.copy(), amt, pos);
         if (returnedStack.getCount() > 0) {
             requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), returnedStack.getItem())), false);
         }
         return returnedStack.getCount() == 0;
+    }
+
+    public void requestGrid(int amt, PlayerEntity requestor) {
+        for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
+            ItemStack requestStack = craftMatrixHandler.getStackInSlot(i);
+            if (!requestStack.isEmpty())
+                requestItem(requestStack, 1, requestor);
+        }
+    }
+
+    public void requestGridOnlyMissing(PlayerEntity requestor) {
+        ItemStackHandler handler = getInventoryStacks();
+        ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
+        ItemHandlerUtil.InventoryCounts craftingGridCounts = new ItemHandlerUtil.InventoryCounts(craftMatrixHandler);
+        Map<ItemStack, Integer> craftingGridItems = craftingGridCounts.getItemCounts();
+        for (Map.Entry<ItemStack, Integer> entry : craftingGridItems.entrySet()) {
+            for (int i = 0; i < (entry.getValue() - storageCounts.getCount(entry.getKey())); i++) {
+                requestItem(entry.getKey(), 1, requestor);
+            }
+        }
+    }
+
+    public boolean isStackInTable(ItemStack stack) {
+        ItemStackHandler handler = getInventoryStacks();
+        for (int i = 0; i < handler.getSlots(); i++) {
+            if (handler.getStackInSlot(i).isItemEqual(stack))
+                return true;
+        }
+        return false;
     }
 
     @Override

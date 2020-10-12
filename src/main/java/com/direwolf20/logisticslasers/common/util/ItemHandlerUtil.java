@@ -192,6 +192,10 @@ public class ItemHandlerUtil {
             }
         }
 
+        public HashMap<ItemStack, Integer> getItemCounts() {
+            return itemCounts;
+        }
+
         public void setCount(ItemStack stack) {
             for (ItemStack cacheStack : itemCounts.keySet()) {
                 if (cacheStack.isItemEqual(stack)) {

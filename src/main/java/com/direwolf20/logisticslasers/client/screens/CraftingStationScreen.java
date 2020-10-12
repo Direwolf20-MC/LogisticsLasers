@@ -5,9 +5,7 @@ import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.PacketDoCraft;
-import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
-import com.direwolf20.logisticslasers.common.network.packets.PacketRequestItem;
+import com.direwolf20.logisticslasers.common.network.packets.*;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -58,8 +56,16 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
 
         Button requestTest;
-        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("requestTest"), (button) -> {
+        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("test"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestItem(new ItemStack(Items.DIAMOND), 5));
+        }));
+
+        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
+            PacketHandler.sendToServer(new PacketRequestGrid(1));
+        }));
+
+        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
+            PacketHandler.sendToServer(new PacketRequestGridMissing());
         }));
 
 

@@ -36,6 +36,8 @@ public class PacketHandler {
         registerMessage(PacketToggleWhitelist.class, PacketToggleWhitelist::encode, PacketToggleWhitelist::decode, PacketToggleWhitelist.Handler::handle);
         registerMessage(PacketDoCraft.class, PacketDoCraft::encode, PacketDoCraft::decode, PacketDoCraft.Handler::handle);
         registerMessage(PacketRequestItem.class, PacketRequestItem::encode, PacketRequestItem::decode, PacketRequestItem.Handler::handle);
+        registerMessage(PacketRequestGrid.class, PacketRequestGrid::encode, PacketRequestGrid::decode, PacketRequestGrid.Handler::handle);
+        registerMessage(PacketRequestGridMissing.class, PacketRequestGridMissing::encode, PacketRequestGridMissing::decode, PacketRequestGridMissing.Handler::handle);
 
         //Going to Client Side
         //registerMessage(PacketUpdateCraftingRecipe.class, PacketUpdateCraftingRecipe::encode, PacketUpdateCraftingRecipe::decode, PacketUpdateCraftingRecipe.Handler::handle);
