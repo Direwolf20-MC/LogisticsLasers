@@ -34,7 +34,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     public CraftingStationScreen(CraftingStationContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
         this.container = container;
-        this.xSize = 320;
+        this.xSize = 400;
         this.ySize = 256;
     }
 
@@ -52,6 +52,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     @Override
     public void init() {
         super.init();
+        this.guiLeft = 80;
         List<Widget> leftWidgets = new ArrayList<>();
 
 
