@@ -1,9 +1,12 @@
 package com.direwolf20.logisticslasers.common.util;
 
+import com.google.common.collect.ArrayListMultimap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -181,7 +184,7 @@ public class ItemHandlerUtil {
     }
 
     public static class InventoryCounts {
-        private final Object2IntOpenHashMap<ItemStack> itemCounts = new Object2IntOpenHashMap();
+        private final ArrayListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
 
         public InventoryCounts() {
 
@@ -194,6 +197,28 @@ public class ItemHandlerUtil {
                     setCount(stack);
                 }
             }
+        }
+
+        public InventoryCounts(ListNBT nbtList) {
+            for (int i = 0; i < nbtList.size(); i++) {
+                CompoundNBT nbt = nbtList.getCompound(i);
+                ItemStack stack = ItemStack.read(nbt.getCompound("itemStack"));
+                stack.setCount(nbt.getInt("count"));
+                setCount(stack);
+            }
+        }
+
+        public ListNBT serialize() {
+            ListNBT nbtList = new ListNBT();
+            int i = 0;
+            for (ItemStack stack : itemMap.values()) {
+                CompoundNBT nbt = new CompoundNBT();
+                nbt.put("itemStack", stack.serializeNBT());
+                nbt.putInt("count", stack.getCount());
+                nbtList.add(i, nbt);
+                i++;
+            }
+            return nbtList;
         }
 
         public void addHandler(IItemHandler handler) {
@@ -214,26 +239,27 @@ public class ItemHandlerUtil {
             }
         }
 
-        public Object2IntOpenHashMap getItemCounts() {
-            return itemCounts;
+        public ArrayListMultimap<Item, ItemStack> getItemCounts() {
+            return itemMap;
         }
 
         public void setCount(ItemStack stack) {
-            for (ItemStack cacheStack : itemCounts.keySet()) {
+            for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
                 if (cacheStack.isItemEqual(stack)) {
-                    itemCounts.put(cacheStack, itemCounts.get(cacheStack) + stack.getCount());
+                    cacheStack.grow(stack.getCount());
                     return;
                 }
             }
-            itemCounts.put(stack, stack.getCount());
+            itemMap.put(stack.getItem(), stack.copy());
         }
 
         public int getCount(ItemStack stack) {
-            for (ItemStack cacheStack : itemCounts.keySet()) {
+            for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
                 if (cacheStack.isItemEqual(stack))
-                    return (itemCounts.get(cacheStack));
+                    return cacheStack.getCount();
             }
             return 0;
         }
+
     }
 }

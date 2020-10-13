@@ -37,7 +37,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -217,10 +216,10 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         ItemStackHandler handler = getInventoryStacks();
         ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
         ItemHandlerUtil.InventoryCounts craftingGridCounts = new ItemHandlerUtil.InventoryCounts(craftMatrixHandler);
-        Map<ItemStack, Integer> craftingGridItems = craftingGridCounts.getItemCounts();
-        for (Map.Entry<ItemStack, Integer> entry : craftingGridItems.entrySet()) {
-            for (int i = 0; i < (entry.getValue() - storageCounts.getCount(entry.getKey())); i++) {
-                requestItem(entry.getKey(), 1, requestor);
+        //Map<ItemStack, Integer> craftingGridItems = craftingGridCounts.getItemCounts();
+        for (ItemStack stack : craftingGridCounts.getItemCounts().values()) {
+            for (int i = 0; i < (stack.getCount() - storageCounts.getCount(stack)); i++) {
+                requestItem(new ItemStack(stack.getItem(), 1), 1, requestor);
             }
         }
     }

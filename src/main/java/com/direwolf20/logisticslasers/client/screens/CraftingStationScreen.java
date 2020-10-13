@@ -6,10 +6,9 @@ import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlo
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
+import com.google.common.collect.ArrayListMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
@@ -17,6 +16,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
@@ -60,17 +60,16 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         int Z_LEVEL_QTY = 300;
         int Z_LEVEL_TOOLTIPS = 500;
 
-        Object2IntOpenHashMap<ItemStack> availableItems = container.tile.getControllerTE().getItemCounts();
-        int totalItems = availableItems.size();
+        ArrayListMultimap<Item, ItemStack> itemMap = container.tile.getControllerTE().getItemCounts().getItemCounts();
+        int totalItems = itemMap.values().size();
         int itemsPerRow = 9;
         int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
 
         int slot = 0;
-        for (Object2IntMap.Entry<ItemStack> entry : availableItems.object2IntEntrySet()) {
+        for (ItemStack stack : itemMap.values()) {
             int row = (int) Math.floor((double) slot / 9);
             int col = slot % 9;
-            ItemStack stack = entry.getKey();
-            int count = entry.getIntValue();
+            int count = stack.getCount();
             String countString = Integer.toString(count);
             int x = startX + col * 18;
             int y = startY + row * 18;
