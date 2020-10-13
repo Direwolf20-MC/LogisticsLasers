@@ -22,7 +22,6 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -32,13 +31,15 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.hooks.BasicEventHooks;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -183,7 +184,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         if (te == null) return;
 
         availableItems = new ItemStackHandler();
-        ItemHandlerUtil.InventoryCounts allProviderCounts = new ItemHandlerUtil.InventoryCounts();
+        /*ItemHandlerUtil.InventoryCounts allProviderCounts = new ItemHandlerUtil.InventoryCounts();
 
         Set<BlockPos> providers = te.getProviderNodes();
         for (BlockPos pos : providers) {
@@ -192,8 +193,8 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
             for (ItemStack providerFilter : providerFilters) {
                 allProviderCounts.addHandlerWithFilter(handler, providerFilter);
             }
-        }
-        Object2IntOpenHashMap<ItemStack> providerCounts = allProviderCounts.getItemCounts();
+        }*/
+        Object2IntOpenHashMap<ItemStack> providerCounts = te.getItemCounts();
         availableItems.setSize(providerCounts.size());
         int i = 0;
         for (Object2IntMap.Entry<ItemStack> entry : providerCounts.object2IntEntrySet()) {

@@ -5,15 +5,19 @@ import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.*;
+import com.direwolf20.logisticslasers.common.network.PacketHandler;
+import com.direwolf20.logisticslasers.common.network.packets.PacketItemCountsSync;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.Item;
@@ -67,6 +71,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder()); //A sorted list of inserter cards by priority
     private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
     private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
+    private Object2IntOpenHashMap<ItemStack> itemCounts = new Object2IntOpenHashMap(); //A cache of all items available via providerCards for the CraftingStations to use
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -80,6 +85,33 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public Set<BlockPos> getProviderNodes() {
         return providerNodes;
+    }
+
+    public void setItemCounts(Object2IntOpenHashMap<ItemStack> itemCounts) {
+        this.itemCounts = itemCounts;
+    }
+
+    public Object2IntOpenHashMap<ItemStack> getItemCounts() {
+        return itemCounts;
+    }
+
+    public void updateItemCounts(ServerPlayerEntity player) {
+        ItemHandlerUtil.InventoryCounts allProviderCounts = new ItemHandlerUtil.InventoryCounts();
+        Set<BlockPos> providers = getProviderNodes();
+        for (BlockPos pos : providers) {
+            ArrayList<ItemStack> providerFilters = getProviderFilters(pos);
+            IItemHandler handler = getAttachedInventory(pos);
+            for (ItemStack providerFilter : providerFilters) {
+                allProviderCounts.addHandlerWithFilter(handler, providerFilter);
+            }
+        }
+        itemCounts = allProviderCounts.getItemCounts();
+        System.out.println("Refreshed Available Items");
+        PacketHandler.sendTo(new PacketItemCountsSync(itemCounts, pos), player);
+    }
+
+    public void syncItemCountsToClient(PlayerEntity player) {
+
     }
 
     /**

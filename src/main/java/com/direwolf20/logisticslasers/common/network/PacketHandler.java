@@ -38,9 +38,10 @@ public class PacketHandler {
         registerMessage(PacketRequestItem.class, PacketRequestItem::encode, PacketRequestItem::decode, PacketRequestItem.Handler::handle);
         registerMessage(PacketRequestGrid.class, PacketRequestGrid::encode, PacketRequestGrid::decode, PacketRequestGrid.Handler::handle);
         registerMessage(PacketRequestGridMissing.class, PacketRequestGridMissing::encode, PacketRequestGridMissing::decode, PacketRequestGridMissing.Handler::handle);
+        registerMessage(PacketItemCountsRefresh.class, PacketItemCountsRefresh::encode, PacketItemCountsRefresh::decode, PacketItemCountsRefresh.Handler::handle);
 
         //Going to Client Side
-        //registerMessage(PacketUpdateCraftingRecipe.class, PacketUpdateCraftingRecipe::encode, PacketUpdateCraftingRecipe::decode, PacketUpdateCraftingRecipe.Handler::handle);
+        registerMessage(PacketItemCountsSync.class, PacketItemCountsSync::encode, PacketItemCountsSync::decode, PacketItemCountsSync.Handler::handle);
     }
 
     public static void sendTo(Object msg, ServerPlayerEntity player) {

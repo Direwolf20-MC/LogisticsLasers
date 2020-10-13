@@ -57,16 +57,20 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
 
         Button requestTest;
-        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("test"), (button) -> {
+        leftWidgets.add(new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("test"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestItem(new ItemStack(Items.DIAMOND), 5));
         }));
 
-        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
+        leftWidgets.add(new Button(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGrid(1));
         }));
 
-        leftWidgets.add(requestTest = new Button(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
+        leftWidgets.add(new Button(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGridMissing());
+        }));
+
+        leftWidgets.add(new Button(guiLeft + 200, guiTop + 165, 15, 10, new StringTextComponent("Refresh"), (button) -> {
+            PacketHandler.sendToServer(new PacketItemCountsRefresh());
         }));
 
 
