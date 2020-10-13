@@ -6,6 +6,8 @@ import com.direwolf20.logisticslasers.common.container.customhandler.CraftingSta
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -191,11 +193,11 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 allProviderCounts.addHandlerWithFilter(handler, providerFilter);
             }
         }
-        HashMap<ItemStack, Integer> providerCounts = allProviderCounts.getItemCounts();
+        Object2IntOpenHashMap<ItemStack> providerCounts = allProviderCounts.getItemCounts();
         availableItems.setSize(providerCounts.size());
         int i = 0;
-        for (Map.Entry<ItemStack, Integer> entry : providerCounts.entrySet()) {
-            availableItems.setStackInSlot(i, new ItemStack(entry.getKey().getItem(), entry.getValue()));
+        for (Object2IntMap.Entry<ItemStack> entry : providerCounts.object2IntEntrySet()) {
+            availableItems.setStackInSlot(i, new ItemStack(entry.getKey().getItem(), entry.getIntValue()));
             i++;
         }
         //serverPlayer.sendContainerToPlayer(serverPlayer.openContainer);

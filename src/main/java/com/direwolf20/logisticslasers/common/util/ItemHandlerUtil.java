@@ -2,13 +2,13 @@ package com.direwolf20.logisticslasers.common.util;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 
 public class ItemHandlerUtil {
     @Nonnull
@@ -181,7 +181,7 @@ public class ItemHandlerUtil {
     }
 
     public static class InventoryCounts {
-        private final HashMap<ItemStack, Integer> itemCounts = new HashMap<>();
+        private final Object2IntOpenHashMap<ItemStack> itemCounts = new Object2IntOpenHashMap();
 
         public InventoryCounts() {
 
@@ -214,7 +214,7 @@ public class ItemHandlerUtil {
             }
         }
 
-        public HashMap<ItemStack, Integer> getItemCounts() {
+        public Object2IntOpenHashMap getItemCounts() {
             return itemCounts;
         }
 
