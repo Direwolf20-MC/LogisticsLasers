@@ -8,6 +8,8 @@ import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
@@ -20,6 +22,7 @@ import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 
 import java.awt.*;
@@ -46,7 +49,46 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
+        this.renderForeground(stack, mouseX, mouseY);
         this.func_230459_a_(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
+    }
+
+    public void renderForeground(MatrixStack matrixStack, int mouseX, int mouseY) {
+        int startX = 275;
+        int startY = 65;
+        int Z_LEVEL_ITEMS = 100;
+        int Z_LEVEL_QTY = 300;
+        int Z_LEVEL_TOOLTIPS = 500;
+
+        Object2IntOpenHashMap<ItemStack> availableItems = container.tile.getControllerTE().getItemCounts();
+        int totalItems = availableItems.size();
+        int itemsPerRow = 9;
+        int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
+
+        int slot = 0;
+        for (Object2IntMap.Entry<ItemStack> entry : availableItems.object2IntEntrySet()) {
+            int row = (int) Math.floor((double) slot / 9);
+            int col = slot % 9;
+            ItemStack stack = entry.getKey();
+            int count = entry.getIntValue();
+            String countString = Integer.toString(count);
+            int x = startX + col * 18;
+            int y = startY + row * 18;
+
+            setBlitOffset(Z_LEVEL_ITEMS);
+            itemRenderer.zLevel = Z_LEVEL_ITEMS;
+            this.itemRenderer.renderItemIntoGUI(stack, x, y);
+            matrixStack.push();
+            matrixStack.translate(x, y, Z_LEVEL_QTY);
+            setBlitOffset(0);
+            itemRenderer.zLevel = 0;
+
+            font.drawStringWithShadow(matrixStack, countString, 16 - font.getStringWidth(countString), 8, TextFormatting.WHITE.getColor());
+
+            matrixStack.pop();
+
+            slot++;
+        }
     }
 
     @Override

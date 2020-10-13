@@ -108,10 +108,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         itemCounts = allProviderCounts.getItemCounts();
         System.out.println("Refreshed Available Items");
         PacketHandler.sendTo(new PacketItemCountsSync(itemCounts, pos), player);
-    }
-
-    public void syncItemCountsToClient(PlayerEntity player) {
-
+        System.out.println("Send to: " + player.getName());
     }
 
     /**

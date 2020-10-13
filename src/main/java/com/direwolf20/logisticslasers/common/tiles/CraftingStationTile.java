@@ -6,8 +6,6 @@ import com.direwolf20.logisticslasers.common.container.customhandler.CraftingSta
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -52,7 +50,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
-    public ItemStackHandler availableItems = new ItemStackHandler();
+    //public ItemStackHandler availableItems = new ItemStackHandler();
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
 
     public CraftingStationTile() {
@@ -179,21 +177,12 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
-    public void getAvailableItems() {
+    /*public void getAvailableItems() {
         ControllerTile te = getControllerTE();
         if (te == null) return;
 
         availableItems = new ItemStackHandler();
-        /*ItemHandlerUtil.InventoryCounts allProviderCounts = new ItemHandlerUtil.InventoryCounts();
 
-        Set<BlockPos> providers = te.getProviderNodes();
-        for (BlockPos pos : providers) {
-            ArrayList<ItemStack> providerFilters = te.getProviderFilters(pos);
-            IItemHandler handler = te.getAttachedInventory(pos);
-            for (ItemStack providerFilter : providerFilters) {
-                allProviderCounts.addHandlerWithFilter(handler, providerFilter);
-            }
-        }*/
         Object2IntOpenHashMap<ItemStack> providerCounts = te.getItemCounts();
         availableItems.setSize(providerCounts.size());
         int i = 0;
@@ -204,7 +193,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         //serverPlayer.sendContainerToPlayer(serverPlayer.openContainer);
         markDirtyClient();
         System.out.println("Refreshed Available Items");
-    }
+    }*/
 
     public boolean requestItem(ItemStack stack, int amt, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
@@ -278,7 +267,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         assert world != null;
-        getAvailableItems();
+        //getAvailableItems();
         return new CraftingStationContainer(this, i, playerInventory, this.inventory.orElse(new ItemStackHandler(27)));
     }
 
@@ -287,14 +276,14 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         super.read(state, tag);
         inventory.ifPresent(h -> h.deserializeNBT(tag.getCompound("inv")));
         craftMatrixHandler.deserializeNBT(tag.getCompound("craftInv"));
-        availableItems.deserializeNBT(tag.getCompound("availableItems"));
+        //availableItems.deserializeNBT(tag.getCompound("availableItems"));
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         inventory.ifPresent(h -> tag.put("inv", h.serializeNBT()));
         tag.put("craftInv", craftMatrixHandler.serializeNBT());
-        tag.put("availableItems", availableItems.serializeNBT());
+        //tag.put("availableItems", availableItems.serializeNBT());
         return super.write(tag);
     }
 
