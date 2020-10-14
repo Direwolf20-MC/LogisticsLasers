@@ -105,9 +105,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 itemCounts.addHandlerWithFilter(handler, providerFilter);
             }
         }
-        System.out.println("Refreshed Available Items");
+        //System.out.println("Refreshed Available Items");
         PacketHandler.sendTo(new PacketItemCountsSync(itemCounts, pos), player);
-        System.out.println("Send to: " + player.getName());
+        //System.out.println("Send to: " + player.getName());
     }
 
     /**
@@ -194,6 +194,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public void updateInvNodePaths() {
         for (BlockPos pos : inventoryNodes) {
             InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
+            if (te == null) continue;
+            te.clearRouteList();
+        }
+        for (BlockPos pos : crafterNodes) {
+            CraftingStationTile te = (CraftingStationTile) world.getTileEntity(pos);
             if (te == null) continue;
             te.clearRouteList();
         }
@@ -392,6 +397,28 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return count;
     }
 
+    public ItemStack extractItemFromPos(ItemStack stack, BlockPos fromPos, int slot) {
+        IItemHandler sourceitemHandler = getAttachedInventory(fromPos);
+        ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
+        possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
+        if (possibleDestinations.isEmpty()) return stack; //If we can't send this item anywhere, move onto the next item
+        for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
+            IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+            if (destitemHandler == null) continue; //If its empty, move onto the next inserter
+
+            int count = testInsertToInventory(destitemHandler, toPos, stack); //Find out how many items can fit in the destination inventory, including inflight items
+            if (count == 0) continue; //If none, try elsewhere!
+
+            ItemStack extractedStack = sourceitemHandler.extractItem(slot, count, false); //Actually remove the items this time
+            boolean successfullySent = transferItemStack(fromPos, toPos, extractedStack);
+            if (!successfullySent) //Attempt to send items
+                ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+            if (stack.getCount() == 0)
+                break; //If we successfully sent all items in this stack, we're done
+        }
+        return stack;
+    }
+
     public ItemStack provideItemStacksToPos(ItemStack stack, int amt, BlockPos toPos) {
         boolean successfullySent = false;
         ArrayList<BlockPos> possibleProviders = findProviderForItemstack(stack); //Find a list of possible Providers
@@ -450,7 +477,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
                     int extractAmt = 1;
                     ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
-                    ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
+                    successfullySent = (extractItemFromPos(stack, fromPos, i).getCount() == 0);
+                    if (successfullySent) break;
+                    /*ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
                     possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
                     if (possibleDestinations.isEmpty())
                         continue; //If we can't send this item anywhere, move onto the next item
@@ -468,7 +497,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                         } else {
                             break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
                         }
-                    }
+                    }*/
 
                 }
             }
@@ -578,8 +607,14 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public boolean transferItemStack(BlockPos fromPos, BlockPos toPos, ItemStack itemStack) {
         ticksPerBlock = 4;
         TileEntity te = world.getTileEntity(fromPos);
-        if (!(te instanceof InventoryNodeTile)) return false;
-        ArrayList<BlockPos> route = ((InventoryNodeTile) te).getRouteTo(toPos);
+        ArrayList<BlockPos> route;
+        if (!(te instanceof InventoryNodeTile) && !(te instanceof CraftingStationTile)) return false;
+        if (te instanceof InventoryNodeTile)
+            route = ((InventoryNodeTile) te).getRouteTo(toPos);
+        else if (te instanceof CraftingStationTile)
+            route = ((CraftingStationTile) te).getRouteTo(toPos);
+        else
+            return false;
         if (route == null || route.size() <= 0) {
             return false;
         }

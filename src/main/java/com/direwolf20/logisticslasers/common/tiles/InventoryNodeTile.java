@@ -3,7 +3,6 @@ package com.direwolf20.logisticslasers.common.tiles;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,7 +23,10 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class InventoryNodeTile extends NodeTileBase implements INamedContainerProvider {
 
@@ -120,7 +122,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         routeList.clear();
     }
 
-    public void findAllRoutes() {
+    /*public void findAllRoutes() {
         clearRouteList();
         ControllerTile te = getControllerTE();
         if (te == null) return;
@@ -133,7 +135,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
             routeList.put(pos, routePath);
         }
         System.out.println(routeList);
-    }
+    }*/
 
     public ArrayList<ItemStack> getCards() {
         ArrayList<ItemStack> cards = new ArrayList<>();
@@ -144,7 +146,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         return cards;
     }
 
-    public ArrayList<ItemStack> getCards(BaseCard.CardType cardType) {
+    /*public ArrayList<ItemStack> getCards(BaseCard.CardType cardType) {
         ArrayList<ItemStack> cards = new ArrayList<>();
         ItemStackHandler itemStackHandler = getInventoryStacks();
         for (int i = 0; i < itemStackHandler.getSlots(); i++) {
@@ -155,7 +157,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
                 cards.add(itemStack);
         }
         return cards;
-    }
+    }*/
 
     @Nullable
     @Override

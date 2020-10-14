@@ -239,7 +239,9 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         }
 
         if (hoveredSlot != null && hoveredSlot.slotNumber < 27 && button == 2) {
-            System.out.println(hoveredSlot.getStack());
+            //System.out.println(hoveredSlot.slotNumber);
+            if (!hoveredSlot.getStack().isEmpty())
+                PacketHandler.sendToServer(new PacketSortStackFromCrafter(hoveredSlot.slotNumber));
             return true;
         }
 
