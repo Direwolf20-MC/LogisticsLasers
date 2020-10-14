@@ -6,6 +6,7 @@ import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlo
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
+import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.google.common.collect.ArrayListMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -24,6 +25,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -81,15 +83,15 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             setBlitOffset(Z_LEVEL_ITEMS);
             itemRenderer.zLevel = Z_LEVEL_ITEMS;
             this.itemRenderer.renderItemIntoGUI(stack, x, y);
-            ItemStack copy = stack.copy(); //Todo is there a way to avoid copying the stack?
-            copy.setCount(1);
-            this.itemRenderer.renderItemOverlayIntoGUI(font, copy, x, y, null);
+            this.itemRenderer.renderItemOverlayIntoGUI(font, ItemHandlerHelper.copyStackWithSize(stack, 1), x, y, null);
             matrixStack.push();
             matrixStack.translate(x, y, Z_LEVEL_QTY);
+            matrixStack.scale(0.65f, 0.65f, 0.65f);
             setBlitOffset(0);
+
             itemRenderer.zLevel = 0;
 
-            font.drawStringWithShadow(matrixStack, countString, 16 - font.getStringWidth(countString), 8, TextFormatting.WHITE.getColor());
+            font.drawStringWithShadow(matrixStack, MagicHelpers.withSuffix(count), 19 - font.getStringWidth(MagicHelpers.withSuffix(count)) * 0.65f, 18, TextFormatting.WHITE.getColor());
 
             matrixStack.pop();
 
