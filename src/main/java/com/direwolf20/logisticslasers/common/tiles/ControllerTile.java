@@ -446,9 +446,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     desiredAmt -= extractedStack.getCount();
                 }
             } while (desiredAmt > 0 || !successfullySent);
-
+            stack.setCount(desiredAmt);
+            if (stack.getCount() == 0) break;
         }
-        stack.setCount(desiredAmt);
+        //stack.setCount(desiredAmt);
         return stack;
     }
 
