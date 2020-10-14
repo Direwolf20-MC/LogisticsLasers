@@ -1,6 +1,8 @@
 package com.direwolf20.logisticslasers.client.screens;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
+import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
+import com.direwolf20.logisticslasers.client.screens.widgets.GuiIncrementer;
 import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
@@ -45,7 +47,8 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     private int overSlot = -1;
     private int selectedSlot = -1;
     private ArrayListMultimap<Item, ItemStack> itemMap;
-    ArrayList<ItemStack> itemStacks;
+    private ArrayList<ItemStack> itemStacks;
+    private GuiIncrementer requestCounter;
 
     public CraftingStationScreen(CraftingStationContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
@@ -163,12 +166,6 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         availableItemstartY = guiTop + 17;
         List<Widget> leftWidgets = new ArrayList<>();
 
-
-        Button requestTest;
-        leftWidgets.add(new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("test"), (button) -> {
-            requestItem();
-        }));
-
         leftWidgets.add(new Button(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGrid(1));
         }));
@@ -181,6 +178,12 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             PacketHandler.sendToServer(new PacketItemCountsRefresh());
         }));
 
+        requestCounter = new GuiIncrementer(guiLeft + 240, guiTop + 185, 1, 999, 28, 10, null);
+        leftWidgets.add(requestCounter);
+
+        leftWidgets.add(new DireButton(guiLeft + 240, guiTop + 195, 55, 15, new StringTextComponent("Request"), (button) -> {
+            requestItem();
+        }));
 
         // Lay the buttons out, too lazy to figure out the math every damn time.
         // Ordered by where you add them.
@@ -193,7 +196,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         if (selectedSlot == -1) return;
         ItemStack stack = itemStacks.get(selectedSlot);
         stack.setCount(1);
-        PacketHandler.sendToServer(new PacketRequestItem(stack, 1));
+        PacketHandler.sendToServer(new PacketRequestItem(stack, requestCounter.getValue()));
     }
 
     @Override
