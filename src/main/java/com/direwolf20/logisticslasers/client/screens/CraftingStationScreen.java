@@ -235,9 +235,13 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
         if (overSlot >= 0) {
             selectedSlot = overSlot;
-            System.out.println(selectedSlot);
+            return true;
         }
 
+        if (hoveredSlot != null && hoveredSlot.slotNumber < 27 && button == 2) {
+            System.out.println(hoveredSlot.getStack());
+            return true;
+        }
 
         return super.mouseClicked(mouseX, mouseY, button);
     }
