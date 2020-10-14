@@ -13,6 +13,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
 
+
 public class ItemHandlerUtil {
     @Nonnull
     public static ItemStack extractItem(IItemHandler source, @Nonnull ItemStack incstack, boolean simulate) {
@@ -24,7 +25,7 @@ public class ItemHandlerUtil {
         ItemStack stack = incstack.copy();
         for (int i = 0; i < source.getSlots(); i++) {
             ItemStack stackInSlot = source.getStackInSlot(i);
-            if (stackInSlot.isItemEqual(stack)) {
+            if (ItemHandlerHelper.canItemStacksStack(stackInSlot, stack)) {
                 int extractAmt = Math.min(amtRemaining, stackInSlot.getCount());
                 ItemStack tempStack = source.extractItem(i, extractAmt, simulate);
                 amtGotten += tempStack.getCount();
@@ -245,7 +246,7 @@ public class ItemHandlerUtil {
 
         public void setCount(ItemStack stack) {
             for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
-                if (cacheStack.isItemEqual(stack)) {
+                if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack)) {
                     cacheStack.grow(stack.getCount());
                     return;
                 }
@@ -255,11 +256,10 @@ public class ItemHandlerUtil {
 
         public int getCount(ItemStack stack) {
             for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
-                if (cacheStack.isItemEqual(stack))
+                if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack))
                     return cacheStack.getCount();
             }
             return 0;
         }
-
     }
 }

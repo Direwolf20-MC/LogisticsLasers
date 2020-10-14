@@ -24,4 +24,14 @@ public class MiscTools {
         }
 
     }
+
+    /*public static boolean isItemStackEqualNoCount(ItemStack stack, ItemStack other) {
+        if (stack.getItem() != other.getItem()) {
+            return false;
+        } else if (stack.getTag() == null && other.getTag() != null) {
+            return false;
+        } else {
+            return (stack.getTag() == null || stack.getTag().equals(other.getTag())) && stack.areCapsCompatible(other);
+        }
+    }*/
 }

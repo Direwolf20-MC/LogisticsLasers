@@ -65,8 +65,12 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         int itemsPerRow = 9;
         int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
 
+        ArrayList<ItemStack> itemStacks = new ArrayList(itemMap.values());
+        if (itemStacks.isEmpty()) return;
+
         int slot = 0;
-        for (ItemStack stack : itemMap.values()) {
+        for (int i = 0; i < itemStacks.size(); i++) {
+            ItemStack stack = itemStacks.get(i);
             int row = (int) Math.floor((double) slot / 9);
             int col = slot % 9;
             int count = stack.getCount();
@@ -77,6 +81,9 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             setBlitOffset(Z_LEVEL_ITEMS);
             itemRenderer.zLevel = Z_LEVEL_ITEMS;
             this.itemRenderer.renderItemIntoGUI(stack, x, y);
+            ItemStack copy = stack.copy(); //Todo is there a way to avoid copying the stack?
+            copy.setCount(1);
+            this.itemRenderer.renderItemOverlayIntoGUI(font, copy, x, y, null);
             matrixStack.push();
             matrixStack.translate(x, y, Z_LEVEL_QTY);
             setBlitOffset(0);
