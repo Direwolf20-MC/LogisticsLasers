@@ -25,6 +25,10 @@ public class MiscTools {
 
     }
 
+    public static boolean inBounds(int x, int y, int w, int h, double ox, double oy) {
+        return ox >= x && ox <= x + w && oy >= y && oy <= y + h;
+    }
+
     /*public static boolean isItemStackEqualNoCount(ItemStack stack, ItemStack other) {
         if (stack.getItem() != other.getItem()) {
             return false;
