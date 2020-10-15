@@ -185,8 +185,13 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         availableItemstartY = guiTop + 17;
         List<Widget> leftWidgets = new ArrayList<>();
 
-        leftWidgets.add(new DireButton(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
-            PacketHandler.sendToServer(new PacketRequestGrid(1));
+        leftWidgets.add(new DireButton(guiLeft + 90, guiTop + 30, 10, 10, new StringTextComponent("+"), (button) -> {
+            int amt = Screen.hasShiftDown() ? 10 : 1;
+            PacketHandler.sendToServer(new PacketRequestGrid(amt));
+        }));
+
+        leftWidgets.add(new DireButton(guiLeft + 90, guiTop + 45, 10, 10, new StringTextComponent("~"), (button) -> {
+            PacketHandler.sendToServer(new PacketRequestGridMissing());
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 268, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
@@ -195,11 +200,6 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
         leftWidgets.add(new DireButton(guiLeft + 235, guiTop + 4, 15, 10, new StringTextComponent("<"), (button) -> {
             if (page > 0) page--;
-        }));
-
-
-        leftWidgets.add(new DireButton(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
-            PacketHandler.sendToServer(new PacketRequestGridMissing());
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 177, guiTop + 185, 55, 20, new StringTextComponent("Refresh"), (button) -> {

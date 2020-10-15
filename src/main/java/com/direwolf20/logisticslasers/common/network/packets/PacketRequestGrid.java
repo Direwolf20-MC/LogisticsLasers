@@ -37,7 +37,7 @@ public class PacketRequestGrid {
 
                 if (container instanceof CraftingStationContainer) {
                     CraftingStationTile te = ((CraftingStationContainer) container).tile;
-                    te.requestGrid(sender);
+                    te.requestGrid(sender, msg.amount);
                 }
 
 

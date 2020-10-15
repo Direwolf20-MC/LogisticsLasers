@@ -44,7 +44,10 @@ public class DireButton extends Button {
                 j = 16777120;
             }
 
-            this.drawCenteredString(matrices, fontrenderer, this.getMessage().getString(), this.x + this.width / 2, this.y + (this.height - 7) / 2, j);
+            int y = this.y + (this.height - 7) / 2;
+            if (this.getMessage().getString().equals("~"))
+                y = this.y + (this.height - 1) / 2;
+            this.drawCenteredString(matrices, fontrenderer, this.getMessage().getString(), this.x + this.width / 2, y, j);
         }
     }
 }
