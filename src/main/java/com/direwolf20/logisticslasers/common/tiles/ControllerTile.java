@@ -401,8 +401,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         IItemHandler sourceitemHandler = getAttachedInventory(fromPos);
         ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
         possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
+        int stackSize = stack.getCount();
         if (possibleDestinations.isEmpty()) return stack; //If we can't send this item anywhere, move onto the next item
         for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
+            if (stack.isEmpty()) break;
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
             if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
@@ -411,9 +413,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
             ItemStack extractedStack = sourceitemHandler.extractItem(slot, count, false); //Actually remove the items this time
             boolean successfullySent = transferItemStack(fromPos, toPos, extractedStack);
-            if (!successfullySent) //Attempt to send items
+            if (!successfullySent) { //Attempt to send items
                 ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
-            if (stack.getCount() == 0)
+            } else {
+                stackSize -= extractedStack.getCount();
+            }
+            if (stackSize == 0)
                 break; //If we successfully sent all items in this stack, we're done
         }
         return stack;
