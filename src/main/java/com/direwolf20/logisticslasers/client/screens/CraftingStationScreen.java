@@ -96,10 +96,17 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
         int maxRows = 9;
         itemStacks = new ArrayList(itemMap.values().stream()
-                .filter(p -> p.getDisplayName().getString().toLowerCase().contains(searchField.getText().toLowerCase()))
                 .sorted(Comparator.comparingInt(itemstack -> itemstack.getCount()))
                 .collect(Collectors.toList())
         );
+        String[] searchTerms = searchField.getText().toLowerCase().split("\\s+");
+        for (int i = 0; i < searchTerms.length; i++) {
+            String search = searchTerms[i];
+            if (search.startsWith("@")) {
+                itemStacks.removeIf(p -> !p.getItem().getRegistryName().getNamespace().toLowerCase().contains(search.substring(1)));
+            } else
+                itemStacks.removeIf(p -> !p.getDisplayName().getString().toLowerCase().contains(search));
+        }
         if (itemStacks.isEmpty()) return;
         Collections.reverse(itemStacks);
 
