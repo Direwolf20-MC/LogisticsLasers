@@ -54,6 +54,8 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     private ArrayList<ItemStack> itemStacks;
     private GuiIncrementer requestCounter;
     private TextFieldWidget searchField;
+    private int page = 0;
+    private int maxPages = 0;
 
     public CraftingStationScreen(CraftingStationContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
@@ -99,12 +101,19 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
                 .collect(Collectors.toList())
         );
         if (itemStacks.isEmpty()) return;
-
         Collections.reverse(itemStacks);
+
+        int itemsPerPage = 81;
+        maxPages = (int) Math.floor((double) itemStacks.size() / itemsPerPage);
+        int itemStackMin = (page * itemsPerPage);
+        int itemStackMax = Math.min((page * itemsPerPage) + itemsPerPage, itemStacks.size());
+        List<ItemStack> displayStacks = itemStacks.subList(itemStackMin, itemStackMax);
+        font.drawString(matrixStack, MagicHelpers.withSuffix(page), guiLeft + 260 - font.getStringWidth(MagicHelpers.withSuffix(page)) * 0.65f, guiTop + 5, TextFormatting.DARK_GRAY.getColor());
+
         int slot = 0;
         overSlot = -1;
-        for (int i = 0; i < itemStacks.size(); i++) {
-            ItemStack stack = itemStacks.get(i);
+        for (int i = 0; i < displayStacks.size(); i++) {
+            ItemStack stack = displayStacks.get(i);
             int row = (int) Math.floor((double) slot / 9);
             if (row >= maxRows) break;
             int col = slot % 9;
@@ -179,6 +188,15 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         leftWidgets.add(new DireButton(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGrid(1));
         }));
+
+        leftWidgets.add(new DireButton(guiLeft + 268, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
+            if (page < maxPages) page++;
+        }));
+
+        leftWidgets.add(new DireButton(guiLeft + 235, guiTop + 4, 15, 10, new StringTextComponent("<"), (button) -> {
+            if (page > 0) page--;
+        }));
+
 
         leftWidgets.add(new DireButton(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGridMissing());
