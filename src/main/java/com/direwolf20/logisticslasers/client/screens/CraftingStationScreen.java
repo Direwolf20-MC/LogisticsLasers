@@ -18,7 +18,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
@@ -177,15 +176,15 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         availableItemstartY = guiTop + 17;
         List<Widget> leftWidgets = new ArrayList<>();
 
-        leftWidgets.add(new Button(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 2, guiTop + 45, 15, 10, new StringTextComponent("+"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGrid(1));
         }));
 
-        leftWidgets.add(new Button(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 2, guiTop + 65, 15, 10, new StringTextComponent("~"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGridMissing());
         }));
 
-        leftWidgets.add(new Button(guiLeft + 177, guiTop + 185, 55, 20, new StringTextComponent("Refresh"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 177, guiTop + 185, 55, 20, new StringTextComponent("Refresh"), (button) -> {
             PacketHandler.sendToServer(new PacketItemCountsRefresh());
         }));
 
