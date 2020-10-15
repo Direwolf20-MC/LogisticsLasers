@@ -424,12 +424,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return stack;
     }
 
-    public ItemStack provideItemStacksToPos(ItemStack stack, int amt, BlockPos toPos) {
+    public ItemStack provideItemStacksToPos(ItemStack stack, BlockPos toPos) {
         boolean successfullySent = false;
         ArrayList<BlockPos> possibleProviders = findProviderForItemstack(stack); //Find a list of possible Providers
         possibleProviders.remove(toPos); //Remove this chest
         if (possibleProviders.isEmpty()) return stack; //If nothing can provide to here, stop working
-        int desiredAmt = amt;
+        int desiredAmt = stack.getCount();
         for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
             IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
             if (providerItemHandler == null) continue; //If its empty, move onto the next provider
@@ -544,7 +544,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     if (count < stack.getCount())
                         stack.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
 
-                    successfullySent = (provideItemStacksToPos(stack, extractAmt, stockerPos).getCount() == 0);
+                    successfullySent = (provideItemStacksToPos(stack, stockerPos).getCount() == 0);
                     if (successfullySent) break;
                     /*ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
                     possibleProviders.remove(stockerPos); //Remove this chest

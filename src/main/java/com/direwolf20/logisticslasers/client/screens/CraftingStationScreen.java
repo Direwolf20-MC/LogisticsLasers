@@ -195,7 +195,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     private void requestItem() {
         if (selectedSlot == -1) return;
         ItemStack stack = itemStacks.get(selectedSlot);
-        stack.setCount(1);
+        stack.setCount(requestCounter.getValue());
         PacketHandler.sendToServer(new PacketRequestItem(stack, requestCounter.getValue()));
     }
 

@@ -41,7 +41,7 @@ public class PacketRequestItem {
 
                 if (container instanceof CraftingStationContainer) {
                     CraftingStationTile te = ((CraftingStationContainer) container).tile;
-                    te.requestItem(msg.stack, msg.amount, sender);
+                    te.requestItem(msg.stack, sender);
                 }
 
 

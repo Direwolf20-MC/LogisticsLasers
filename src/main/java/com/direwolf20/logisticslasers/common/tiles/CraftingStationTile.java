@@ -196,10 +196,10 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
-    public boolean requestItem(ItemStack stack, int amt, PlayerEntity requestor) {
+    public boolean requestItem(ItemStack stack, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
-        ItemStack returnedStack = te.provideItemStacksToPos(stack.copy(), amt, pos);
+        ItemStack returnedStack = te.provideItemStacksToPos(stack.copy(), pos);
         if (returnedStack.getCount() > 0) {
             requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), returnedStack.getItem())), false);
         }
@@ -207,11 +207,11 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return returnedStack.getCount() == 0;
     }
 
-    public void requestGrid(int amt, PlayerEntity requestor) {
+    public void requestGrid(PlayerEntity requestor) {
         for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
             ItemStack requestStack = craftMatrixHandler.getStackInSlot(i);
             if (!requestStack.isEmpty())
-                requestItem(requestStack, 1, requestor);
+                requestItem(requestStack, requestor);
         }
     }
 
@@ -221,9 +221,9 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         ItemHandlerUtil.InventoryCounts craftingGridCounts = new ItemHandlerUtil.InventoryCounts(craftMatrixHandler);
         //Map<ItemStack, Integer> craftingGridItems = craftingGridCounts.getItemCounts();
         for (ItemStack stack : craftingGridCounts.getItemCounts().values()) {
-            for (int i = 0; i < (stack.getCount() - storageCounts.getCount(stack)); i++) {
-                requestItem(new ItemStack(stack.getItem(), 1), 1, requestor);
-            }
+            //for (int i = 0; i < (stack.getCount() - storageCounts.getCount(stack)); i++) {
+            requestItem(new ItemStack(stack.getItem(), stack.getCount() - storageCounts.getCount(stack)), requestor);
+            //}
         }
     }
 
