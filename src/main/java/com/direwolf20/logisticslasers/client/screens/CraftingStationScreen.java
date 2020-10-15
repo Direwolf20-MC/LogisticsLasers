@@ -31,10 +31,8 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CraftingStationScreen extends ContainerScreen<CraftingStationContainer> {
@@ -99,13 +97,13 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
                 .sorted(Comparator.comparingInt(itemstack -> itemstack.getCount()))
                 .collect(Collectors.toList())
         );
-        String[] searchTerms = searchField.getText().toLowerCase().split("\\s+");
+        String[] searchTerms = searchField.getText().toLowerCase(Locale.ROOT).split("\\s+");
         for (int i = 0; i < searchTerms.length; i++) {
             String search = searchTerms[i];
             if (search.startsWith("@")) {
-                itemStacks.removeIf(p -> !p.getItem().getRegistryName().getNamespace().toLowerCase().contains(search.substring(1)));
+                itemStacks.removeIf(p -> !p.getItem().getCreatorModId(p).toLowerCase(Locale.ROOT).contains(search.substring(1)));
             } else
-                itemStacks.removeIf(p -> !p.getDisplayName().getString().toLowerCase().contains(search));
+                itemStacks.removeIf(p -> !p.getDisplayName().getString().toLowerCase(Locale.ROOT).contains(search));
         }
         if (itemStacks.isEmpty()) return;
         Collections.reverse(itemStacks);
