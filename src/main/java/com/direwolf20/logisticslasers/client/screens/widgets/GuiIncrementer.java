@@ -72,7 +72,7 @@ public class GuiIncrementer extends Widget {
         if (Screen.hasShiftDown())
             modifier *= 10;
         if (Screen.hasControlDown())
-            modifier *= 64;
+            modifier *= (getValue() == 1) ? 63 : 64;
 
         int value = isMinus ? this.value - modifier : this.value + modifier;
         this.setValue(value);

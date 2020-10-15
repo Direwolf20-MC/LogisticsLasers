@@ -20,6 +20,7 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -32,6 +33,8 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,10 +96,12 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         int maxRows = 9;
         itemStacks = new ArrayList(itemMap.values().stream()
                 .filter(p -> p.getDisplayName().getString().toLowerCase().contains(searchField.getText().toLowerCase()))
+                .sorted(Comparator.comparingInt(itemstack -> itemstack.getCount()))
                 .collect(Collectors.toList())
         );
         if (itemStacks.isEmpty()) return;
 
+        Collections.reverse(itemStacks);
         int slot = 0;
         overSlot = -1;
         for (int i = 0; i < itemStacks.size(); i++) {
@@ -278,5 +283,13 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             return super.mouseScrolled(x, y, amt);
 
         return true;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        InputMappings.Input mouseKey = InputMappings.getInputByCode(keyCode, scanCode);
+        if (searchField.isFocused() && this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(mouseKey))
+            return true;
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 }
