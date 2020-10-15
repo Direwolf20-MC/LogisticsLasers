@@ -16,6 +16,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
@@ -32,6 +33,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CraftingStationScreen extends ContainerScreen<CraftingStationContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/crafting_station.png");
@@ -49,6 +51,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     private ArrayListMultimap<Item, ItemStack> itemMap;
     private ArrayList<ItemStack> itemStacks;
     private GuiIncrementer requestCounter;
+    private TextFieldWidget searchField;
 
     public CraftingStationScreen(CraftingStationContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
@@ -88,7 +91,10 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         int itemsPerRow = 9;
         int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
         int maxRows = 9;
-        itemStacks = new ArrayList(itemMap.values());
+        itemStacks = new ArrayList(itemMap.values().stream()
+                .filter(p -> p.getDisplayName().getString().toLowerCase().contains(searchField.getText().toLowerCase()))
+                .collect(Collectors.toList())
+        );
         if (itemStacks.isEmpty()) return;
 
         int slot = 0;
@@ -185,6 +191,9 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             requestItem();
         }));
 
+        searchField = new TextFieldWidget(font, guiLeft + 177, guiTop + 210, 155, 15, StringTextComponent.EMPTY);
+        leftWidgets.add(searchField);
+
         // Lay the buttons out, too lazy to figure out the math every damn time.
         // Ordered by where you add them.
         for (int i = 0; i < leftWidgets.size(); i++) {
@@ -218,6 +227,9 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (MiscTools.inBounds(searchField.x, searchField.y, searchField.getWidth(), 15, mouseX, mouseY) && button == 1)
+            searchField.setText("");
+
         if (hoveredSlot != null && hoveredSlot instanceof CraftingSlot) {
             PacketHandler.sendToServer(new PacketDoCraft(hoveredSlot.getStack(), hoveredSlot.getStack().getCount(), Screen.hasShiftDown()));
             return true;
