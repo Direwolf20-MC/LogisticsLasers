@@ -208,13 +208,12 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     }
 
     public void requestGrid(PlayerEntity requestor, int amt) {
-        for (int a = 0; a < amt; a++) {
             for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
-                ItemStack requestStack = craftMatrixHandler.getStackInSlot(i);
+                ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
+                requestStack.setCount(amt);
                 if (!requestStack.isEmpty())
                     requestItem(requestStack, requestor);
             }
-        }
     }
 
     public void requestGridOnlyMissing(PlayerEntity requestor) {

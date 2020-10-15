@@ -426,7 +426,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public ItemStack provideItemStacksToPos(ItemStack stack, BlockPos toPos) {
         boolean successfullySent = false;
-        ArrayList<BlockPos> possibleProviders = findProviderForItemstack(stack); //Find a list of possible Providers
+        ArrayList<BlockPos> possibleProviders = new ArrayList<>(findProviderForItemstack(stack)); //Find a list of possible Providers
         possibleProviders.remove(toPos); //Remove this chest
         if (possibleProviders.isEmpty()) return stack; //If nothing can provide to here, stop working
         int desiredAmt = stack.getCount();
