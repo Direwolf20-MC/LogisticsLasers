@@ -397,12 +397,18 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return count;
     }
 
-    public ItemStack extractItemFromPos(ItemStack stack, BlockPos fromPos, int slot) {
+    /**
+     * Attempts to extract @param stack from @param fromPos in slot @param slot
+     *
+     * @return the amount of items that remain in the stack
+     */
+    public int extractItemFromPos(ItemStack stack, BlockPos fromPos, int slot) {
         IItemHandler sourceitemHandler = getAttachedInventory(fromPos);
         ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
         possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
         int stackSize = stack.getCount();
-        if (possibleDestinations.isEmpty()) return stack; //If we can't send this item anywhere, move onto the next item
+        if (possibleDestinations.isEmpty())
+            return stackSize; //If we can't send this item anywhere, move onto the next item
         for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
             if (stack.isEmpty()) break;
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
@@ -421,7 +427,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (stackSize == 0)
                 break; //If we successfully sent all items in this stack, we're done
         }
-        return stack;
+        return stackSize;
     }
 
     public ItemStack provideItemStacksToPos(ItemStack stack, BlockPos toPos) {
@@ -459,54 +465,39 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     /**
+     * Extracts the first item with a valid destination from the @param fromPos
+     *
+     * @return if an item was extracted.
+     */
+    public boolean attemptExtract(BlockPos fromPos) {
+        IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
+        if (sourceitemHandler == null) return false; //If its empty, return false
+        
+        for (ItemStack extractCard : getExtractFilters(fromPos)) { //Get all extractor cards in the inventory node we're working on
+            for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
+                ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
+                if (stackInSlot.isEmpty())
+                    continue; //If the slot is empty, move onto the next slot
+
+                if (!isStackValidForCard(extractCard, stackInSlot)) //Move onto the next itemstack if its not valid for this card
+                    continue;
+
+                int extractAmt = 1;
+                ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
+                if (extractItemFromPos(stack, fromPos, i) == 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Go through each of the extractorNodes and extract a single item based on the extractorCards they have. Send to an appropriate inserter.
      */
     public void handleExtractors() {
-        boolean successfullySent = false;
         if (inserterNodes.size() == 0) return; //If theres nowhere to put items, nope out!
         for (BlockPos fromPos : extractorNodes) { //Loop through all the extractors!
-            successfullySent = false;
-            IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
-            if (sourceitemHandler == null) continue; //If its empty, move onto the next extractor
-
-            for (ItemStack extractCard : getExtractFilters(fromPos)) { //Get all extractor cards in the inventory node we're working on
-                if (successfullySent)
-                    break; //If we've sent something from this card in the last iteration, break out and go to the next inventory node
-                for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
-                    if (successfullySent) break;
-                    ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
-                    if (stackInSlot.isEmpty())
-                        continue; //If the slot is empty, move onto the next slot
-
-                    if (!isStackValidForCard(extractCard, stackInSlot)) //Move onto the next stack if its not valid for this card
-                        continue;
-
-                    int extractAmt = 1;
-                    ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
-                    successfullySent = (extractItemFromPos(stack, fromPos, i).getCount() == 0);
-                    if (successfullySent) break;
-                    /*ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
-                    possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
-                    if (possibleDestinations.isEmpty())
-                        continue; //If we can't send this item anywhere, move onto the next item
-                    for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
-                        IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
-                        if (destitemHandler == null) continue; //If its empty, move onto the next inserter
-
-                        int count = testInsertToInventory(destitemHandler, toPos, stack); //Find out how many items can fit in the destination inventory, including inflight items
-                        if (count == 0) continue; //If none, try elsewhere!
-
-                        ItemStack extractedStack = sourceitemHandler.extractItem(i, count, false); //Actually remove the items this time
-                        successfullySent = transferItemStack(fromPos, toPos, extractedStack);
-                        if (!successfullySent) { //Attempt to send items
-                            ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
-                        } else {
-                            break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
-                        }
-                    }*/
-
-                }
-            }
+            attemptExtract(fromPos);
         }
     }
 
