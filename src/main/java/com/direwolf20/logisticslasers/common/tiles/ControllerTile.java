@@ -814,6 +814,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack (Anything that failed to insert)
      */
     public ItemStack doInsert(ControllerTask task) {
+        //ToDo handle this better, especially the stockers part.
         if (!stockerNodes.contains(task.toPos) && !(crafterNodes.contains(task.toPos))) {
             if (!findDestinationForItemstack(task.itemStack).contains(task.toPos)) return task.itemStack;
         }
