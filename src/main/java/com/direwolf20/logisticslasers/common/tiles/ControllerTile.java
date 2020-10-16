@@ -58,14 +58,15 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> crafterNodes = new HashSet<>();
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
+    //ToDo make this stuff persistent
     private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
     private final HashMap<ControllerTask, ArrayList<ControllerTask>> parentTaskMap = new HashMap<>();
 
     //Non-Persistent data (Generated if empty)
     private final Set<BlockPos> extractorNodes = new HashSet<>(); //All Inventory nodes that contain an extractor card.
     private final Set<BlockPos> inserterNodes = new HashSet<>(); //All Inventory nodes that contain an inserter card
-    private final Set<BlockPos> providerNodes = new HashSet<>(); //All Inventory nodes that contain an provider card
-    private final Set<BlockPos> stockerNodes = new HashSet<>(); //All Inventory nodes that contain an stocker card
+    private final Set<BlockPos> providerNodes = new HashSet<>(); //All Inventory nodes that contain a provider card
+    private final Set<BlockPos> stockerNodes = new HashSet<>(); //All Inventory nodes that contain a stocker card
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
     private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder()); //A sorted list of inserter cards by priority
     private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
@@ -74,7 +75,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
-    private int ticksPerBlock = 4;
+    private int ticksPerBlock = 4; //How fast the items move through the network, x ticks per block length
 
     public ControllerTile() {
         super(ModBlocks.CONTROLLER_TILE.get());
@@ -82,6 +83,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         this.energy = LazyOptional.of(() -> this.energyStorage);
     }
 
+    //Misc getters and setters
     public Set<BlockPos> getProviderNodes() {
         return providerNodes;
     }
@@ -94,8 +96,15 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return itemCounts;
     }
 
+    public Set<BlockPos> getInventoryNodes() {
+        return inventoryNodes;
+    }
+
+    /**
+     * Builds the itemCounts cache, used to display contents of the network at the crafting station
+     * Sends a packet to the @param player's client updating it for client-side display in CraftingStationScreen
+     */
     public void updateItemCounts(ServerPlayerEntity player) {
-        //ItemHandlerUtil.InventoryCountsTwo allProviderCounts = new ItemHandlerUtil.InventoryCountsTwo();
         itemCounts = new ItemHandlerUtil.InventoryCounts();
         Set<BlockPos> providers = getProviderNodes();
         for (BlockPos pos : providers) {
@@ -105,9 +114,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 itemCounts.addHandlerWithFilter(handler, providerFilter);
             }
         }
-        //System.out.println("Refreshed Available Items");
         PacketHandler.sendTo(new PacketItemCountsSync(itemCounts, pos), player);
-        //System.out.println("Send to: " + player.getName());
     }
 
     /**
@@ -131,10 +138,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     /**
      * Given a @param pos, look up the inventory node at that position in the world, and cache each of the cards in the cardCache Variable
      * Also populates the extractorNodes and inserterNodes variables, so we know which inventory nodes send/receive items.
+     * Also populates the providerNodes and stockerNodes variables, so we know which inventory nodes provide or keep in stock items.
      * This method is called by refreshAllInvNodes() or on demand when the contents of an inventory node's container is changed
      */
     public void checkInvNode(BlockPos pos) {
         InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
+        //Remove this position from all caches, so we can repopulate below
         extractorNodes.remove(pos);
         inserterNodes.remove(pos);
         providerNodes.remove(pos);
@@ -143,10 +152,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         filterCardCache.remove(pos);
         inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
         providerCache.clear(); //Any change to provider cards will affect the provider cache
-        removeBlockPosFromPriorities(pos);
-        if (!te.hasController()) return;
+        removeBlockPosFromPriorities(pos); //Remove this position form the inserter priorities
+        if (!te.hasController()) return; //If this tile was removed from the network, don't recalculate its contents
 
         ItemStackHandler handler = te.getInventoryStacks();
+        //Loop through all cards and update the cache'd data
         for (int i = 0; i < handler.getSlots(); i++) {
             ItemStack stack = handler.getStackInSlot(i);
             if (stack.isEmpty()) continue;
@@ -164,13 +174,19 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    /**
+     * Given a @param pos, remove it from the priorities list.
+     * This is used when an inserter card is removed/changed to ensure its no longer listen in the inserterPriorities
+     */
     public void removeBlockPosFromPriorities(BlockPos pos) {
         for (Map.Entry<Integer, Set<BlockPos>> priorityMap : insertPriorities.entrySet()) {
             priorityMap.getValue().remove(pos);
         }
     }
 
-    //Adds an itemstack to the filterCardCache variable
+    /**
+     * Adds a @param itemStack to the filterCardCache variable for @param pos
+     */
     public void addToFilterCache(BlockPos pos, ItemStack itemStack) {
         ArrayList<ItemStack> tempArray = filterCardCache.getOrDefault(pos, new ArrayList<>());
         tempArray.add(itemStack);
@@ -184,12 +200,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         insertPriorities.put(priority, tempSet);
     }
 
-    public Set<BlockPos> getInventoryNodes() {
-        return inventoryNodes;
-    }
-
     /**
-     * Clears the cached route list of all inventory nodes - used when a network change occurs to rebuild the route table.
+     * Clears the cached route list of all inventory nodes - used when a network change occurs to rebuild the route table on next send.
      */
     public void updateInvNodePaths() {
         for (BlockPos pos : inventoryNodes) {
@@ -204,6 +216,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
     }
 
+    /**
+     * Called when a crafter is added to the network at @param pos
+     *
+     * @return if this was successful, which it should always be
+     */
     public boolean addToCraftNodes(BlockPos pos) {
         if (crafterNodes.add(pos)) {
             addToAllNodes(pos);
@@ -212,6 +229,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return false;
     }
 
+    /**
+     * Called when an inventory node is added to the network at @param pos
+     *
+     * @return if this was successful, which it should always be
+     */
     public boolean addToInvNodes(BlockPos pos) {
         if (inventoryNodes.add(pos)) {
             addToAllNodes(pos);
@@ -221,6 +243,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return false;
     }
 
+    /**
+     * Remove the inventory node at @param pos
+     * Clear any cached data about this inventory node
+     *
+     * @return if this was successful
+     */
     public boolean removeFromInvNodes(BlockPos pos) {
         boolean inv = inventoryNodes.remove(pos);
         if (inv) {
@@ -238,41 +266,76 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return (inv && all);
     }
 
+    /**
+     * Called when a crafter at @param pos is removed from the network
+     *
+     * @return if this was successful
+     */
     public boolean removeFromCraftNodes(BlockPos pos) {
         boolean inv = crafterNodes.remove(pos);
         boolean all = removeFromAllNodes(pos);
         return (inv && all);
     }
 
+    /**
+     * Used by other nodes to add themselves to this controller
+     * No use here
+     */
     @Override
     public void addToController() {
         return; //NOOP
     }
 
+    /**
+     * Adds the @param pos to the 'all nodes' cache
+     *
+     * @return successful
+     */
     public boolean addToAllNodes(BlockPos pos) {
         return allNodes.add(pos);
     }
 
+    /**
+     * Removes the @param pos to the 'all nodes' cache
+     *
+     * @return successful
+     */
     public boolean removeFromAllNodes(BlockPos pos) {
         return allNodes.remove(pos);
     }
 
+    /**
+     * Gets the controller position for other nodes, since this is the controller return itself
+     *
+     * @return BlockPos of this block
+     */
     @Override
     public BlockPos getControllerPos() {
         return this.getPos();
     }
 
+    /**
+     * Used by other nodes to set the @param controllerPos
+     * Not used here since this is the controller
+     */
     @Override
     public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
         return; //NOOP
     }
 
+    /**
+     * Used by other nodes to confirm their controller is still valid. No use here.
+     *
+     * @return this position
+     */
     @Override
     public BlockPos validateController() {
         return this.getPos();  //I AM THE CONTROLLER!!!
     }
 
-    //Prevents a block that has another controller from connecting to this controller, including other controllers themselves.
+    /**
+     * Prevents a block that has another controller from connecting to this controller, including other controllers themselves.
+     */
     @Override
     public boolean addNode(BlockPos pos) {
         NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
@@ -283,6 +346,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Get the item handler attached to an inventory node (Like an adjacent chest or furnace) at @param pos
+     * If this is a crafting station, return the crafter's inventory
      *
      * @return the item handler
      */
@@ -305,6 +369,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return null;
     }
 
+    /**
+     * Get all the filters at @param pos that are extractor filters
+     *
+     * @return List of itemstacks which represent all the extractor filter cards
+     */
     public ArrayList<ItemStack> getExtractFilters(BlockPos pos) {
         if (filterCardCache.containsKey(pos)) {
             ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
@@ -314,6 +383,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return new ArrayList<>();
     }
 
+    /**
+     * Get all the filters at @param pos that are inserter filters
+     *
+     * @return List of itemstacks which represent all the inserter filter cards
+     */
     public ArrayList<ItemStack> getInsertFilters(BlockPos pos) {
         if (filterCardCache.containsKey(pos)) {
             ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
@@ -323,6 +397,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return new ArrayList<>();
     }
 
+    /**
+     * Get all the filters at @param pos that are provider filters
+     *
+     * @return List of itemstacks which represent all the provider filter cards
+     */
     public ArrayList<ItemStack> getProviderFilters(BlockPos pos) {
         if (filterCardCache.containsKey(pos)) {
             ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
@@ -332,6 +411,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return new ArrayList<>();
     }
 
+    /**
+     * Get all the filters at @param pos that are stocker filters
+     *
+     * @return List of itemstacks which represent all the stocker filter cards
+     */
     public ArrayList<ItemStack> getStockerFilters(BlockPos pos) {
         if (filterCardCache.containsKey(pos)) {
             ArrayList<ItemStack> tempList = new ArrayList<>(filterCardCache.get(pos));
@@ -343,7 +427,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Given an @param itemStack, find a valid destination either from an existing cache, or looping through all known inserters.
-     *
      * @return a list of possible destinations
      */
     public ArrayList<BlockPos> findDestinationForItemstack(ItemStack itemStack) {
@@ -366,7 +449,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     /**
      * Given an @param itemStack, find a valid provider either from an existing cache, or looping through all known providers.
      * Excludes @param fromPos to ensure items are not extracted from the stocking chest
-     *
      * @return a list of possible destinations
      */
     public ArrayList<BlockPos> findProviderForItemstack(ItemStack itemStack) {
@@ -386,6 +468,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return providerCache.get(itemStack.getItem());
     }
 
+    /**
+     * Attempts to insert @param stack into @param destitemHandler at @param toPos
+     * Takes into account items currently traveling through the network, and whether they will also fit in the destination
+     *
+     * @return how many items fit
+     */
     public int testInsertToInventory(IItemHandler destitemHandler, BlockPos toPos, ItemStack stack) {
         ItemHandlerUtil.InventoryInfo tempInventory = new ItemHandlerUtil.InventoryInfo(destitemHandler); //tempInventory tracks all changes that in-route stacks would make
         for (ItemStack inFlightStack : getItemStacksInFlight(toPos)) { //Add all in-flight stacks to the temp inventory
@@ -399,7 +487,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Attempts to extract @param stack from @param fromPos in slot @param slot
-     * @return the amount of items that remain in the stack
+     * Loops through all possible destinations (Inserters that accept this item) attempting to insert the whole stack, even if it needs to be split up to do so
+     * @return the amount of items that remain in the stack post extraction
      */
     public int extractItemFromPos(ItemStack stack, BlockPos fromPos, int slot) {
         if (stack.isEmpty()) return stack.getCount(); //No empty stacks!
@@ -432,6 +521,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return stackSize;
     }
 
+    /**
+     * Given a @param stack, find providers that offer it and send to @param toPos
+     * Retrieve from multiple providers if necessary
+     *
+     * @return the stack of items we couldn't source
+     */
     public ItemStack provideItemStacksToPos(ItemStack stack, BlockPos toPos) {
         boolean successfullySent = false;
         ArrayList<BlockPos> possibleProviders = new ArrayList<>(findProviderForItemstack(stack)); //Find a list of possible Providers
@@ -462,13 +557,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             stack.setCount(desiredAmt);
             if (stack.getCount() == 0) break;
         }
-        //stack.setCount(desiredAmt);
         return stack;
     }
 
     /**
      * Extracts the first item with a valid destination from the @param fromPos
-     *
      * @return if an item was extracted.
      */
     public boolean attemptExtract(BlockPos fromPos) {
@@ -539,30 +632,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
                     successfullySent = (provideItemStacksToPos(stack, stockerPos).getCount() == 0);
                     if (successfullySent) break;
-                    /*ArrayList<BlockPos> possibleProviders = findProviderForItemstack(new ItemStack(item.getItem())); //Find a list of possible Providers
-                    possibleProviders.remove(stockerPos); //Remove this chest
-                    if (possibleProviders.isEmpty()) continue; //If nothing can provide to here, stop working
-
-                    for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
-                        IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
-                        if (providerItemHandler == null) continue; //If its empty, move onto the next provider
-
-                        ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack, true); //Pretend to extract the stack from the provider's inventory
-
-                        if (simulated.getCount() == 0) {
-                            continue; //If the stack we removed has zero items in it check another provider
-                        }
-                        int extractCount = simulated.getCount(); //How many items were successfully removed from the inventory
-                        stack.setCount(extractCount);
-                        ItemStack extractedStack = ItemHandlerUtil.extractItem(providerItemHandler, stack, false); //Actually remove the items this time
-                        successfullySent = transferItemStack(providerPos, stockerPos, extractedStack);
-                        if (!successfullySent) { //Attempt to send items
-                            ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
-                        } else {
-                            break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
-                        }
-                    }
-                     */
                 }
             }
         }
@@ -707,7 +776,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * Given a @param task, execute whatever that task is. See the ControllerTask class.
      */
     public void executeTask(ControllerTask task) {
-        //System.out.println(task.taskType + ": " + task.fromPos + "->" + task.toPos + ": " + task.itemStack);
         if (task.isParticle()) {
             ItemStack remainingStack = doParticles(task);
             if (!remainingStack.isEmpty()) {
@@ -757,6 +825,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return postInsertStack;
     }
 
+    /**
+     * Cancel the parent and all child tasks with @param parentGUID
+     */
     public void cancelTask(UUID parentGUID) {
         for (long gameTime : taskList.keySet()) {
             Set<ControllerTask> tasks = taskList.get(gameTime);
