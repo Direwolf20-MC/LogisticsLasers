@@ -697,7 +697,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         Set<ItemStack> flightStacks = new HashSet<>();
         for (ControllerTask parentTask : parentTaskMap.keySet()) {
             if (parentTask.toPos.equals(toPos)) {
-                flightStacks.add(parentTask.itemStack.copy());
+                flightStacks.add(parentTask.itemStack);
             }
         }
         return flightStacks;
