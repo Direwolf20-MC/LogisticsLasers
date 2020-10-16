@@ -399,18 +399,20 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     /**
      * Attempts to extract @param stack from @param fromPos in slot @param slot
-     *
      * @return the amount of items that remain in the stack
      */
     public int extractItemFromPos(ItemStack stack, BlockPos fromPos, int slot) {
+        if (stack.isEmpty()) return stack.getCount(); //No empty stacks!
+
         IItemHandler sourceitemHandler = getAttachedInventory(fromPos);
         ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
         possibleDestinations.remove(fromPos); //Remove the block its coming from, no self-sending!
-        int stackSize = stack.getCount();
+        int stackSize = stack.getCount(); //The number of items we are extracting
+
         if (possibleDestinations.isEmpty())
-            return stackSize; //If we can't send this item anywhere, move onto the next item
+            return stackSize; //If we can't send this item anywhere, stop processing
+
         for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
-            if (stack.isEmpty()) break;
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
             if (destitemHandler == null) continue; //If its empty, move onto the next inserter
 
@@ -472,7 +474,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public boolean attemptExtract(BlockPos fromPos) {
         IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
         if (sourceitemHandler == null) return false; //If its empty, return false
-        
+
         for (ItemStack extractCard : getExtractFilters(fromPos)) { //Get all extractor cards in the inventory node we're working on
             for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
                 ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
