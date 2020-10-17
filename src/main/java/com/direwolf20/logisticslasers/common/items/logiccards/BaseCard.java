@@ -112,11 +112,15 @@ public abstract class BaseCard extends Item {
 
     public static Set<ItemStack> getFilteredItems(ItemStack stack) {
         Set<ItemStack> filteredItems = new HashSet<>();
-        ItemStackHandler filterSlotHandler = getInventory(stack);
-        for (int i = 0; i < filterSlotHandler.getSlots(); i++) {
-            ItemStack itemStack = filterSlotHandler.getStackInSlot(i);
-            if (!itemStack.isEmpty())
-                filteredItems.add(itemStack);
+        if (stack.getItem() instanceof CardPolymorph) {
+            filteredItems = new HashSet<>(CardPolymorph.getListFromCard(stack));
+        } else {
+            ItemStackHandler filterSlotHandler = getInventory(stack);
+            for (int i = 0; i < filterSlotHandler.getSlots(); i++) {
+                ItemStack itemStack = filterSlotHandler.getStackInSlot(i);
+                if (!itemStack.isEmpty())
+                    filteredItems.add(itemStack);
+            }
         }
         return filteredItems;
     }

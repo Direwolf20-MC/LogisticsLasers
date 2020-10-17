@@ -49,6 +49,7 @@ public class PacketPolymorphSet {
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     if (container instanceof InventoryNodeContainer) {
                         CardPolymorph.setListFromContainer(itemStack, ((InventoryNodeContainer) container).tile.getHandler().orElse(new ItemStackHandler(0)));
+                        ((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());
                     }
                 }
             });
