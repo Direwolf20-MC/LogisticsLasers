@@ -23,11 +23,14 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(ModItems.CARD_INSERTER, "Inserter Module");
         addItem(ModItems.CARD_STOCKER, "Stocker Module");
         addItem(ModItems.CARD_PROVIDER, "Provider Module");
+        addItem(ModItems.CARD_POLYMORPH, "Polymorph Module");
 
         add("block.logisticslasers.controllerscreen", "Laser Controller");
         add("block.logisticslasers.craftingstationscreen", "Crafting Station");
         add("item.logisticslasers.basicfilterscreen", "Basic Filter");
         add("item.logisticslasers.stockerfilterscreen", "Stocker Filter");
+        add("item.logisticslasers.polyfilterscreen", "Polymorph Filter");
+
 
         add("item.logisticslasers.basicfilterscreen.priority", "Priority: %d");
 
