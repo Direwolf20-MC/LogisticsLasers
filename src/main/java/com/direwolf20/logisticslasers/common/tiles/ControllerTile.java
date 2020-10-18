@@ -724,7 +724,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return true;
     }
 
-    public void removeTaskFromParent(ControllerTask task) {
+    //No Longer needed?
+    /*public void removeTaskFromParent(ControllerTask task) {
         ControllerTask parentTask = findParentTaskByGUID(task.parentGUID);
         if (parentTask == null) {
             System.out.println("Something weird happened with task: " + task.guid);
@@ -736,10 +737,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             //else
             //parentTaskMap.put(parentTask, taskArrayList);
         }
-    }
+    }*/
 
     public void removeTasksFromList() {
         taskList.removeIf(o -> o.isCancelled || o.isComplete);
+        //Cleanup parent task list
+        for (ArrayList<ControllerTask> childTasks : parentTaskMap.values()) {
+            childTasks.removeIf(o -> o.isCancelled || o.isComplete);
+        }
+        parentTaskMap.entrySet().removeIf(entries -> entries.getValue().size() == 0 || entries == null);
+        //parentTaskMap.keySet().removeIf(o -> parentTaskMap.get(o).isEmpty() || parentTaskMap.get(o) == null);
     }
 
     /**
@@ -754,9 +761,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 executeTask(task);
                 task.complete();
             }
-            if (task.isComplete || task.isCancelled) {
+            /*if (task.isComplete || task.isCancelled) {
                 removeTaskFromParent(task);
-            }
+            }*/
         }
         removeTasksFromList();
     }
@@ -935,12 +942,28 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             BlockPos blockPos = NBTUtil.readBlockPos(craftnodes.getCompound(i).getCompound("pos"));
             crafterNodes.add(blockPos);
         }
+        //refreshAllInvNodes();
+        System.out.println("Reading");
+
+        parentTaskMap.clear();
+        ListNBT parentTasks = tag.getList("parentTasks", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < parentTasks.size(); i++) {
+            ControllerTask task = new ControllerTask(parentTasks.getCompound(i));
+            parentTaskMap.put(task, new ArrayList<>());
+        }
 
         taskList.clear();
         ListNBT tasks = tag.getList("tasks", Constants.NBT.TAG_COMPOUND);
         for (int i = 0; i < tasks.size(); i++) {
             ControllerTask task = new ControllerTask(tasks.getCompound(i));
             taskList.add(task);
+            for (ControllerTask parentTask : parentTaskMap.keySet()) {
+                if (task.parentGUID.equals(parentTask.guid)) {
+                    parentTaskMap.get(parentTask).add(task);
+                    break;
+                }
+
+            }
         }
     }
 
@@ -971,12 +994,21 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         tag.put("craftnodes", craftnodes);
 
+        ListNBT parentTasks = new ListNBT();
+        for (ControllerTask task : parentTaskMap.keySet()) {
+            CompoundNBT nbt = task.serialize();
+            parentTasks.add(nbt);
+        }
+        tag.put("parentTasks", parentTasks);
+
         ListNBT tasks = new ListNBT();
         for (ControllerTask task : taskList) {
             CompoundNBT nbt = task.serialize();
             tasks.add(nbt);
         }
         tag.put("tasks", tasks);
+
+        System.out.println("Writing");
         return super.write(tag);
     }
 

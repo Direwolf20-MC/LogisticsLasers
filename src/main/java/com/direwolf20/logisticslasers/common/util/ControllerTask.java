@@ -42,7 +42,8 @@ public class ControllerTask {
         this.toPos = NBTUtil.readBlockPos(nbt.getCompound("toPos"));
         this.taskType = TaskType.values()[nbt.getInt("taskType")];
         this.itemStack = ItemStack.read(nbt.getCompound("itemStack"));
-        this.parentGUID = nbt.getUniqueId("parentGUID");
+        if (nbt.contains("parentGUID"))
+            this.parentGUID = nbt.getUniqueId("parentGUID");
         this.isCancelled = nbt.getBoolean("isCancelled");
         this.isComplete = nbt.getBoolean("isComplete");
         this.scheduledTime = nbt.getLong("scheduledTime");
@@ -77,7 +78,8 @@ public class ControllerTask {
         nbt.put("toPos", NBTUtil.writeBlockPos(toPos));
         nbt.putInt("taskType", taskType.ordinal());
         nbt.put("itemStack", itemStack.serializeNBT());
-        nbt.putUniqueId("parentGUID", parentGUID);
+        if (parentGUID != null) //parentTasks have null parentGUIDs
+            nbt.putUniqueId("parentGUID", parentGUID);
         nbt.putBoolean("isCancelled", isCancelled);
         nbt.putBoolean("isComplete", isComplete);
         nbt.putLong("scheduledTime", scheduledTime);
