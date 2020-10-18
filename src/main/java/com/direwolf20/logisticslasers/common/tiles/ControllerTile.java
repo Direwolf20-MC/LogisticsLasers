@@ -142,6 +142,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * This method is called by refreshAllInvNodes() or on demand when the contents of an inventory node's container is changed
      */
     public void checkInvNode(BlockPos pos) {
+        System.out.println("Updating cache at: " + pos);
         InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
         //Remove this position from all caches, so we can repopulate below
         extractorNodes.remove(pos);

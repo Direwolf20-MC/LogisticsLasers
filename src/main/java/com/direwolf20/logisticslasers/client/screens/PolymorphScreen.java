@@ -5,8 +5,9 @@ import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
+import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphApply;
 import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphClear;
+import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphPriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphSet;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
@@ -75,19 +76,23 @@ public class PolymorphScreen extends Screen {
 
         Button plusPriority;
         leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 15, 15, 10, new StringTextComponent("+"), (button) -> {
-            PacketHandler.sendToServer(new PacketChangePriority(1));
+            if (!sourceContainer.equals(BlockPos.ZERO))
+                PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
         }));
         Button minusPriority;
         leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 15, 15, 10, new StringTextComponent("-"), (button) -> {
-            PacketHandler.sendToServer(new PacketChangePriority(-1));
+            if (!sourceContainer.equals(BlockPos.ZERO))
+                PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 15, 10, new StringTextComponent("Set"), (button) -> {
-            PacketHandler.sendToServer(new PacketPolymorphSet(cardSlot, sourceContainer));
+            if (!sourceContainer.equals(BlockPos.ZERO))
+                PacketHandler.sendToServer(new PacketPolymorphSet(cardSlot, sourceContainer));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 80, guiTop + 15, 15, 10, new StringTextComponent("Clear"), (button) -> {
-            PacketHandler.sendToServer(new PacketPolymorphClear(cardSlot, sourceContainer));
+            if (!sourceContainer.equals(BlockPos.ZERO))
+                PacketHandler.sendToServer(new PacketPolymorphClear(cardSlot, sourceContainer));
         }));
 
 
@@ -215,6 +220,8 @@ public class PolymorphScreen extends Screen {
 
     @Override
     public void onClose() {
+        if (!sourceContainer.equals(BlockPos.ZERO))
+            PacketHandler.sendToServer(new PacketPolymorphApply(cardSlot, sourceContainer)); //Notify controller of changes to this card
         super.onClose();
     }
 

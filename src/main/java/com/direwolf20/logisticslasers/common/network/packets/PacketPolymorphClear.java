@@ -1,6 +1,5 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
-import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
@@ -47,8 +46,8 @@ public class PacketPolymorphClear {
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     CardPolymorph.clearList(itemStack);
-                    if (container instanceof InventoryNodeContainer)
-                        ((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());
+                    /*if (container instanceof InventoryNodeContainer)
+                        ((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());*/
                 }
             });
 

@@ -9,31 +9,30 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.Supplier;
 
-public class PacketPolymorphSet {
+public class PacketPolymorphApply {
     private int slotNumber;
     private BlockPos sourcePos;
 
-    public PacketPolymorphSet(int slotNumber, BlockPos pos) {
+    public PacketPolymorphApply(int slotNumber, BlockPos pos) {
         this.slotNumber = slotNumber;
         this.sourcePos = pos;
     }
 
-    public static void encode(PacketPolymorphSet msg, PacketBuffer buffer) {
+    public static void encode(PacketPolymorphApply msg, PacketBuffer buffer) {
         buffer.writeInt(msg.slotNumber);
         buffer.writeBlockPos(msg.sourcePos);
     }
 
-    public static PacketPolymorphSet decode(PacketBuffer buffer) {
-        return new PacketPolymorphSet(buffer.readInt(), buffer.readBlockPos());
+    public static PacketPolymorphApply decode(PacketBuffer buffer) {
+        return new PacketPolymorphApply(buffer.readInt(), buffer.readBlockPos());
 
     }
 
     public static class Handler {
-        public static void handle(PacketPolymorphSet msg, Supplier<NetworkEvent.Context> ctx) {
+        public static void handle(PacketPolymorphApply msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
                 ServerPlayerEntity sender = ctx.get().getSender();
                 if (sender == null)
@@ -48,8 +47,7 @@ public class PacketPolymorphSet {
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     if (container instanceof InventoryNodeContainer) {
-                        CardPolymorph.setListFromContainer(itemStack, ((InventoryNodeContainer) container).tile.getHandler().orElse(new ItemStackHandler(0)));
-                        //((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());
+                        ((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());
                     }
                 }
             });
