@@ -58,6 +58,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> allNodes = new HashSet<>();
     private final Set<ControllerTask> taskList = new HashSet<>();
     private final HashMap<ControllerTask, ArrayList<ControllerTask>> parentTaskMap = new HashMap<>();
+    private ItemHandlerUtil.InventoryCounts storedItems = new ItemHandlerUtil.InventoryCounts();
 
     //Non-Persistent data (Generated if empty)
     private final Set<BlockPos> extractorNodes = new HashSet<>(); //All Inventory nodes that contain an extractor card.
@@ -657,9 +658,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             } else {
                 if (stack.isEmpty())
                     break; //If we successfully sent items to this inserter, stop finding inserters and move onto the next extractor.
-                else
-                    continue;
             }
+        }
+        if (stack.getCount() > 0) {
+            ItemStack extractedStack = stack.split(stack.getCount());
+            transferItemStack(lostAt, this.pos, extractedStack);
         }
         return stack;
     }
@@ -721,21 +724,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return true;
     }
 
-    //No Longer needed?
-    /*public void removeTaskFromParent(ControllerTask task) {
-        ControllerTask parentTask = findParentTaskByGUID(task.parentGUID);
-        if (parentTask == null) {
-            System.out.println("Something weird happened with task: " + task.guid);
-        } else {
-            ArrayList<ControllerTask> taskArrayList = parentTaskMap.get(parentTask);
-            taskArrayList.remove(task);
-            if (taskArrayList.isEmpty())
-                parentTaskMap.remove(parentTask);
-            //else
-            //parentTaskMap.put(parentTask, taskArrayList);
-        }
-    }*/
-
     public void removeTasksFromList() {
         taskList.removeIf(o -> o.isCancelled || o.isComplete);
         //Cleanup parent task list
@@ -743,24 +731,18 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             childTasks.removeIf(o -> o.isCancelled || o.isComplete);
         }
         parentTaskMap.entrySet().removeIf(entries -> entries.getValue().size() == 0 || entries == null);
-        //parentTaskMap.keySet().removeIf(o -> parentTaskMap.get(o).isEmpty() || parentTaskMap.get(o) == null);
     }
 
     /**
      * Handle all scheduled tasks due at (or before) the current gametime
      */
     public void handleTasks() {
-        //long gameTime = world.getGameTime();
-        //Set<ControllerTask> tasksThisTick = new HashSet<>(taskList.values()); //taskList.get(gameTime);
-
-        for (ControllerTask task : taskList) {
+        Set<ControllerTask> temptaskList = new HashSet<>(taskList);
+        for (ControllerTask task : temptaskList) {
             if (canExecuteTask(task)) {
                 executeTask(task);
                 task.complete();
             }
-            /*if (task.isComplete || task.isCancelled) {
-                removeTaskFromParent(task);
-            }*/
         }
         removeTasksFromList();
     }
@@ -811,7 +793,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             ItemStack remainingStack = doInsert(task);
             if (!remainingStack.isEmpty()) {
                 ItemStack stillRemaining = handleLostStack(remainingStack, task.toPos);
-                Block.spawnAsEntity(world, task.toPos, stillRemaining); //TODO Implement storing in the controller
+                /*if (stillRemaining.getCount() > 0) {
+                    //Block.spawnAsEntity(world, task.toPos, stillRemaining); //TODO Implement storing in the controller
+                }*/
             }
         } else if (task.isExtract()) {
 
@@ -852,6 +836,11 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return false;
     }
 
+    public void insertIntoController(ItemStack stack) {
+        storedItems.setCount(stack);
+        markDirtyClient();
+    }
+
     /**
      * Called by ExecuteTask - attempt to insert an item into the destination inventory.
      *
@@ -859,6 +848,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      */
     public ItemStack doInsert(ControllerTask task) {
         if (!isStackValidForDestination(task.itemStack, task.toPos)) return task.itemStack;
+        if (world.getTileEntity(task.toPos) instanceof ControllerTile) {
+            insertIntoController(task.itemStack);
+            return ItemStack.EMPTY;
+        }
         IItemHandler destitemHandler = getAttachedInventory(task.toPos);
         if (destitemHandler == null) return task.itemStack;
 
@@ -978,6 +971,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
             }
         }
+
+        storedItems = new ItemHandlerUtil.InventoryCounts(tag.getList("storedItems", Constants.NBT.TAG_COMPOUND));
+
     }
 
     @Override
@@ -1020,6 +1016,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             tasks.add(nbt);
         }
         tag.put("tasks", tasks);
+
+        ListNBT storedItem = storedItems.serialize();
+        tag.put("storedItems", storedItem);
 
         System.out.println("Writing");
         return super.write(tag);

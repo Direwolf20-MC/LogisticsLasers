@@ -254,6 +254,20 @@ public class ItemHandlerUtil {
             itemMap.put(stack.getItem(), stack.copy());
         }
 
+        public void removeStack(ItemStack stack) {
+            for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
+                if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack)) {
+                    cacheStack.shrink(stack.getCount());
+                    break;
+                }
+            }
+            if (getCount(stack) == 0) {
+                itemMap.remove(stack.getItem(), stack);
+                //if (itemMap.get(stack.getItem()).size() == 0)
+                //itemMap.removeAll(stack.getItem());
+            }
+        }
+
         public int getCount(ItemStack stack) {
             for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
                 if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack))
