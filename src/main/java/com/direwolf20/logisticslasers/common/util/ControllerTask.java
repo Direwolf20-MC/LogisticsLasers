@@ -14,6 +14,8 @@ public class ControllerTask {
     public ItemStack itemStack;
     public UUID parentGUID;
     public boolean isCancelled;
+    public boolean isComplete;
+    public long scheduledTime;
 
     public enum TaskType {
         PARTICLE,
@@ -21,13 +23,19 @@ public class ControllerTask {
         INSERT
     }
 
-    public ControllerTask(BlockPos from, BlockPos to, TaskType type, ItemStack stack, @Nullable UUID parentGUID) {
+    public ControllerTask(BlockPos from, BlockPos to, TaskType type, ItemStack stack, @Nullable UUID parentGUID, long gameTime) {
         this.guid = UUID.randomUUID();
         this.fromPos = from;
         this.toPos = to;
         this.taskType = type;
         this.itemStack = stack;
         this.parentGUID = parentGUID;
+        this.isComplete = false;
+        this.scheduledTime = gameTime;
+    }
+
+    public void complete() {
+        this.isComplete = true;
     }
 
     public void cancel() {

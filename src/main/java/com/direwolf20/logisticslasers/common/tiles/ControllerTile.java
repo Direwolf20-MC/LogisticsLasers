@@ -10,8 +10,6 @@ import com.direwolf20.logisticslasers.common.network.packets.PacketItemCountsSyn
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -59,7 +57,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
     //ToDo make this stuff persistent
-    private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
+    //private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
+    private final Set<ControllerTask> taskList = new HashSet<>();
     private final HashMap<ControllerTask, ArrayList<ControllerTask>> parentTaskMap = new HashMap<>();
 
     //Non-Persistent data (Generated if empty)
@@ -690,19 +689,19 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         long tempGameTime = world.getGameTime() + 1;
         ControllerTask task;
-        ControllerTask parentTask = new ControllerTask(fromPos, toPos, ControllerTask.TaskType.INSERT, itemStack, null); //Create a parent task, this isn't executed, but is used to track items in flight
+        ControllerTask parentTask = new ControllerTask(fromPos, toPos, ControllerTask.TaskType.INSERT, itemStack, null, tempGameTime); //Create a parent task, this isn't executed, but is used to track items in flight
         UUID parentGuid = parentTask.guid;
         ArrayList<ControllerTask> taskArrayList = new ArrayList<>();
         for (int r = 0; r < route.size(); r++) {
             if (r == route.size() - 1) { //This is the last step of the route, so insert into the attached inventory
-                task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, itemStack, parentGuid);
-                taskList.put(tempGameTime, task);
+                task = new ControllerTask(route.get(r - 1), route.get(r), ControllerTask.TaskType.INSERT, itemStack, parentGuid, tempGameTime);
+                taskList.add(task);
                 taskArrayList.add(task);
             } else { //This is not the last step of the route, so schedule particle spawning
                 BlockPos from = route.get(r);
                 BlockPos to = route.get(r + 1);
-                task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, itemStack, parentGuid);
-                taskList.put(tempGameTime, task);
+                task = new ControllerTask(from, to, ControllerTask.TaskType.PARTICLE, itemStack, parentGuid, tempGameTime);
+                taskList.add(task);
                 taskArrayList.add(task);
                 Vector3d fromVec = new Vector3d(from.getX(), from.getY(), from.getZ());
                 Vector3d toVec = new Vector3d(to.getX(), to.getY(), to.getZ());
@@ -715,30 +714,52 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return true;
     }
 
+    public boolean canExecuteTask(ControllerTask task) {
+        if (task.isCancelled) return false;
+        if (!world.isAreaLoaded(task.fromPos, 3) || !(world.isAreaLoaded(task.toPos, 3)) || !(world.isAreaLoaded(this.pos, 3))) {
+            System.out.println("Area isn't loaded holding task");
+            return false;
+        }
+        if (task.scheduledTime > world.getGameTime()) return false;
+        return true;
+    }
+
+    public void removeTaskFromParent(ControllerTask task) {
+        ControllerTask parentTask = findParentTaskByGUID(task.parentGUID);
+        if (parentTask == null) {
+            System.out.println("Something weird happened with task: " + task.guid);
+        } else {
+            ArrayList<ControllerTask> taskArrayList = parentTaskMap.get(parentTask);
+            taskArrayList.remove(task);
+            if (taskArrayList.isEmpty())
+                parentTaskMap.remove(parentTask);
+            //else
+            //parentTaskMap.put(parentTask, taskArrayList);
+        }
+    }
+
+    public void removeTasksFromList() {
+        taskList.removeIf(o -> o.isCancelled || o.isComplete);
+    }
+
     /**
      * Handle all scheduled tasks due at the current gametime.
      * TODO Deal with gametime being in the past (Unloaded chunks situation)
      */
     public void handleTasks() {
-        long gameTime = world.getGameTime();
-        Set<ControllerTask> tasksThisTick = taskList.get(gameTime);
+        //long gameTime = world.getGameTime();
+        //Set<ControllerTask> tasksThisTick = new HashSet<>(taskList.values()); //taskList.get(gameTime);
 
-        for (ControllerTask task : tasksThisTick) {
-            if (!task.isCancelled)
+        for (ControllerTask task : taskList) {
+            if (canExecuteTask(task)) {
                 executeTask(task);
-            ControllerTask parentTask = findParentTaskByGUID(task.parentGUID);
-            if (parentTask == null) {
-                System.out.println("Something weird happened");
-            } else {
-                ArrayList<ControllerTask> taskArrayList = parentTaskMap.get(parentTask);
-                taskArrayList.remove(task);
-                if (taskArrayList.isEmpty())
-                    parentTaskMap.remove(parentTask);
-                else
-                    parentTaskMap.put(parentTask, taskArrayList);
+                task.complete();
+            }
+            if (task.isComplete || task.isCancelled) {
+                removeTaskFromParent(task);
             }
         }
-        taskList.removeAll(gameTime);
+        removeTasksFromList();
     }
 
     /**
@@ -831,13 +852,18 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * Cancel the parent and all child tasks with @param parentGUID
      */
     public void cancelTask(UUID parentGUID) {
-        for (long gameTime : taskList.keySet()) {
+        for (ControllerTask task : taskList) {
+            if (task.parentGUID == parentGUID) {
+                task.cancel();
+            }
+        }
+        /*for (long gameTime : taskList.keySet()) {
             Set<ControllerTask> tasks = taskList.get(gameTime);
             for (ControllerTask task : tasks) {
                 if (task.parentGUID == parentGUID)
                     task.cancel();
             }
-        }
+        }*/
     }
 
 
@@ -850,6 +876,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         //Server Only
         if (!world.isRemote) {
+            //System.out.println("I'm here!");
             energyStorage.receiveEnergy(1000, false); //Testing
             if (inventoryNodes.size() > 0 && (extractorNodes.isEmpty() && inserterNodes.isEmpty() && providerNodes.isEmpty() && stockerNodes.isEmpty())) //Todo cleaner
                 refreshAllInvNodes();
