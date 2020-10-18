@@ -715,7 +715,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public boolean canExecuteTask(ControllerTask task) {
         if (task.isCancelled) return false;
         if (!world.isAreaLoaded(task.fromPos, 3) || !(world.isAreaLoaded(task.toPos, 3)) || !(world.isAreaLoaded(this.pos, 3))) {
-            System.out.println("Area isn't loaded holding task");
             return false;
         }
         if (task.scheduledTime > world.getGameTime()) return false;
