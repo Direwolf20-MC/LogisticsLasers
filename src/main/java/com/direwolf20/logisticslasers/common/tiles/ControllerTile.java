@@ -834,16 +834,32 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return ItemStack.EMPTY;
     }
 
+    public boolean isStackValidForDestination(ItemStack stack, BlockPos pos) {
+        TileEntity te = world.getTileEntity(pos);
+        if (te instanceof CraftingStationTile)
+            return true;
+        if (te instanceof ControllerTile)
+            return true;
+        if (te instanceof InventoryNodeTile) {
+            for (ItemStack card : getInsertFilters(pos)) {
+                if (isStackValidForCard(card, stack))
+                    return true;
+            }
+            for (ItemStack card : getStockerFilters(pos)) {
+                if (isStackValidForCard(card, stack))
+                    return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Called by ExecuteTask - attempt to insert an item into the destination inventory.
      *
      * @return the remains of the itemstack (Anything that failed to insert)
      */
     public ItemStack doInsert(ControllerTask task) {
-        //ToDo handle this better, especially the stockers part.
-        if (!stockerNodes.contains(task.toPos) && !(crafterNodes.contains(task.toPos))) {
-            if (!findDestinationForItemstack(task.itemStack).contains(task.toPos)) return task.itemStack;
-        }
+        if (!isStackValidForDestination(task.itemStack, task.toPos)) return task.itemStack;
         IItemHandler destitemHandler = getAttachedInventory(task.toPos);
         if (destitemHandler == null) return task.itemStack;
 
