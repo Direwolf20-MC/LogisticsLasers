@@ -56,8 +56,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> crafterNodes = new HashSet<>();
     private final Set<BlockPos> inventoryNodes = new HashSet<>();
     private final Set<BlockPos> allNodes = new HashSet<>();
-    //ToDo make this stuff persistent
-    //private final SetMultimap<Long, ControllerTask> taskList = HashMultimap.create();
     private final Set<ControllerTask> taskList = new HashSet<>();
     private final HashMap<ControllerTask, ArrayList<ControllerTask>> parentTaskMap = new HashMap<>();
 

@@ -35,8 +35,6 @@ public class GuiTextFieldBase extends TextFieldWidget {
     @Override
     public void setText(String textIn) {
         super.setText(textIn);
-
-        //TODO validate that this is the correct place
         postModification(textIn);
     }
 

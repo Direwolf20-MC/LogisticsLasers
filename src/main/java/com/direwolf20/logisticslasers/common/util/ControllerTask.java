@@ -69,8 +69,6 @@ public class ControllerTask {
         return taskType == TaskType.INSERT;
     }
 
-    //Todo NBT Serializer
-
     public CompoundNBT serialize() {
         CompoundNBT nbt = new CompoundNBT();
         nbt.putUniqueId("guid", guid);
