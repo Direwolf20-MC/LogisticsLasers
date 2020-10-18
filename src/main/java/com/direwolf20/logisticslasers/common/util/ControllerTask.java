@@ -1,6 +1,8 @@
 package com.direwolf20.logisticslasers.common.util;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
@@ -34,6 +36,18 @@ public class ControllerTask {
         this.scheduledTime = gameTime;
     }
 
+    public ControllerTask(CompoundNBT nbt) {
+        this.guid = nbt.getUniqueId("guid");
+        this.fromPos = NBTUtil.readBlockPos(nbt.getCompound("fromPos"));
+        this.toPos = NBTUtil.readBlockPos(nbt.getCompound("toPos"));
+        this.taskType = TaskType.values()[nbt.getInt("taskType")];
+        this.itemStack = ItemStack.read(nbt.getCompound("itemStack"));
+        this.parentGUID = nbt.getUniqueId("parentGUID");
+        this.isCancelled = nbt.getBoolean("isCancelled");
+        this.isComplete = nbt.getBoolean("isComplete");
+        this.scheduledTime = nbt.getLong("scheduledTime");
+    }
+
     public void complete() {
         this.isComplete = true;
     }
@@ -55,4 +69,19 @@ public class ControllerTask {
     }
 
     //Todo NBT Serializer
+
+    public CompoundNBT serialize() {
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.putUniqueId("guid", guid);
+        nbt.put("fromPos", NBTUtil.writeBlockPos(fromPos));
+        nbt.put("toPos", NBTUtil.writeBlockPos(toPos));
+        nbt.putInt("taskType", taskType.ordinal());
+        nbt.put("itemStack", itemStack.serializeNBT());
+        nbt.putUniqueId("parentGUID", parentGUID);
+        nbt.putBoolean("isCancelled", isCancelled);
+        nbt.putBoolean("isComplete", isComplete);
+        nbt.putLong("scheduledTime", scheduledTime);
+        return nbt;
+    }
+
 }

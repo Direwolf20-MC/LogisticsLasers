@@ -743,8 +743,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     /**
-     * Handle all scheduled tasks due at the current gametime.
-     * TODO Deal with gametime being in the past (Unloaded chunks situation)
+     * Handle all scheduled tasks due at (or before) the current gametime
      */
     public void handleTasks() {
         //long gameTime = world.getGameTime();
@@ -936,6 +935,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             BlockPos blockPos = NBTUtil.readBlockPos(craftnodes.getCompound(i).getCompound("pos"));
             crafterNodes.add(blockPos);
         }
+
+        taskList.clear();
+        ListNBT tasks = tag.getList("tasks", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < tasks.size(); i++) {
+            ControllerTask task = new ControllerTask(tasks.getCompound(i));
+            taskList.add(task);
+        }
     }
 
     @Override
@@ -964,6 +970,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             craftnodes.add(comp);
         }
         tag.put("craftnodes", craftnodes);
+
+        ListNBT tasks = new ListNBT();
+        for (ControllerTask task : taskList) {
+            CompoundNBT nbt = task.serialize();
+            tasks.add(nbt);
+        }
+        tag.put("tasks", tasks);
         return super.write(tag);
     }
 
