@@ -207,14 +207,14 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             if (page > 0) page--;
         }));
 
-        leftWidgets.add(new DireButton(guiLeft + 177, guiTop + 185, 55, 20, new StringTextComponent("Refresh"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 177, guiTop + 185, 55, 20, new TranslationTextComponent("screen.logisticslasers.refresh"), (button) -> {
             PacketHandler.sendToServer(new PacketItemCountsRefresh());
         }));
 
         requestCounter = new GuiIncrementer(guiLeft + 240, guiTop + 185, 1, 999, 28, 10, null);
         leftWidgets.add(requestCounter);
 
-        leftWidgets.add(new DireButton(guiLeft + 240, guiTop + 195, 55, 15, new StringTextComponent("Request"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 240, guiTop + 195, 55, 15, new TranslationTextComponent("screen.logisticslasers.request"), (button) -> {
             requestItem();
         }));
 

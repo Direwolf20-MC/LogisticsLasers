@@ -44,6 +44,7 @@ public class PacketHandler {
         registerMessage(PacketPolymorphSet.class, PacketPolymorphSet::encode, PacketPolymorphSet::decode, PacketPolymorphSet.Handler::handle);
         registerMessage(PacketPolymorphPriority.class, PacketPolymorphPriority::encode, PacketPolymorphPriority::decode, PacketPolymorphPriority.Handler::handle);
         registerMessage(PacketPolymorphApply.class, PacketPolymorphApply::encode, PacketPolymorphApply::decode, PacketPolymorphApply.Handler::handle);
+        registerMessage(PacketPolymorphAdd.class, PacketPolymorphAdd::encode, PacketPolymorphAdd::decode, PacketPolymorphAdd.Handler::handle);
 
         //Going to Client Side
         registerMessage(PacketItemCountsSync.class, PacketItemCountsSync::encode, PacketItemCountsSync::decode, PacketItemCountsSync.Handler::handle);

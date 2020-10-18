@@ -46,8 +46,24 @@ public class CardPolymorph extends CardInserter {
         return itemStacks;
     }
 
-    public static void addContainerToList(ItemStack stack) {
-
+    public static void addContainerToList(ItemStack stack, IItemHandler handler) {
+        if (handler == null)
+            return;
+        ItemHandlerUtil.InventoryCounts inventoryCounts = new ItemHandlerUtil.InventoryCounts(handler);
+        ArrayList<ItemStack> handlerItemStacks = new ArrayList<>(inventoryCounts.getItemCounts().values());
+        CompoundNBT compound = stack.getOrCreateTag();
+        ListNBT nbtList = compound.getList("inv", Constants.NBT.TAG_COMPOUND);
+        ItemHandlerUtil.InventoryCounts cardCounts = new ItemHandlerUtil.InventoryCounts(nbtList);
+        //ListNBT list = new ListNBT();
+        for (ItemStack itemStack : handlerItemStacks) {
+            if (cardCounts.getCount(itemStack) != 0) continue;
+            CompoundNBT tag = new CompoundNBT();
+            itemStack.setCount(1);
+            tag.put("itemStack", itemStack.serializeNBT());
+            tag.putInt("count", stack.getCount());
+            nbtList.add(tag);
+        }
+        stack.getOrCreateTag().put("inv", nbtList);
     }
 
     public static void clearList(ItemStack stack) {

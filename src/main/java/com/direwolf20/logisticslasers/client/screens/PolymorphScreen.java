@@ -5,10 +5,7 @@ import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphApply;
-import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphClear;
-import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphPriority;
-import com.direwolf20.logisticslasers.common.network.packets.PacketPolymorphSet;
+import com.direwolf20.logisticslasers.common.network.packets.*;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
 import com.google.common.collect.ArrayListMultimap;
@@ -85,14 +82,27 @@ public class PolymorphScreen extends Screen {
                 PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
         }));
 
-        leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 15, 10, new StringTextComponent("Set"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
+            if (page < maxPages) page++;
+        }));
+
+        leftWidgets.add(new DireButton(guiLeft + 135, guiTop + 4, 15, 10, new StringTextComponent("<"), (button) -> {
+            if (page > 0) page--;
+        }));
+
+        leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.set"), (button) -> {
             if (!sourceContainer.equals(BlockPos.ZERO))
                 PacketHandler.sendToServer(new PacketPolymorphSet(cardSlot, sourceContainer));
         }));
 
-        leftWidgets.add(new DireButton(guiLeft + 80, guiTop + 15, 15, 10, new StringTextComponent("Clear"), (button) -> {
+        leftWidgets.add(new DireButton(guiLeft + 110, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
             if (!sourceContainer.equals(BlockPos.ZERO))
                 PacketHandler.sendToServer(new PacketPolymorphClear(cardSlot, sourceContainer));
+        }));
+
+        leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
+            if (!sourceContainer.equals(BlockPos.ZERO))
+                PacketHandler.sendToServer(new PacketPolymorphAdd(cardSlot, sourceContainer));
         }));
 
 
@@ -134,7 +144,7 @@ public class PolymorphScreen extends Screen {
         int itemStackMin = (page * itemsPerPage);
         int itemStackMax = Math.min((page * itemsPerPage) + itemsPerPage, filterStacks.size());
         List<ItemStack> displayStacks = filterStacks.subList(itemStackMin, itemStackMax);
-        font.drawString(stack, MagicHelpers.withSuffix(page), guiLeft + 260 - font.getStringWidth(MagicHelpers.withSuffix(page)) * 0.65f, guiTop + 5, TextFormatting.DARK_GRAY.getColor());
+        font.drawString(stack, MagicHelpers.withSuffix(page), guiLeft + 155 - font.getStringWidth(MagicHelpers.withSuffix(page)) * 0.65f, guiTop + 5, TextFormatting.DARK_GRAY.getColor());
 
         int slot = 0;
         overSlot = -1;
