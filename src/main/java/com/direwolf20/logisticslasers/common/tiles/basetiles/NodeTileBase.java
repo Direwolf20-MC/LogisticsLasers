@@ -50,6 +50,7 @@ public class NodeTileBase extends TileBase {
             this.controllerPos = controllerPos;
             addToController();
         }
+        markDirtyClient();
         //System.out.println("Setting Controller position of Node at : " + this.getPos() + " to " + controllerPos);
         updateNeighbors();
     }
