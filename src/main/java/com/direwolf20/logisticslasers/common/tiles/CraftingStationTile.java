@@ -20,7 +20,6 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -35,7 +34,9 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -44,7 +45,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
      */
     @Nullable
     private ICraftingRecipe lastRecipe;
-    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
+
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
@@ -52,28 +53,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
 
     public CraftingStationTile() {
         super(ModBlocks.CRAFTING_STATION_TILE.get());
-    }
-
-    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
-        if (!routeList.containsKey(pos))
-            findRouteFor(pos);
-        return routeList.get(pos);
-    }
-
-    public boolean findRouteFor(BlockPos pos) {
-        System.out.println("Finding route for: " + pos);
-        routeList.remove(pos);
-        ControllerTile te = getControllerTE();
-        if (te == null) return false;
-        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-        Collections.reverse(routePath);
-        routeList.put(pos, routePath);
-        System.out.println("Found route: " + routePath);
-        return !routePath.isEmpty();
-    }
-
-    public void clearRouteList() {
-        routeList.clear();
     }
 
     public void calcResult() {

@@ -10,15 +10,13 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.Constants;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class NodeTileBase extends TileBase {
     private final Set<BlockPos> connectedNodes = new HashSet<>();
     protected BlockPos controllerPos = BlockPos.ZERO;
     private boolean isFindingNodes = false;
+    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     public NodeTileBase(TileEntityType<?> type) {
         super(type);
@@ -31,6 +29,28 @@ public class NodeTileBase extends TileBase {
     public ControllerTile getControllerTE() {
         TileEntity te = world.getTileEntity(getControllerPos());
         return te instanceof ControllerTile ? (ControllerTile) te : null;
+    }
+
+    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+        if (!routeList.containsKey(pos))
+            findRouteFor(pos);
+        return routeList.get(pos);
+    }
+
+    public boolean findRouteFor(BlockPos pos) {
+        System.out.println("Finding route for: " + pos);
+        routeList.remove(pos);
+        ControllerTile te = getControllerTE();
+        if (te == null) return false;
+        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
+        Collections.reverse(routePath);
+        routeList.put(pos, routePath);
+        System.out.println("Found route: " + routePath);
+        return !routePath.isEmpty();
+    }
+
+    public void clearRouteList() {
+        routeList.clear();
     }
 
     public boolean isFindingNodes() {

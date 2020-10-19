@@ -74,7 +74,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
     private final HashMap<BlockPos, ArrayList<ItemStack>> stockerCache = new HashMap<>(); //A cache of all stocker requests
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
-    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>(); //A list of routes from this controller to destination inventories
+    //private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>(); //A list of routes from this controller to destination inventories
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
     private Object2IntMap<BlockPos> stockerSlot = new Object2IntOpenHashMap<>(); //Used to track which stocker item an inventory node is currently working on.
 
@@ -106,7 +106,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
 
-    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+    /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
         if (!routeList.containsKey(pos))
             findRouteFor(pos);
         return routeList.get(pos);
@@ -122,7 +122,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         routeList.put(pos, routePath);
         System.out.println("Found route: " + routePath);
         return !routePath.isEmpty();
-    }
+    }*/
 
     /**
      * Builds the itemCounts cache, used to display contents of the network at the crafting station

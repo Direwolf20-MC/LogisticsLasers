@@ -14,7 +14,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.util.LazyOptional;
@@ -24,13 +23,10 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 
 public class InventoryNodeTile extends NodeTileBase implements INamedContainerProvider {
 
-    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
+    //private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     private LazyOptional<InventoryNodeHandler> inventory = LazyOptional.of(() -> new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this));
 
@@ -41,11 +37,11 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         super(ModBlocks.INVENTORY_NODE_TILE.get());
     }
 
-    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+    /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
         if (!routeList.containsKey(pos))
             findRouteFor(pos);
         return routeList.get(pos);
-    }
+    }*/
 
     public void notifyControllerOfChanges() {
         ControllerTile te = getControllerTE();
@@ -64,7 +60,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
 
     @Override
     public void removeFromController() {
-        routeList.clear();
+        clearRouteList();
         ControllerTile te = getControllerTE();
         if (te == null) return;
         te.removeFromInvNodes(pos);
@@ -106,7 +102,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         this.facingHandler = null;
     }
 
-    public boolean findRouteFor(BlockPos pos) {
+    /*public boolean findRouteFor(BlockPos pos) {
         System.out.println("Finding route for: " + pos);
         routeList.remove(pos);
         ControllerTile te = getControllerTE();
@@ -120,7 +116,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
 
     public void clearRouteList() {
         routeList.clear();
-    }
+    }*/
 
     /*public void findAllRoutes() {
         clearRouteList();
