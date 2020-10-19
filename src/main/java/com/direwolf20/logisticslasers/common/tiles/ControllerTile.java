@@ -626,8 +626,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (canExtractItemFromPos(stackInSlot, fromPos)) {
                 int extractAmt = 1; //ToDo variable extract sizes
                 ItemStack stack = sourceitemHandler.extractItem(slot, extractAmt, true); //Pretend to remove the x items from the stack we found
-                if (extractItemFromPos(stack, fromPos, slot) < extractAmt) //if we extracted SOMETHING
-                    return true;
+                if (!stack.isEmpty())
+                    if (extractItemFromPos(stack, fromPos, slot) < extractAmt) //if we extracted SOMETHING
+                        return true;
             }
         }
         incrementInvNodeSlot(fromPos, sourceitemHandler.getSlots());
