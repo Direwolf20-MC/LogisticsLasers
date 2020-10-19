@@ -836,10 +836,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         } else if (task.isInsert()) {
             ItemStack remainingStack = doInsert(task);
             if (!remainingStack.isEmpty()) {
-                ItemStack stillRemaining = handleLostStack(remainingStack, task.toPos);
-                /*if (stillRemaining.getCount() > 0) {
-                    //Block.spawnAsEntity(world, task.toPos, stillRemaining); //TODO Implement storing in the controller
-                }*/
+                handleLostStack(remainingStack, task.toPos);
             }
         } else if (task.isExtract()) {
 
@@ -913,13 +910,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 task.cancel();
             }
         }
-        /*for (long gameTime : taskList.keySet()) {
-            Set<ControllerTask> tasks = taskList.get(gameTime);
-            for (ControllerTask task : tasks) {
-                if (task.parentGUID == parentGUID)
-                    task.cancel();
-            }
-        }*/
     }
 
 

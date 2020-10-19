@@ -38,7 +38,7 @@ public class CraftingStationContainer extends Container {
         this.craftingHandler = tile.craftMatrixHandler;
         this.setup(playerInventory);
         tile.calcResult();
-        if (playerInventory.player instanceof ServerPlayerEntity)
+        if (playerInventory.player instanceof ServerPlayerEntity && tile.getControllerTE() != null)
             tile.getControllerTE().updateItemCounts((ServerPlayerEntity) playerInventory.player);
     }
 

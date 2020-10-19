@@ -88,6 +88,8 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         RenderSystem.colorMask(true, true, true, true);
         matrixStack.pop();
 
+        if (container.tile.getControllerTE() == null) return;
+
         itemMap = container.tile.getControllerTE().getItemCounts().getItemCounts();
         int totalItems = itemMap.values().size();
         int itemsPerRow = 9;
