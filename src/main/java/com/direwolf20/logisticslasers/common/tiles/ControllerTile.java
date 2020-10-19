@@ -232,7 +232,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     /**
      * Clears the cached route list of all inventory nodes - used when a network change occurs to rebuild the route table on next send.
      */
-    public void updateInvNodePaths() {
+    public void clearCachedRoutes() {
         for (BlockPos pos : inventoryNodes) {
             InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
             if (te == null) continue;
@@ -243,6 +243,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (te == null) continue;
             te.clearRouteList();
         }
+        clearRouteList(); //Also clear the controller's route list
     }
 
     /**

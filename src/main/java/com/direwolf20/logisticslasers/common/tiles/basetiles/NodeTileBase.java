@@ -49,6 +49,29 @@ public class NodeTileBase extends TileBase {
         return !routePath.isEmpty();
     }
 
+    public ArrayList<BlockPos> findRouteToPos(BlockPos targetPos, Set<BlockPos> checkedPos) {
+        ArrayList<BlockPos> route = new ArrayList<>();
+        if (targetPos.equals(pos)) {
+            route.add(pos);
+            return route;
+        }
+        ArrayList<BlockPos> connections = new ArrayList<>(getConnectedNodes());
+        connections.sort(Comparator.comparingDouble(blockPos -> blockPos.distanceSq(targetPos)));
+        for (BlockPos testPos : connections) {
+            if (checkedPos.contains(testPos))
+                continue;
+            checkedPos.add(testPos);
+            NodeTileBase te = (NodeTileBase) world.getTileEntity(testPos);
+            ArrayList<BlockPos> tempList = te.findRouteToPos(targetPos, checkedPos);
+            if (tempList.contains(testPos)) {
+                tempList.add(pos);
+                return tempList;
+
+            }
+        }
+        return route;
+    }
+
     public void clearRouteList() {
         routeList.clear();
     }
@@ -87,10 +110,10 @@ public class NodeTileBase extends TileBase {
         te.removeFromAllNodes(pos);
     }
 
-    public void haveControllerUpdateInv() {
+    public void clearAllCachedRoutes() {
         ControllerTile te = getControllerTE();
         if (te == null) return;
-        te.updateInvNodePaths();
+        te.clearCachedRoutes();
     }
 
     public Set<BlockPos> findAllConnectedNodes() {
@@ -156,29 +179,6 @@ public class NodeTileBase extends TileBase {
         return success;
     }
 
-    public ArrayList<BlockPos> findRouteToPos(BlockPos targetPos, Set<BlockPos> checkedPos) {
-        ArrayList<BlockPos> route = new ArrayList<>();
-        if (targetPos.equals(pos)) {
-            route.add(pos);
-            return route;
-        }
-        ArrayList<BlockPos> connections = new ArrayList<>(getConnectedNodes());
-        connections.sort(Comparator.comparingDouble(blockPos -> blockPos.distanceSq(targetPos)));
-        for (BlockPos testPos : connections) {
-            if (checkedPos.contains(testPos))
-                continue;
-            checkedPos.add(testPos);
-            NodeTileBase te = (NodeTileBase) world.getTileEntity(testPos);
-            ArrayList<BlockPos> tempList = te.findRouteToPos(targetPos, checkedPos);
-            if (tempList.contains(testPos)) {
-                tempList.add(pos);
-                return tempList;
-
-            }
-        }
-        return route;
-    }
-
     /**
      * @param pos The Position in world you're connecting this TE to.
      * @return Was the connection successful
@@ -202,7 +202,7 @@ public class NodeTileBase extends TileBase {
             }
         }
         if (success) {
-            haveControllerUpdateInv();
+            clearAllCachedRoutes();
         }
 
         return success;
@@ -215,7 +215,7 @@ public class NodeTileBase extends TileBase {
             NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
             te.removeNode(this.pos);
             if (controllerTE != null)
-                controllerTE.updateInvNodePaths();
+                controllerTE.clearCachedRoutes();
         }
         return success;
     }
@@ -231,7 +231,7 @@ public class NodeTileBase extends TileBase {
                 ((NodeTileBase) te).removeNode(this.pos);
             }
         }
-        haveControllerUpdateInv();
+        clearAllCachedRoutes();
         removeFromController();
     }
 
