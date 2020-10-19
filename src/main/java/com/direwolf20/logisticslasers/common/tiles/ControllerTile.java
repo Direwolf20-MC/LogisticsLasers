@@ -10,6 +10,8 @@ import com.direwolf20.logisticslasers.common.network.packets.PacketItemCountsSyn
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -67,10 +69,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> stockerNodes = new HashSet<>(); //All Inventory nodes that contain a stocker card
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
     private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder()); //A sorted list of inserter cards by priority
+    private final HashMap<Item, ArrayList<BlockPos>> extractorCache = new HashMap<>(); //A cache of all insertable items
     private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
     private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
-    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
+    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>(); //A list of routes from this controller to destination inventories
+    private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -148,6 +152,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         filterCardCache.clear();
         inserterCache.clear();
         providerCache.clear();
+        extractorCache.clear();
         for (BlockPos pos : inventoryNodes) {
             checkInvNode(pos);
         }
@@ -171,6 +176,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         filterCardCache.remove(pos);
         inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
         providerCache.clear(); //Any change to provider cards will affect the provider cache
+        extractorCache.clear();
         removeBlockPosFromPriorities(pos); //Remove this position form the inserter priorities
         if (!te.hasController()) return; //If this tile was removed from the network, don't recalculate its contents
 
@@ -279,6 +285,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             filterCardCache.remove(pos);
             inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
             providerCache.clear(); //Any chance to provider cards will affect the provider cache
+            extractorCache.clear();
             removeBlockPosFromPriorities(pos);
         }
         boolean all = removeFromAllNodes(pos);
@@ -578,28 +585,52 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     /**
-     * Extracts the first item with a valid destination from the @param fromPos
+     * Increment the current processing slot for the @param fromPos inventory node, up to @param max
+     */
+    public void incrementInvNodeSlot(BlockPos fromPos, int max) {
+        int currentSlot = invNodeSlot.getOrDefault(fromPos, 0);
+        if (currentSlot + 1 >= max)
+            invNodeSlot.put(fromPos, 0);
+        else
+            invNodeSlot.put(fromPos, currentSlot + 1);
+    }
+
+    public boolean canExtractItemFromPos(ItemStack itemStack, BlockPos fromPos) {
+        if (extractorCache.containsKey(itemStack.getItem()))
+            return extractorCache.get(itemStack.getItem()).contains(fromPos);
+        System.out.println("Building Extractor Cache for: " + itemStack.getItem());
+        ArrayList<BlockPos> tempArray = new ArrayList<>();
+        for (BlockPos toPos : extractorNodes) { //Loop through all extractor nodes
+            for (ItemStack extractorCard : getExtractFilters(toPos)) { //Loop through all the cached extractorCards
+                if (isStackValidForCard(extractorCard, itemStack))
+                    tempArray.add(toPos);
+            }
+        }
+        extractorCache.put(itemStack.getItem(), tempArray);
+        return extractorCache.get(itemStack.getItem()).contains(fromPos);
+    }
+
+    /**
+     * Attempts to extract an item from the current processing slot in the @param fromPos inventory
+     * If successful - do not increment current processing slot, if not ++
+     *
      * @return if an item was extracted.
      */
     public boolean attemptExtract(BlockPos fromPos) {
         IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
         if (sourceitemHandler == null) return false; //If its empty, return false
 
-        for (ItemStack extractCard : getExtractFilters(fromPos)) { //Get all extractor cards in the inventory node we're working on
-            for (int i = 0; i < sourceitemHandler.getSlots(); i++) { //Loop through the slots in the attached inventory
-                ItemStack stackInSlot = sourceitemHandler.getStackInSlot(i);
-                if (stackInSlot.isEmpty())
-                    continue; //If the slot is empty, move onto the next slot
-
-                if (!isStackValidForCard(extractCard, stackInSlot)) //Move onto the next itemstack if its not valid for this card
-                    continue;
-
+        int slot = invNodeSlot.getOrDefault(fromPos, 0);
+        ItemStack stackInSlot = sourceitemHandler.getStackInSlot(slot);
+        if (!stackInSlot.isEmpty()) {
+            if (canExtractItemFromPos(stackInSlot, fromPos)) {
                 int extractAmt = 1; //ToDo variable extract sizes
-                ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
-                if (extractItemFromPos(stack, fromPos, i) < extractAmt) //if we extracted SOMETHING
+                ItemStack stack = sourceitemHandler.extractItem(slot, extractAmt, true); //Pretend to remove the x items from the stack we found
+                if (extractItemFromPos(stack, fromPos, slot) < extractAmt) //if we extracted SOMETHING
                     return true;
             }
         }
+        incrementInvNodeSlot(fromPos, sourceitemHandler.getSlots());
         return false;
     }
 
