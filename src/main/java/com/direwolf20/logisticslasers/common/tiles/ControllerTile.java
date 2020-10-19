@@ -99,6 +99,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return inventoryNodes;
     }
 
+
     public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
         if (!routeList.containsKey(pos))
             findRouteFor(pos);
@@ -380,7 +381,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         if (te instanceof CraftingStationTile) {
             CraftingStationTile sourceTE = (CraftingStationTile) te;
-            IItemHandler sourceitemHandler = sourceTE.getInventoryStacks(); //Get the inventory handler of the block the inventory node is facing
+            IItemHandler sourceitemHandler = sourceTE.getInventoryStacks(); //Get the inventory handler of the crafter
             if (sourceitemHandler.getSlots() == 0) return null; //If its empty, return null
             return sourceitemHandler;
         }
@@ -474,14 +475,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             return providerCache.get(itemStack.getItem());
         System.out.println("Building Provider Cache for: " + itemStack.getItem());
         ArrayList<BlockPos> tempArray = new ArrayList<>();
-        //for (int priority : insertPriorities.keySet()) { //In case i decide to implement provider priorities
         for (BlockPos toPos : providerNodes) { //Loop through all provider nodes
             for (ItemStack providerCard : getProviderFilters(toPos)) { //Loop through all the cached providerCards
                 if (isStackValidForCard(providerCard, itemStack))
                     tempArray.add(toPos);
             }
         }
-        //}
         providerCache.put(itemStack.getItem(), tempArray);
         return providerCache.get(itemStack.getItem());
     }
@@ -595,9 +594,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 if (!isStackValidForCard(extractCard, stackInSlot)) //Move onto the next itemstack if its not valid for this card
                     continue;
 
-                int extractAmt = 1;
+                int extractAmt = 1; //ToDo variable extract sizes
                 ItemStack stack = sourceitemHandler.extractItem(i, extractAmt, true); //Pretend to remove the x items from the stack we found
-                if (extractItemFromPos(stack, fromPos, i) == 0)
+                if (extractItemFromPos(stack, fromPos, i) < extractAmt) //if we extracted SOMETHING
                     return true;
             }
         }
@@ -608,7 +607,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ArrayList<ItemStack> stored = new ArrayList(storedItems.getItemCounts().values());
         for (ItemStack stack : stored) {
             ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
-            int stackSize = stack.getCount(); //The number of items we are extracting
 
             if (possibleDestinations.isEmpty())
                 continue; //If we can't send this item anywhere, stop processing

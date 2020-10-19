@@ -264,11 +264,7 @@ public class ItemHandlerUtil {
                 }
             }
             if (returnStack.equals(ItemStack.EMPTY)) return returnStack;
-            /*if (getCount(returnStack) == 0) {
-                itemMap.remove(returnStack.getItem(), stack);
-                //if (itemMap.get(stack.getItem()).size() == 0)
-                //itemMap.removeAll(stack.getItem());
-            }*/
+
             itemMap.get(returnStack.getItem()).removeIf(o -> o.isEmpty());
             return returnStack;
         }
