@@ -70,6 +70,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
     private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
+    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -96,6 +97,24 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public Set<BlockPos> getInventoryNodes() {
         return inventoryNodes;
+    }
+
+    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+        if (!routeList.containsKey(pos))
+            findRouteFor(pos);
+        return routeList.get(pos);
+    }
+
+    public boolean findRouteFor(BlockPos pos) {
+        System.out.println("Finding route for: " + pos);
+        routeList.remove(pos);
+        ControllerTile te = getControllerTE();
+        if (te == null) return false;
+        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
+        Collections.reverse(routePath);
+        routeList.put(pos, routePath);
+        System.out.println("Found route: " + routePath);
+        return !routePath.isEmpty();
     }
 
     /**
@@ -585,6 +604,31 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return false;
     }
 
+    public void handleInternalInventory() {
+        ArrayList<ItemStack> stored = new ArrayList(storedItems.getItemCounts().values());
+        for (ItemStack stack : stored) {
+            ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
+            int stackSize = stack.getCount(); //The number of items we are extracting
+
+            if (possibleDestinations.isEmpty())
+                continue; //If we can't send this item anywhere, stop processing
+
+            for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
+                IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
+                if (destitemHandler == null) continue; //If its empty, move onto the next inserter
+
+                int count = testInsertToInventory(destitemHandler, toPos, stack); //Find out how many items can fit in the destination inventory, including inflight items
+                if (count == 0) continue; //If none, try elsewhere!
+
+                ItemStack extractedStack = storedItems.removeStack(stack, count);
+                boolean successfullySent = transferItemStack(this.pos, toPos, extractedStack);
+                if (!successfullySent) { //Attempt to send items
+                    storedItems.setCount(extractedStack);
+                }
+            }
+        }
+    }
+
     /**
      * Go through each of the extractorNodes and extract a single item based on the extractorCards they have. Send to an appropriate inserter.
      */
@@ -677,11 +721,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ticksPerBlock = 4;
         TileEntity te = world.getTileEntity(fromPos);
         ArrayList<BlockPos> route;
-        if (!(te instanceof InventoryNodeTile) && !(te instanceof CraftingStationTile)) return false;
+        //if (!(te instanceof InventoryNodeTile) && !(te instanceof CraftingStationTile)) return false;
         if (te instanceof InventoryNodeTile)
             route = ((InventoryNodeTile) te).getRouteTo(toPos);
         else if (te instanceof CraftingStationTile)
             route = ((CraftingStationTile) te).getRouteTo(toPos);
+        else if (te instanceof ControllerTile)
+            route = getRouteTo(toPos);
         else
             return false;
         if (route == null || route.size() <= 0) {
@@ -838,7 +884,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public void insertIntoController(ItemStack stack) {
         storedItems.setCount(stack);
-        markDirtyClient();
+        //markDirtyClient();
     }
 
     /**
@@ -892,6 +938,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             energyStorage.receiveEnergy(1000, false); //Testing
             if (inventoryNodes.size() > 0 && (extractorNodes.isEmpty() && inserterNodes.isEmpty() && providerNodes.isEmpty() && stockerNodes.isEmpty())) //Todo cleaner
                 refreshAllInvNodes();
+            handleInternalInventory();
             handleExtractors();
             handleStockers();
             handleTasks();

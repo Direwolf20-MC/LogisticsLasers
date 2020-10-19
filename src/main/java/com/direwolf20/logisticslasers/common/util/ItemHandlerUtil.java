@@ -245,6 +245,7 @@ public class ItemHandlerUtil {
         }
 
         public void setCount(ItemStack stack) {
+            if (stack.isEmpty()) return;
             for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
                 if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack)) {
                     cacheStack.grow(stack.getCount());
@@ -254,18 +255,22 @@ public class ItemHandlerUtil {
             itemMap.put(stack.getItem(), stack.copy());
         }
 
-        public void removeStack(ItemStack stack) {
+        public ItemStack removeStack(ItemStack stack, int count) {
+            ItemStack returnStack = ItemStack.EMPTY;
             for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
                 if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack)) {
-                    cacheStack.shrink(stack.getCount());
+                    returnStack = cacheStack.split(count);
                     break;
                 }
             }
-            if (getCount(stack) == 0) {
-                itemMap.remove(stack.getItem(), stack);
+            if (returnStack.equals(ItemStack.EMPTY)) return returnStack;
+            /*if (getCount(returnStack) == 0) {
+                itemMap.remove(returnStack.getItem(), stack);
                 //if (itemMap.get(stack.getItem()).size() == 0)
                 //itemMap.removeAll(stack.getItem());
-            }
+            }*/
+            itemMap.get(returnStack.getItem()).removeIf(o -> o.isEmpty());
+            return returnStack;
         }
 
         public int getCount(ItemStack stack) {
