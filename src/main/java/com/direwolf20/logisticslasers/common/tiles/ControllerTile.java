@@ -532,7 +532,12 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             int count = testInsertToInventory(destitemHandler, toPos, stack); //Find out how many items can fit in the destination inventory, including inflight items
             if (count == 0) continue; //If none, try elsewhere!
 
-            ItemStack extractedStack = sourceitemHandler.extractItem(slot, count, false); //Actually remove the items this time
+            ItemStack extractedStack;
+            if (slot == -1) //Slot -1 indicates this method was called by the controller's internal inventory.
+                extractedStack = storedItems.removeStack(stack, count);
+            else
+                extractedStack = sourceitemHandler.extractItem(slot, count, false); //Actually remove the items this time
+
             boolean successfullySent = transferItemStack(fromPos, toPos, extractedStack);
             if (!successfullySent) { //Attempt to send items
                 ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
@@ -638,24 +643,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public void handleInternalInventory() {
         ArrayList<ItemStack> stored = new ArrayList(storedItems.getItemCounts().values());
         for (ItemStack stack : stored) {
-            ArrayList<BlockPos> possibleDestinations = new ArrayList<>(findDestinationForItemstack(stack)); //Find a list of possible destinations
-
-            if (possibleDestinations.isEmpty())
-                continue; //If we can't send this item anywhere, stop processing
-
-            for (BlockPos toPos : possibleDestinations) { //Loop through all possible destinations
-                IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
-                if (destitemHandler == null) continue; //If its empty, move onto the next inserter
-
-                int count = testInsertToInventory(destitemHandler, toPos, stack); //Find out how many items can fit in the destination inventory, including inflight items
-                if (count == 0) continue; //If none, try elsewhere!
-
-                ItemStack extractedStack = storedItems.removeStack(stack, count);
-                boolean successfullySent = transferItemStack(this.pos, toPos, extractedStack);
-                if (!successfullySent) { //Attempt to send items
-                    storedItems.setCount(extractedStack);
-                }
-            }
+            extractItemFromPos(stack, this.pos, -1);
         }
     }
 
