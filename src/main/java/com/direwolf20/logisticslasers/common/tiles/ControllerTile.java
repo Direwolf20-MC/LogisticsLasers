@@ -104,34 +104,40 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return inventoryNodes;
     }
 
+    /**
+     * Resets all the cached node data and rediscovers the network by depth first searching (I think).
+     */
     public void discoverAllNodes() {
         System.out.println("Discovering All Nodes!");
-        Set<BlockPos> oldNodes = new HashSet<>(allNodes);
+        Set<BlockPos> oldNodes = new HashSet<>(allNodes); //Store the list of nodes this used to control, used to remove controller data from that pos later
+        //Clear all the cached node data
         allNodes.clear();
         crafterNodes.clear();
         inventoryNodes.clear();
+
         Queue<BlockPos> nodesToCheck = new LinkedList<>();
         Set<BlockPos> checkedNodes = new HashSet<>();
-        nodesToCheck.addAll(connectedNodes);
-        clearCachedRoutes();
+        nodesToCheck.addAll(connectedNodes); //Add all the nodes connected to this controller to the list of nodes to check out
+        clearCachedRoutes(); //Clear the cached routing of all nodes in the network
 
         while (nodesToCheck.size() > 0) {
-            BlockPos posToCheck = nodesToCheck.remove();
-            if (checkedNodes.contains(posToCheck) || posToCheck.equals(this.pos)) continue;
+            BlockPos posToCheck = nodesToCheck.remove(); //Pop the stack
+            if (checkedNodes.contains(posToCheck) || posToCheck.equals(this.pos))
+                continue; //Don't check nodes we've checked before, and don't operate on the controller itself
             checkedNodes.add(posToCheck);
             TileEntity te = world.getTileEntity(posToCheck);
             if (te instanceof NodeTileBase) {
-                addToAllNodes(posToCheck);
-                Set<BlockPos> connectedNodes = ((NodeTileBase) te).getConnectedNodes();
-                nodesToCheck.addAll(connectedNodes);
-                ((NodeTileBase) te).setControllerPos(this.pos);
+                addToAllNodes(posToCheck); //Add this node to the all nodes list
+                Set<BlockPos> connectedNodes = ((NodeTileBase) te).getConnectedNodes(); //Get all the nodes this node is connected to
+                nodesToCheck.addAll(connectedNodes); //Add them to the list to check
+                ((NodeTileBase) te).setControllerPos(this.pos); //Set this node's controller to this position
             }
             if (te instanceof CraftingStationTile)
                 addToCraftNodes(posToCheck);
             if (te instanceof InventoryNodeTile)
                 addToInvNodes(posToCheck);
         }
-        for (BlockPos confirmPos : oldNodes) {
+        for (BlockPos confirmPos : oldNodes) { //Loop through all the nodes we 'used' to be connected to, if we're not connected anymore, set their controller to Zero
             if (!allNodes.contains(confirmPos)) {
                 TileEntity te = world.getTileEntity(confirmPos);
                 if (te instanceof NodeTileBase)
