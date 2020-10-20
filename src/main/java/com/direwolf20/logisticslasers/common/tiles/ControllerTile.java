@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowParticleData;
+import com.direwolf20.logisticslasers.client.renders.LaserConnections;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
@@ -147,6 +148,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         }
         refreshAllInvNodes();
+        LaserConnections.buildLaserList();
     }
 
     /**
@@ -1024,7 +1026,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             crafterNodes.add(blockPos);
         }
         //refreshAllInvNodes();
-        System.out.println("Reading");
+        //System.out.println("Reading");
 
         parentTaskMap.clear();
         ListNBT parentTasks = tag.getList("parentTasks", Constants.NBT.TAG_COMPOUND);
@@ -1095,7 +1097,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ListNBT storedItem = storedItems.serialize();
         tag.put("storedItems", storedItem);
 
-        System.out.println("Writing");
+        //System.out.println("Writing");
         return super.write(tag);
     }
 

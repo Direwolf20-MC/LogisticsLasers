@@ -1,6 +1,5 @@
 package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
-import com.direwolf20.logisticslasers.client.renders.LaserConnections;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -30,7 +29,7 @@ public class TileBase extends TileEntity {
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
         read(this.getBlockState(), pkt.getNbtCompound());
-        LaserConnections.buildLaserList();
+        //LaserConnections.buildLaserList();
     }
 
     public void markDirtyClient() {

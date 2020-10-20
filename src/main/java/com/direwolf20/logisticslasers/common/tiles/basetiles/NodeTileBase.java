@@ -84,7 +84,7 @@ public class NodeTileBase extends TileBase {
 
     public void setControllerPos(BlockPos controllerPos) {
         this.controllerPos = controllerPos;
-        markDirtyClient();
+        //markDirtyClient();
     }
 
     public boolean hasController() {
