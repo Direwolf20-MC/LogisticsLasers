@@ -199,35 +199,9 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         ItemStackHandler handler = getInventoryStacks();
         ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
         ItemHandlerUtil.InventoryCounts craftingGridCounts = new ItemHandlerUtil.InventoryCounts(craftMatrixHandler);
-        //Map<ItemStack, Integer> craftingGridItems = craftingGridCounts.getItemCounts();
         for (ItemStack stack : craftingGridCounts.getItemCounts().values()) {
-            //for (int i = 0; i < (stack.getCount() - storageCounts.getCount(stack)); i++) {
             requestItem(new ItemStack(stack.getItem(), stack.getCount() - storageCounts.getCount(stack)), requestor);
-            //}
         }
-    }
-
-    public boolean isStackInTable(ItemStack stack) {
-        ItemStackHandler handler = getInventoryStacks();
-        for (int i = 0; i < handler.getSlots(); i++) {
-            if (handler.getStackInSlot(i).isItemEqual(stack))
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void addToController() {
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.addToCraftNodes(pos);
-    }
-
-    @Override
-    public void removeFromController() {
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.removeFromCraftNodes(pos);
     }
 
     public ItemStackHandler getInventoryStacks() {

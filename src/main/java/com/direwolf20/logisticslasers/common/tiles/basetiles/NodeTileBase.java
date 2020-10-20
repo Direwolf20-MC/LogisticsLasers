@@ -13,9 +13,8 @@ import net.minecraftforge.common.util.Constants;
 import java.util.*;
 
 public class NodeTileBase extends TileBase {
-    private final Set<BlockPos> connectedNodes = new HashSet<>();
+    protected final Set<BlockPos> connectedNodes = new HashSet<>();
     protected BlockPos controllerPos = BlockPos.ZERO;
-    private boolean isFindingNodes = false;
     private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
 
     public NodeTileBase(TileEntityType<?> type) {
@@ -76,80 +75,16 @@ public class NodeTileBase extends TileBase {
         routeList.clear();
     }
 
-    public boolean isFindingNodes() {
-        return isFindingNodes;
+    public void controllerReDiscover() {
+        if (!hasController()) return;
+        ControllerTile te = getControllerTE();
+        if (te != null)
+            te.discoverAllNodes();
     }
 
-    public void setFindingNodes(boolean findingNodes) {
-        isFindingNodes = findingNodes;
-    }
-
-    public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
-        if (this.controllerPos.equals(controllerPos)) return;
-        if (controllerPos.equals(BlockPos.ZERO)) {
-            removeFromController();
-            this.controllerPos = controllerPos;
-        } else {
-            this.controllerPos = controllerPos;
-            addToController();
-        }
+    public void setControllerPos(BlockPos controllerPos) {
+        this.controllerPos = controllerPos;
         markDirtyClient();
-        //System.out.println("Setting Controller position of Node at : " + this.getPos() + " to " + controllerPos);
-        updateNeighbors();
-    }
-
-    public void addToController() {
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.addToAllNodes(pos);
-    }
-
-    public void removeFromController() {
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.removeFromAllNodes(pos);
-    }
-
-    public void clearAllCachedRoutes() {
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.clearCachedRoutes();
-    }
-
-    public Set<BlockPos> findAllConnectedNodes() {
-        setFindingNodes(true);
-        Set<BlockPos> nodes = new HashSet<>();
-        for (BlockPos pos : connectedNodes) {
-            NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
-            if (te == null) continue;
-            if (te.isFindingNodes()) continue;
-            if (nodes.add(pos)) {
-                nodes.addAll(te.findAllConnectedNodes());
-            }
-        }
-        setFindingNodes(false);
-        return nodes;
-    }
-
-    public BlockPos validateController() {
-        Set<BlockPos> nodesToCheck = findAllConnectedNodes();
-        for (BlockPos pos : nodesToCheck) {
-            NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
-            if (te.isController()) {
-                setControllerPos(te.getPos(), this.getPos());
-                return te.getPos();
-            }
-        }
-        setControllerPos(BlockPos.ZERO, this.pos);
-        return getControllerPos();
-    }
-
-    public void updateNeighbors() {
-        for (BlockPos checkpos : connectedNodes) {
-            NodeTileBase checkTE = (NodeTileBase) world.getTileEntity(checkpos);
-            if (!checkTE.getControllerPos().equals(getControllerPos()))
-                checkTE.setControllerPos(getControllerPos(), this.getPos());
-        }
     }
 
     public boolean hasController() {
@@ -163,7 +98,6 @@ public class NodeTileBase extends TileBase {
     public boolean addNode(BlockPos pos) {
         boolean success = connectedNodes.add(pos);
         if (success) {
-            //System.out.println("Connecting " + this.getPos() + " to " + pos);
             markDirtyClient();
         }
         return success;
@@ -172,8 +106,6 @@ public class NodeTileBase extends TileBase {
     public boolean removeNode(BlockPos pos) {
         boolean success = connectedNodes.remove(pos);
         if (success) {
-            //System.out.println("Disconnecting " + this.getPos() + " to " + pos);
-            validateController();
             markDirtyClient();
         }
         return success;
@@ -186,6 +118,8 @@ public class NodeTileBase extends TileBase {
      */
     public boolean addConnection(BlockPos pos) {
         NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
+        if (te.hasController() && hasController() && !te.getControllerPos().equals(getControllerPos()))
+            return false;
 
         boolean success = addNode(pos);
         if (success) {
@@ -193,29 +127,19 @@ public class NodeTileBase extends TileBase {
                 removeNode(pos);
                 return false;
             }
-            if (!hasController() && !te.hasController())
-                return success;
-            if (!hasController()) {
-                setControllerPos(te.getControllerPos(), te.getPos());
-            } else {
-                te.setControllerPos(getControllerPos(), this.getPos());
-            }
+            if (te.hasController())
+                setControllerPos(te.getControllerPos());
+            controllerReDiscover();
         }
-        if (success) {
-            clearAllCachedRoutes();
-        }
-
         return success;
     }
 
     public boolean removeConnection(BlockPos pos) {
-        ControllerTile controllerTE = getControllerTE();
         boolean success = removeNode(pos);
         if (success) {
             NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
             te.removeNode(this.pos);
-            if (controllerTE != null)
-                controllerTE.clearCachedRoutes();
+            controllerReDiscover();
         }
         return success;
     }
@@ -231,8 +155,7 @@ public class NodeTileBase extends TileBase {
                 ((NodeTileBase) te).removeNode(this.pos);
             }
         }
-        clearAllCachedRoutes();
-        removeFromController();
+        controllerReDiscover();
     }
 
     //Misc Methods for TE's

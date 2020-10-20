@@ -25,9 +25,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class InventoryNodeTile extends NodeTileBase implements INamedContainerProvider {
-
-    //private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
-
     private LazyOptional<InventoryNodeHandler> inventory = LazyOptional.of(() -> new InventoryNodeHandler(InventoryNodeContainer.SLOTS, this));
 
     @Nullable
@@ -37,33 +34,11 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         super(ModBlocks.INVENTORY_NODE_TILE.get());
     }
 
-    /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
-        if (!routeList.containsKey(pos))
-            findRouteFor(pos);
-        return routeList.get(pos);
-    }*/
-
     public void notifyControllerOfChanges() {
         ControllerTile te = getControllerTE();
         if (te == null) return;
         System.out.println("Telling controller at " + getControllerPos() + " to check inventory at " + this.pos);
         te.checkInvNode(this.pos);
-    }
-
-    @Override
-    public void addToController() {
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.addToInvNodes(pos);
-        //findRoutes();
-    }
-
-    @Override
-    public void removeFromController() {
-        clearRouteList();
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        te.removeFromInvNodes(pos);
     }
 
     public ItemStackHandler getInventoryStacks() {
@@ -102,37 +77,6 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         this.facingHandler = null;
     }
 
-    /*public boolean findRouteFor(BlockPos pos) {
-        System.out.println("Finding route for: " + pos);
-        routeList.remove(pos);
-        ControllerTile te = getControllerTE();
-        if (te == null) return false;
-        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-        Collections.reverse(routePath);
-        routeList.put(pos, routePath);
-        System.out.println("Found route: " + routePath);
-        return !routePath.isEmpty();
-    }
-
-    public void clearRouteList() {
-        routeList.clear();
-    }*/
-
-    /*public void findAllRoutes() {
-        clearRouteList();
-        ControllerTile te = getControllerTE();
-        if (te == null) return;
-        Set<BlockPos> todoList = new HashSet<>(te.getInventoryNodes());
-        todoList.remove(pos);
-        for (BlockPos pos : todoList) {
-            ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-            //routePath.remove(this.pos);
-            Collections.reverse(routePath);
-            routeList.put(pos, routePath);
-        }
-        System.out.println(routeList);
-    }*/
-
     public ArrayList<ItemStack> getCards() {
         ArrayList<ItemStack> cards = new ArrayList<>();
         ItemStackHandler itemStackHandler = getInventoryStacks();
@@ -141,19 +85,6 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
         }
         return cards;
     }
-
-    /*public ArrayList<ItemStack> getCards(BaseCard.CardType cardType) {
-        ArrayList<ItemStack> cards = new ArrayList<>();
-        ItemStackHandler itemStackHandler = getInventoryStacks();
-        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
-            ItemStack itemStack = itemStackHandler.getStackInSlot(i);
-            if (itemStack.isEmpty()) continue;
-            BaseCard cardItem = (BaseCard) itemStack.getItem();
-            if (cardItem.getCardType() == cardType)
-                cards.add(itemStack);
-        }
-        return cards;
-    }*/
 
     @Nullable
     @Override

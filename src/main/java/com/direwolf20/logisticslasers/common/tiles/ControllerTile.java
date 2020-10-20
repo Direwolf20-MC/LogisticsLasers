@@ -74,7 +74,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
     private final HashMap<BlockPos, ArrayList<ItemStack>> stockerCache = new HashMap<>(); //A cache of all stocker requests
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
-    //private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>(); //A list of routes from this controller to destination inventories
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
     private Object2IntMap<BlockPos> stockerSlot = new Object2IntOpenHashMap<>(); //Used to track which stocker item an inventory node is currently working on.
 
@@ -105,24 +104,43 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return inventoryNodes;
     }
 
+    public void discoverAllNodes() {
+        System.out.println("Discovering All Nodes!");
+        Set<BlockPos> oldNodes = new HashSet<>(allNodes);
+        allNodes.clear();
+        crafterNodes.clear();
+        inventoryNodes.clear();
+        Queue<BlockPos> nodesToCheck = new LinkedList<>();
+        Set<BlockPos> checkedNodes = new HashSet<>();
+        nodesToCheck.addAll(connectedNodes);
+        clearCachedRoutes();
 
-    /*public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
-        if (!routeList.containsKey(pos))
-            findRouteFor(pos);
-        return routeList.get(pos);
+        while (nodesToCheck.size() > 0) {
+            BlockPos posToCheck = nodesToCheck.remove();
+            if (checkedNodes.contains(posToCheck) || posToCheck.equals(this.pos)) continue;
+            checkedNodes.add(posToCheck);
+            TileEntity te = world.getTileEntity(posToCheck);
+            if (te instanceof NodeTileBase) {
+                addToAllNodes(posToCheck);
+                Set<BlockPos> connectedNodes = ((NodeTileBase) te).getConnectedNodes();
+                nodesToCheck.addAll(connectedNodes);
+                ((NodeTileBase) te).setControllerPos(this.pos);
+            }
+            if (te instanceof CraftingStationTile)
+                addToCraftNodes(posToCheck);
+            if (te instanceof InventoryNodeTile)
+                addToInvNodes(posToCheck);
+        }
+        for (BlockPos confirmPos : oldNodes) {
+            if (!allNodes.contains(confirmPos)) {
+                TileEntity te = world.getTileEntity(confirmPos);
+                if (te instanceof NodeTileBase)
+                    ((NodeTileBase) te).setControllerPos(BlockPos.ZERO);
+            }
+
+        }
+        refreshAllInvNodes();
     }
-
-    public boolean findRouteFor(BlockPos pos) {
-        System.out.println("Finding route for: " + pos);
-        routeList.remove(pos);
-        ControllerTile te = getControllerTE();
-        if (te == null) return false;
-        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
-        Collections.reverse(routePath);
-        routeList.put(pos, routePath);
-        System.out.println("Found route: " + routePath);
-        return !routePath.isEmpty();
-    }*/
 
     /**
      * Builds the itemCounts cache, used to display contents of the network at the crafting station
@@ -252,11 +270,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return if this was successful, which it should always be
      */
     public boolean addToCraftNodes(BlockPos pos) {
-        if (crafterNodes.add(pos)) {
-            addToAllNodes(pos);
-            return true;
-        }
-        return false;
+        return crafterNodes.add(pos);
     }
 
     /**
@@ -265,57 +279,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return if this was successful, which it should always be
      */
     public boolean addToInvNodes(BlockPos pos) {
-        if (inventoryNodes.add(pos)) {
-            addToAllNodes(pos);
-            checkInvNode(pos);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Remove the inventory node at @param pos
-     * Clear any cached data about this inventory node
-     *
-     * @return if this was successful
-     */
-    public boolean removeFromInvNodes(BlockPos pos) {
-        boolean inv = inventoryNodes.remove(pos);
-        if (inv) {
-            extractorNodes.remove(pos);
-            inserterNodes.remove(pos);
-            providerNodes.remove(pos);
-            stockerNodes.remove(pos);
-
-            filterCardCache.remove(pos);
-            inserterCache.clear(); //Any change to inserter cards will affect the inserter cache
-            providerCache.clear(); //Any chance to provider cards will affect the provider cache
-            extractorCache.clear();
-            stockerCache.clear();
-            removeBlockPosFromPriorities(pos);
-        }
-        boolean all = removeFromAllNodes(pos);
-        return (inv && all);
-    }
-
-    /**
-     * Called when a crafter at @param pos is removed from the network
-     *
-     * @return if this was successful
-     */
-    public boolean removeFromCraftNodes(BlockPos pos) {
-        boolean inv = crafterNodes.remove(pos);
-        boolean all = removeFromAllNodes(pos);
-        return (inv && all);
-    }
-
-    /**
-     * Used by other nodes to add themselves to this controller
-     * No use here
-     */
-    @Override
-    public void addToController() {
-        return; //NOOP
+        return inventoryNodes.add(pos);
     }
 
     /**
@@ -325,15 +289,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      */
     public boolean addToAllNodes(BlockPos pos) {
         return allNodes.add(pos);
-    }
-
-    /**
-     * Removes the @param pos to the 'all nodes' cache
-     *
-     * @return successful
-     */
-    public boolean removeFromAllNodes(BlockPos pos) {
-        return allNodes.remove(pos);
     }
 
     /**
@@ -351,18 +306,24 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * Not used here since this is the controller
      */
     @Override
-    public void setControllerPos(BlockPos controllerPos, BlockPos sourcePos) {
+    public void setControllerPos(BlockPos controllerPos) {
         return; //NOOP
     }
 
-    /**
-     * Used by other nodes to confirm their controller is still valid. No use here.
-     *
-     * @return this position
-     */
     @Override
-    public BlockPos validateController() {
-        return this.getPos();  //I AM THE CONTROLLER!!!
+    public void disconnectAllNodes() {
+        for (BlockPos pos : allNodes) {
+            TileEntity te = world.getTileEntity(pos);
+            if (te instanceof NodeTileBase) {
+                ((NodeTileBase) te).setControllerPos(BlockPos.ZERO);
+            }
+        }
+        for (BlockPos pos : connectedNodes) {
+            TileEntity te = world.getTileEntity(pos);
+            if (te instanceof NodeTileBase) {
+                ((NodeTileBase) te).removeNode(this.pos);
+            }
+        }
     }
 
     /**
