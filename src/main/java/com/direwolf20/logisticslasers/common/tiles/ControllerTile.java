@@ -131,18 +131,19 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 Set<BlockPos> connectedNodes = ((NodeTileBase) te).getConnectedNodes(); //Get all the nodes this node is connected to
                 nodesToCheck.addAll(connectedNodes); //Add them to the list to check
                 ((NodeTileBase) te).setControllerPos(this.pos); //Set this node's controller to this position
+                oldNodes.remove(posToCheck);
+                if (te instanceof CraftingStationTile)
+                    addToCraftNodes(posToCheck);
+                else if (te instanceof InventoryNodeTile)
+                    addToInvNodes(posToCheck);
             }
-            if (te instanceof CraftingStationTile)
-                addToCraftNodes(posToCheck);
-            if (te instanceof InventoryNodeTile)
-                addToInvNodes(posToCheck);
         }
         for (BlockPos confirmPos : oldNodes) { //Loop through all the nodes we 'used' to be connected to, if we're not connected anymore, set their controller to Zero
-            if (!allNodes.contains(confirmPos)) {
+            //if (!allNodes.contains(confirmPos)) {
                 TileEntity te = world.getTileEntity(confirmPos);
                 if (te instanceof NodeTileBase)
                     ((NodeTileBase) te).setControllerPos(BlockPos.ZERO);
-            }
+            //}
 
         }
         refreshAllInvNodes();
