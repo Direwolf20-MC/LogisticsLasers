@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.container.customhandler.InventoryNodeHandler;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
+import com.direwolf20.logisticslasers.common.util.WeakConsumerWrapper;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -17,6 +18,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.NonNullConsumer;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -29,6 +31,15 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
 
     @Nullable
     private LazyOptional<IItemHandler> facingHandler;
+
+    /**
+     * Lambda to call when a lazy optional is invalidated. Final variable to reduce memory usage
+     */
+    private final NonNullConsumer<LazyOptional<IItemHandler>> facingInvalidator = new WeakConsumerWrapper<>(this, (te, handler) -> {
+        if (te.facingHandler == handler) {
+            te.clearCachedInventories();
+        }
+    });
 
     public InventoryNodeTile() {
         super(ModBlocks.INVENTORY_NODE_TILE.get());
@@ -60,13 +71,13 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
             LazyOptional<IItemHandler> handler = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing.getOpposite());
             if (handler.isPresent()) {
                 // add the invalidator
-                handler.addListener((handler1) -> clearCachedInventories());
+                handler.addListener(facingInvalidator);
                 // cache and return
                 return facingHandler = handler;
             }
         }
         // no item handler, cache empty
-        facingHandler = null;
+        //facingHandler = null;
         return LazyOptional.empty();
     }
 
