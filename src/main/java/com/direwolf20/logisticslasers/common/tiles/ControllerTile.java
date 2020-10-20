@@ -141,9 +141,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         for (BlockPos confirmPos : oldNodes) { //Loop through all the nodes we 'used' to be connected to, if we're not connected anymore, set their controller to Zero
             //if (!allNodes.contains(confirmPos)) {
-                TileEntity te = world.getTileEntity(confirmPos);
-                if (te instanceof NodeTileBase)
-                    ((NodeTileBase) te).setControllerPos(BlockPos.ZERO);
+            TileEntity te = world.getTileEntity(confirmPos);
+            if (te instanceof NodeTileBase)
+                ((NodeTileBase) te).setControllerPos(BlockPos.ZERO);
             //}
 
         }
@@ -769,7 +769,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             route = getRouteTo(toPos);
         else
             return false;
-        if (route == null || route.size() <= 0) {
+        if (route == null || route.size() <= 1) {
             return false;
         }
 
