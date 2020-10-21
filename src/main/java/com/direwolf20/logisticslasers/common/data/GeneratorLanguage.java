@@ -21,6 +21,7 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(ModItems.WRENCH, "Laser Wrench");
         addItem(ModItems.CARD_EXTRACTOR, "Extractor Module");
         addItem(ModItems.CARD_INSERTER, "Inserter Module");
+        addItem(ModItems.CARD_INSERTER_MOD, "Mod Inserter Module");
         addItem(ModItems.CARD_STOCKER, "Stocker Module");
         addItem(ModItems.CARD_PROVIDER, "Provider Module");
         addItem(ModItems.CARD_POLYMORPH, "Polymorph Module");

@@ -25,6 +25,7 @@ public class ModItems {
     public static final RegistryObject<Item> WRENCH = BASICITEMS.register("wrench", Wrench::new);
     public static final RegistryObject<Item> CARD_EXTRACTOR = BASICITEMS.register("card_extractor", CardExtractor::new);
     public static final RegistryObject<Item> CARD_INSERTER = BASICITEMS.register("card_inserter", CardInserter::new);
+    public static final RegistryObject<Item> CARD_INSERTER_MOD = BASICITEMS.register("card_inserter_mod", CardInserterMod::new);
     public static final RegistryObject<Item> CARD_POLYMORPH = BASICITEMS.register("card_polymorph", CardPolymorph::new);
     public static final RegistryObject<Item> CARD_PROVIDER = BASICITEMS.register("card_provider", CardProvider::new);
     public static final RegistryObject<Item> CARD_STOCKER = BASICITEMS.register("card_stocker", CardStocker::new);
