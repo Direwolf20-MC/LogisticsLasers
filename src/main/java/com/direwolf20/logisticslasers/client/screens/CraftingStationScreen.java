@@ -141,10 +141,9 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
 
             font.drawStringWithShadow(matrixStack, MagicHelpers.withSuffix(count), 19 - font.getStringWidth(MagicHelpers.withSuffix(count)) * 0.65f, 18, TextFormatting.WHITE.getColor());
-
             matrixStack.pop();
 
-            if (MiscTools.inBounds(x, y, 18, 18, mouseX, mouseY)) {
+            if (MiscTools.inBounds(x, y, 17, 17, mouseX, mouseY)) {
                 overSlot = slot;
                 color = -2130706433;// : 0xFF5B5B5B;
 
@@ -152,8 +151,12 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
                 RenderSystem.disableLighting();
                 RenderSystem.disableDepthTest();
                 RenderSystem.colorMask(true, true, true, false);
-                fillGradient(matrixStack, x, y, x + 18, y + 18, color, color);
+                fillGradient(matrixStack, x, y, x + 17, y + 17, color, color);
                 RenderSystem.colorMask(true, true, true, true);
+                matrixStack.pop();
+                matrixStack.push();
+                matrixStack.translate(0, 0, Z_LEVEL_TOOLTIPS);
+                this.renderTooltip(matrixStack, stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
                 matrixStack.pop();
             }
 
