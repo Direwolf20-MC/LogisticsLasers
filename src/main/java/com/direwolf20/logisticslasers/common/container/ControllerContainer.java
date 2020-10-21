@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.IntArray;
@@ -23,6 +24,8 @@ public class ControllerContainer extends FEContainerBase {
         this.data = data;
         this.setup(playerInventory);
         trackIntArray(data);
+        if (playerInventory.player instanceof ServerPlayerEntity && tile != null)
+            tile.markDirtyClient();
     }
 
     @Override

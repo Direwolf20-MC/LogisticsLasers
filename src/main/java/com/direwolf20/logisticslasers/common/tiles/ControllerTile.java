@@ -105,6 +105,16 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         return inventoryNodes;
     }
 
+
+    public ItemHandlerUtil.InventoryCounts getStoredItems() {
+        return storedItems;
+    }
+
+    public boolean hasStoredItems() {
+        return !storedItems.getItemCounts().isEmpty();
+    }
+
+
     /**
      * Resets all the cached node data and rediscovers the network by depth first searching (I think).
      */
@@ -694,9 +704,15 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public void handleInternalInventory() {
         ArrayList<ItemStack> stored = new ArrayList(storedItems.getItemCounts().values());
+        boolean success = false;
         for (ItemStack stack : stored) {
-            extractItemFromPos(stack, this.pos, -1);
+            int amt = stack.getCount();
+            int remaining = extractItemFromPos(stack, this.pos, -1);
+            if (remaining < amt)
+                success = true;
         }
+        if (success)
+            markDirtyClient();
     }
 
     /**
@@ -921,7 +937,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
     public void insertIntoController(ItemStack stack) {
         storedItems.setCount(stack);
-        //markDirtyClient();
+        markDirtyClient();
     }
 
     /**
