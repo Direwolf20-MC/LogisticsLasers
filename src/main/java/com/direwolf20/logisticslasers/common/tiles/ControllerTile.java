@@ -689,23 +689,29 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             return false;
         }
 
-        int extractAmt = 1; //Todo change this?
-        ItemStack stack = item.copy();//new ItemStack(item.getItem(), extractAmt); //Create an item stack
-        stack.setCount(extractAmt);
+        //Doing this rather than copying.
+        System.out.println("Stocking");
+        int extractAmt = item.getCount() - countOfItem;
+        int stockerCount = item.getCount();
+        //ItemStack stack = item.copy();
+        item.setCount(extractAmt);
 
         //Before we even look for the item to insert, lets see if it'll fit here first!
-        int count = testInsertToInventory(stockerItemHandler, stockerPos, stack);
+        int count = testInsertToInventory(stockerItemHandler, stockerPos, item);
         if (count == 0) { //If we can't fit any items in here, nope out!
             incrementStockerSlot(stockerPos, findStockersForPos(stockerPos).size());
+            item.setCount(stockerCount);
             return false;
         }
-        if (count < stack.getCount())
-            stack.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
+        if (count < item.getCount())
+            item.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
 
-        if (!(provideItemStacksToPos(stack, stockerPos).getCount() == 0)) {//If we couldn't find any items
+        if (!(provideItemStacksToPos(item, stockerPos).getCount() == 0)) {//If we couldn't find any items
             incrementStockerSlot(stockerPos, findStockersForPos(stockerPos).size());
+            item.setCount(stockerCount);
             return false;
         }
+        item.setCount(stockerCount);
         return true; //Don't increment the stockerSlot - this keeps stocking the same item until its satisfied, then moves onto the next
     }
 
