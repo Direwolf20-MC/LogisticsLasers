@@ -66,6 +66,8 @@ public class PacketOpenFilter {
                             switch (index) {
                                 case 0:
                                     return BaseCard.getPriority(itemStack);
+                                case 1:
+                                    return BaseCard.getExtractAmt(itemStack);
                                 default:
                                     throw new IllegalArgumentException("Invalid index: " + index);
                             }
@@ -78,7 +80,7 @@ public class PacketOpenFilter {
 
                         @Override
                         public int size() {
-                            return 1;
+                            return 2;
                         }
                     };
                     if (itemStack.getItem() instanceof CardStocker) {

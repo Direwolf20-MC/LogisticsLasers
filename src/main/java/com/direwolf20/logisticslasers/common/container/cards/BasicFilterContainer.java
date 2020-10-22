@@ -2,10 +2,7 @@ package com.direwolf20.logisticslasers.common.container.cards;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterMod;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
+import com.direwolf20.logisticslasers.common.items.logiccards.*;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -73,8 +70,20 @@ public class BasicFilterContainer extends Container {
         return !(filterItemStack.getItem() instanceof CardInserterMod);
     }
 
+    public boolean showExtractAmt() {
+        return (filterItemStack.getItem() instanceof CardExtractor);
+    }
+
     public boolean isWhiteList() {
         return BaseCard.getWhiteList(filterItemStack);
+    }
+
+    public int getPriority() {
+        return this.data.get(0);
+    }
+
+    public int getExtractAmt() {
+        return this.data.get(1);
     }
 
     public boolean isNBTFilter() {
@@ -159,9 +168,5 @@ public class BasicFilterContainer extends Container {
             }
         }
         super.onContainerClosed(playerIn);
-    }
-
-    public int getPriority() {
-        return this.data.get(0);
     }
 }

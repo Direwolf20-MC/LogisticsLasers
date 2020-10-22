@@ -6,10 +6,7 @@ import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
-import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
-import com.direwolf20.logisticslasers.common.network.packets.PacketToggleNBTFilter;
-import com.direwolf20.logisticslasers.common.network.packets.PacketToggleWhitelist;
+import com.direwolf20.logisticslasers.common.network.packets.*;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -68,6 +65,25 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
             }));
         }
 
+        if (container.showExtractAmt()) {
+            leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 25, 10, 10, new StringTextComponent("+"), (button) -> {
+                int change = 1;
+                if (Screen.hasShiftDown()) change *= 10;
+                if (Screen.hasControlDown()) change *= 64;
+                int extractAmt = container.getExtractAmt();
+                if (extractAmt + change > 64) change = 64 - extractAmt;
+                PacketHandler.sendToServer(new PacketChangeExtractAmt(change));
+            }));
+            leftWidgets.add(new DireButton(guiLeft + 135, guiTop + 25, 10, 10, new StringTextComponent("-"), (button) -> {
+                int change = -1;
+                if (Screen.hasShiftDown()) change *= 10;
+                if (Screen.hasControlDown()) change *= 64;
+                int extractAmt = container.getExtractAmt();
+                if (extractAmt + change < 1) change = 1 - extractAmt;
+                PacketHandler.sendToServer(new PacketChangeExtractAmt(change));
+            }));
+        }
+
         if (container.showNBTFilter()) {
             leftWidgets.add(new WhiteListButton(guiLeft + 25, guiTop + 40, 10, 10, isNBTFilter, (button) -> {
                 isNBTFilter = !isNBTFilter;
@@ -114,10 +130,15 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
     @Override
     protected void drawGuiContainerForegroundLayer(MatrixStack stack, int mouseX, int mouseY) {
         Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.basicfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
-        if (!container.showPriority()) return;
-        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 15, Color.DARK_GRAY.getRGB());
-        String priority = Integer.toString(container.getPriority());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 18 - font.getStringWidth(priority) / 3, 25, Color.DARK_GRAY.getRGB());
+        if (container.showPriority()) {
+            Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 15, Color.DARK_GRAY.getRGB());
+            String priority = Integer.toString(container.getPriority());
+            Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 18 - font.getStringWidth(priority) / 3, 25, Color.DARK_GRAY.getRGB());
+        }
+        if (container.showExtractAmt()) {
+            String extractAmt = Integer.toString(container.getExtractAmt());
+            Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(extractAmt).getString(), 150 - font.getStringWidth(extractAmt) / 3, 25, Color.DARK_GRAY.getRGB());
+        }
     }
 
     protected static TranslationTextComponent getTrans(String key, Object... args) {

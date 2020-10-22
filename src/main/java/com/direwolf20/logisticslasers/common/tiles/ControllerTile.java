@@ -12,6 +12,8 @@ import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.ControllerTask;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import com.direwolf20.logisticslasers.common.util.ItemStackKey;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
@@ -77,6 +79,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
     private Object2IntMap<BlockPos> stockerSlot = new Object2IntOpenHashMap<>(); //Used to track which stocker item an inventory node is currently working on.
+    private Table<BlockPos, ItemStackKey, Integer> extractorAmounts = HashBasedTable.create();
+
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -193,6 +197,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         providerCache.clear();
         extractorCache.clear();
         stockerCache.clear();
+        extractorAmounts.clear();
         for (BlockPos pos : inventoryNodes) {
             checkInvNode(pos);
         }
@@ -218,6 +223,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         providerCache.clear(); //Any change to provider cards will affect the provider cache
         extractorCache.clear();
         stockerCache.clear();
+        extractorAmounts.clear();
         removeBlockPosFromPriorities(pos); //Remove this position form the inserter priorities
         if (!te.hasController()) return; //If this tile was removed from the network, don't recalculate its contents
 
@@ -630,8 +636,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (BlockPos toPos : extractorNodes) { //Loop through all extractor nodes
             for (ItemStack extractorCard : getExtractFilters(toPos)) { //Loop through all the cached extractorCards
-                if (isStackValidForCard(extractorCard, itemStack))
+                if (isStackValidForCard(extractorCard, itemStack)) {
+                    extractorAmounts.put(toPos, key, BaseCard.getExtractAmt(extractorCard));
                     tempArray.add(toPos);
+                }
             }
         }
         extractorCache.put(key, tempArray);
@@ -652,8 +660,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ItemStack stackInSlot = sourceitemHandler.getStackInSlot(slot);
         if (!stackInSlot.isEmpty()) {
             if (canExtractItemFromPos(stackInSlot, fromPos)) {
-                int extractAmt = 1; //ToDo variable extract sizes
+                int extractAmt = extractorAmounts.get(fromPos, new ItemStackKey(stackInSlot));
                 ItemStack stack = sourceitemHandler.extractItem(slot, extractAmt, true); //Pretend to remove the x items from the stack we found
+                //System.out.println("Extracting " + stack.getCount() + " " + stack.getItem() + "from " + fromPos);
                 if (!stack.isEmpty())
                     if (extractItemFromPos(stack, fromPos, slot) < extractAmt) //if we extracted SOMETHING
                         return true;

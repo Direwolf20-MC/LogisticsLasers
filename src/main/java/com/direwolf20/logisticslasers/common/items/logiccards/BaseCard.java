@@ -57,6 +57,8 @@ public abstract class BaseCard extends Item {
                 switch (index) {
                     case 0:
                         return getPriority(itemStack);
+                    case 1:
+                        return getExtractAmt(itemStack);
                     default:
                         throw new IllegalArgumentException("Invalid index: " + index);
                 }
@@ -69,7 +71,7 @@ public abstract class BaseCard extends Item {
 
             @Override
             public int size() {
-                return 1;
+                return 2;
             }
         };
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
@@ -153,5 +155,15 @@ public abstract class BaseCard extends Item {
     public static boolean getNBTFilter(ItemStack card) {
         CompoundNBT compound = card.getOrCreateTag();
         return !compound.contains("nbtfilter") ? setNBTFilter(card, false) : compound.getBoolean("nbtfilter");
+    }
+
+    public static int setExtractAmt(ItemStack card, int amt) {
+        card.getOrCreateTag().putInt("extractAmt", amt);
+        return amt;
+    }
+
+    public static int getExtractAmt(ItemStack card) {
+        CompoundNBT compound = card.getOrCreateTag();
+        return !compound.contains("extractAmt") ? setExtractAmt(card, 1) : compound.getInt("extractAmt");
     }
 }
