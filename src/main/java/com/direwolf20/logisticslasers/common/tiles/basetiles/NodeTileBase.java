@@ -1,6 +1,5 @@
 package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
-import com.direwolf20.logisticslasers.client.renders.LaserConnections;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -79,7 +78,7 @@ public class NodeTileBase extends TileBase {
     public void controllerReDiscover() {
         if (!hasController()) {
             markDirtyClient();
-            LaserConnections.buildLaserList();
+            //LaserConnections.buildLaserList();
             return;
         }
         ControllerTile te = getControllerTE();

@@ -1,7 +1,6 @@
 package com.direwolf20.logisticslasers.common.tiles;
 
 import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowParticleData;
-import com.direwolf20.logisticslasers.client.renders.LaserConnections;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
 import com.direwolf20.logisticslasers.common.container.ControllerContainer;
@@ -161,7 +160,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         }
         refreshAllInvNodes();
-        LaserConnections.buildLaserList();
+        //LaserConnections.buildLaserList();
     }
 
     /**
