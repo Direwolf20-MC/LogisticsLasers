@@ -15,7 +15,6 @@ public class MiscTools {
             for (ItemStack stack : filteredItems) {
                 if (filterCard.getItem() instanceof CardInserterMod) {
                     if (Objects.equals(stack.getItem().getCreatorModId(stack), testStack.getItem().getCreatorModId(testStack)))
-                        //if (stack.getItem().getCreatorModId(stack).equals(testStack.getItem().getCreatorModId(testStack)))
                         return whiteList;
                 } else if (BaseCard.getNBTFilter(filterCard)) {
                     if (ItemHandlerHelper.canItemStacksStack(stack, testStack))
