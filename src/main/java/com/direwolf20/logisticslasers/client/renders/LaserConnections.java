@@ -74,7 +74,8 @@ public class LaserConnections {
         matrix.translate(-view.getX(), -view.getY(), -view.getZ());
         IVertexBuilder builder;
         builder = buffer.getBuffer(OurRenderTypes.LASER_MAIN_BEAM);
-        lasers.forEach((source, target) -> {
+        SetMultimap<BlockPos, BlockPos> lasersCopy = HashMultimap.create(lasers);
+        lasersCopy.forEach((source, target) -> {
             matrix.push();
             matrix.translate(source.getX(), source.getY(), source.getZ());
             float diffX = target.getX() + .5f - source.getX();
