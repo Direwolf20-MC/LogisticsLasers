@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.client.screens.cards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
+import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
 import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
@@ -12,6 +13,7 @@ import com.direwolf20.logisticslasers.common.network.packets.PacketToggleWhiteli
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
@@ -59,7 +61,7 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
         List<Widget> leftWidgets = new ArrayList<>();
         if (container.showWhiteList()) {
             WhiteListButton blackwhitelist;
-            leftWidgets.add(blackwhitelist = new WhiteListButton(guiLeft + 10, guiTop + 40, 20, 20, isWhitelist, (button) -> {
+            leftWidgets.add(blackwhitelist = new WhiteListButton(guiLeft + 10, guiTop + 40, 10, 10, isWhitelist, (button) -> {
                 isWhitelist = !isWhitelist;
                 ((WhiteListButton) button).setWhitelist(isWhitelist);
                 PacketHandler.sendToServer(new PacketToggleWhitelist());
@@ -67,7 +69,7 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
         }
 
         if (container.showNBTFilter()) {
-            leftWidgets.add(new WhiteListButton(guiLeft + 10, guiTop + 70, 20, 20, isNBTFilter, (button) -> {
+            leftWidgets.add(new WhiteListButton(guiLeft + 25, guiTop + 40, 10, 10, isNBTFilter, (button) -> {
                 isNBTFilter = !isNBTFilter;
                 ((WhiteListButton) button).setWhitelist(isNBTFilter);
                 PacketHandler.sendToServer(new PacketToggleNBTFilter());
@@ -76,12 +78,22 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
 
         if (container.showPriority()) {
             Button plusPriority;
-            leftWidgets.add(plusPriority = new Button(guiLeft + 30, guiTop + 25, 15, 10, new StringTextComponent("+"), (button) -> {
-                PacketHandler.sendToServer(new PacketChangePriority(1));
+            leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 25, 10, 10, new StringTextComponent("+"), (button) -> {
+                int change = 1;
+                if (Screen.hasShiftDown()) change *= 10;
+                if (Screen.hasControlDown()) change *= 64;
+                int priority = container.getPriority();
+                if (priority + change > 99) change = 99 - priority;
+                PacketHandler.sendToServer(new PacketChangePriority(change));
             }));
             Button minusPriority;
-            leftWidgets.add(minusPriority = new Button(guiLeft + 2, guiTop + 25, 15, 10, new StringTextComponent("-"), (button) -> {
-                PacketHandler.sendToServer(new PacketChangePriority(-1));
+            leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 25, 10, 10, new StringTextComponent("-"), (button) -> {
+                int change = -1;
+                if (Screen.hasShiftDown()) change *= 10;
+                if (Screen.hasControlDown()) change *= 64;
+                int priority = container.getPriority();
+                if (priority + change < -99) change = -99 - priority;
+                PacketHandler.sendToServer(new PacketChangePriority(change));
             }));
         }
 
@@ -104,7 +116,8 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
         Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.basicfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
         if (!container.showPriority()) return;
         Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 15, Color.DARK_GRAY.getRGB());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + container.getPriority()).getString(), 18, 25, Color.DARK_GRAY.getRGB());
+        String priority = Integer.toString(container.getPriority());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 18 - font.getStringWidth(priority) / 3, 25, Color.DARK_GRAY.getRGB());
     }
 
     protected static TranslationTextComponent getTrans(String key, Object... args) {
