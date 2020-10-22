@@ -690,7 +690,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
 
         int extractAmt = 1; //Todo change this?
-        ItemStack stack = new ItemStack(item.getItem(), extractAmt); //Create an item stack
+        ItemStack stack = item.copy();//new ItemStack(item.getItem(), extractAmt); //Create an item stack
+        stack.setCount(extractAmt);
 
         //Before we even look for the item to insert, lets see if it'll fit here first!
         int count = testInsertToInventory(stockerItemHandler, stockerPos, stack);
