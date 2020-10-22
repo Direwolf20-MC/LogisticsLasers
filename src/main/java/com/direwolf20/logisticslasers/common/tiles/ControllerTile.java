@@ -16,7 +16,6 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -763,6 +762,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack that could not be inserted anywhere else in the network
      */
     public ItemStack handleLostStack(ItemStack stack, BlockPos lostAt) {
+        System.out.println("Stack Lost");
         for (BlockPos toPos : findDestinationForItemstack(stack)) { //Start looping through the inserters
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
             if (destitemHandler == null) continue; //If its empty, move onto the next inserter
@@ -782,7 +782,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         if (stack.getCount() > 0) {
             ItemStack extractedStack = stack.split(stack.getCount());
-            transferItemStack(lostAt, this.pos, extractedStack);
+            if (!transferItemStack(lostAt, this.pos, extractedStack)) { //If we failed to send the stack to the remote destination, store directly in controller.
+                insertIntoController(extractedStack);
+            }
         }
         return stack;
     }
@@ -909,8 +911,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             ItemStack remainingStack = doParticles(task);
             if (!remainingStack.isEmpty()) {
                 cancelTask(task.parentGUID);
-                //handleLostStack(remainingStack, task.toPos);
-                Block.spawnAsEntity(world, task.fromPos, remainingStack); //TODO Implement storing in the controller
+                handleLostStack(remainingStack, task.toPos);
+                //Block.spawnAsEntity(world, task.fromPos, remainingStack); //TODO Implement storing in the controller
             }
         } else if (task.isInsert()) {
             ItemStack remainingStack = doInsert(task);
