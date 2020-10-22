@@ -690,7 +690,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
 
         //Doing this rather than copying.
-        System.out.println("Stocking");
         int extractAmt = item.getCount() - countOfItem;
         int stockerCount = item.getCount();
         //ItemStack stack = item.copy();
@@ -999,7 +998,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 refreshAllInvNodes();
             handleInternalInventory();
             handleExtractors();
-            handleStockers();
+            if (world.getGameTime() % 20 == 0)
+                handleStockers(); //Stocking is somewhat expensive operation, so only do it once a second, rather than once a tick.
             handleTasks();
         }
     }
