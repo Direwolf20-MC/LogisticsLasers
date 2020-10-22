@@ -46,6 +46,10 @@ public class ItemFlowParticleData implements IParticleData {
 
     public void write(PacketBuffer buffer) {
         buffer.writeItemStack(this.itemStack);
+        buffer.writeDouble(this.targetX);
+        buffer.writeDouble(this.targetY);
+        buffer.writeDouble(this.targetZ);
+        buffer.writeInt(this.ticksPerBlock);
     }
 
     public String getParameters() {
