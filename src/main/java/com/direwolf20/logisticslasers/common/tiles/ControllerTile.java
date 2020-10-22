@@ -20,7 +20,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
@@ -70,9 +69,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final Set<BlockPos> stockerNodes = new HashSet<>(); //All Inventory nodes that contain a stocker card
     private final HashMap<BlockPos, ArrayList<ItemStack>> filterCardCache = new HashMap<>(); //A cache of all cards in the entire network
     private final TreeMap<Integer, Set<BlockPos>> insertPriorities = new TreeMap<>(Collections.reverseOrder()); //A sorted list of inserter cards by priority
-    private final HashMap<Item, ArrayList<BlockPos>> extractorCache = new HashMap<>(); //A cache of all insertable items
-    private final HashMap<Item, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
-    private final HashMap<Item, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
+    private final HashMap<ItemStack, ArrayList<BlockPos>> extractorCache = new HashMap<>(); //A cache of all insertable items
+    private final HashMap<ItemStack, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
+    private final HashMap<ItemStack, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
     private final HashMap<BlockPos, ArrayList<ItemStack>> stockerCache = new HashMap<>(); //A cache of all stocker requests
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
@@ -443,9 +442,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return a list of possible destinations
      */
     public ArrayList<BlockPos> findDestinationForItemstack(ItemStack itemStack) {
-        if (inserterCache.containsKey(itemStack.getItem()))
-            return inserterCache.get(itemStack.getItem());
-        System.out.println("Building Inserter Cache for: " + itemStack.getItem());
+        int count = itemStack.getCount();
+        itemStack.setCount(1);
+        if (inserterCache.containsKey(itemStack)) {
+            itemStack.setCount(count);
+            return inserterCache.get(itemStack);
+        }
+        System.out.println("Building Inserter Cache for: " + itemStack);
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (int priority : insertPriorities.keySet()) {
             for (BlockPos toPos : insertPriorities.get(priority)) { //If we found an item to transfer, start looping through the inserters
@@ -455,8 +458,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 }
             }
         }
-        inserterCache.put(itemStack.getItem(), tempArray);
-        return inserterCache.get(itemStack.getItem());
+        inserterCache.put(itemStack, tempArray);
+        itemStack.setCount(count);
+        return inserterCache.get(itemStack);
     }
 
     /**
@@ -466,9 +470,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return a list of possible destinations
      */
     public ArrayList<BlockPos> findProviderForItemstack(ItemStack itemStack) {
-        if (providerCache.containsKey(itemStack.getItem()))
-            return providerCache.get(itemStack.getItem());
-        System.out.println("Building Provider Cache for: " + itemStack.getItem());
+        int count = itemStack.getCount();
+        itemStack.setCount(1);
+        if (providerCache.containsKey(itemStack)) {
+            itemStack.setCount(count);
+            return providerCache.get(itemStack);
+        }
+        System.out.println("Building Provider Cache for: " + itemStack);
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (BlockPos toPos : providerNodes) { //Loop through all provider nodes
             for (ItemStack providerCard : getProviderFilters(toPos)) { //Loop through all the cached providerCards
@@ -476,8 +484,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     tempArray.add(toPos);
             }
         }
-        providerCache.put(itemStack.getItem(), tempArray);
-        return providerCache.get(itemStack.getItem());
+        providerCache.put(itemStack, tempArray);
+        itemStack.setCount(count);
+        return providerCache.get(itemStack);
     }
 
     /**
@@ -618,9 +627,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     }
 
     public boolean canExtractItemFromPos(ItemStack itemStack, BlockPos fromPos) {
-        if (extractorCache.containsKey(itemStack.getItem()))
-            return extractorCache.get(itemStack.getItem()).contains(fromPos);
-        System.out.println("Building Extractor Cache for: " + itemStack.getItem());
+        int count = itemStack.getCount();
+        itemStack.setCount(1);
+        if (extractorCache.containsKey(itemStack)) {
+            itemStack.setCount(count);
+            return extractorCache.get(itemStack).contains(fromPos);
+        }
+        System.out.println("Building Extractor Cache for: " + itemStack);
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (BlockPos toPos : extractorNodes) { //Loop through all extractor nodes
             for (ItemStack extractorCard : getExtractFilters(toPos)) { //Loop through all the cached extractorCards
@@ -628,8 +641,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     tempArray.add(toPos);
             }
         }
-        extractorCache.put(itemStack.getItem(), tempArray);
-        return extractorCache.get(itemStack.getItem()).contains(fromPos);
+        extractorCache.put(itemStack, tempArray);
+        itemStack.setCount(count);
+        return extractorCache.get(itemStack).contains(fromPos);
     }
 
     /**

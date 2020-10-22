@@ -144,4 +144,14 @@ public abstract class BaseCard extends Item {
         CompoundNBT compound = card.getOrCreateTag();
         return !compound.contains("whitelist") ? setWhiteList(card, true) : compound.getBoolean("whitelist");
     }
+
+    public static boolean setNBTFilter(ItemStack card, boolean nbtfilter) {
+        card.getOrCreateTag().putBoolean("nbtfilter", nbtfilter);
+        return nbtfilter;
+    }
+
+    public static boolean getNBTFilter(ItemStack card) {
+        CompoundNBT compound = card.getOrCreateTag();
+        return !compound.contains("nbtfilter") ? setNBTFilter(card, false) : compound.getBoolean("nbtfilter");
+    }
 }

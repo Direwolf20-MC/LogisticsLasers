@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserter;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterMod;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
@@ -68,9 +69,18 @@ public class BasicFilterContainer extends Container {
         return !(filterItemStack.getItem() instanceof CardStocker);
     }
 
+    public boolean showNBTFilter() {
+        return !(filterItemStack.getItem() instanceof CardInserterMod);
+    }
+
     public boolean isWhiteList() {
         return BaseCard.getWhiteList(filterItemStack);
     }
+
+    public boolean isNBTFilter() {
+        return BaseCard.getNBTFilter(filterItemStack);
+    }
+
 
     public void setup(PlayerInventory inventory) {
         //Slots

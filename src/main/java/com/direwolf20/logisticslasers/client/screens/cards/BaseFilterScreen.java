@@ -7,6 +7,7 @@ import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlo
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.network.packets.PacketFilterSlot;
+import com.direwolf20.logisticslasers.common.network.packets.PacketToggleNBTFilter;
 import com.direwolf20.logisticslasers.common.network.packets.PacketToggleWhitelist;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -31,11 +32,13 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
 
     protected final BasicFilterContainer container;
     private boolean isWhitelist;
+    private boolean isNBTFilter;
 
     public BaseFilterScreen(T container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
         this.container = container;
         isWhitelist = container.isWhiteList();
+        isNBTFilter = container.isNBTFilter();
     }
 
     public ResourceLocation getBackground() {
@@ -60,6 +63,14 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
                 isWhitelist = !isWhitelist;
                 ((WhiteListButton) button).setWhitelist(isWhitelist);
                 PacketHandler.sendToServer(new PacketToggleWhitelist());
+            }));
+        }
+
+        if (container.showNBTFilter()) {
+            leftWidgets.add(new WhiteListButton(guiLeft + 10, guiTop + 70, 20, 20, isNBTFilter, (button) -> {
+                isNBTFilter = !isNBTFilter;
+                ((WhiteListButton) button).setWhitelist(isNBTFilter);
+                PacketHandler.sendToServer(new PacketToggleNBTFilter());
             }));
         }
 
