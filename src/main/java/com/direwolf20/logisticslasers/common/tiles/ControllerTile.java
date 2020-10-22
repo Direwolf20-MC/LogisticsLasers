@@ -660,7 +660,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         ItemStack stackInSlot = sourceitemHandler.getStackInSlot(slot);
         if (!stackInSlot.isEmpty()) {
             if (canExtractItemFromPos(stackInSlot, fromPos)) {
-                int extractAmt = extractorAmounts.get(fromPos, new ItemStackKey(stackInSlot));
+                int extractAmt = Math.min(extractorAmounts.get(fromPos, new ItemStackKey(stackInSlot)), stackInSlot.getCount());
                 ItemStack stack = sourceitemHandler.extractItem(slot, extractAmt, true); //Pretend to remove the x items from the stack we found
                 //System.out.println("Extracting " + stack.getCount() + " " + stack.getItem() + "from " + fromPos);
                 if (!stack.isEmpty())
