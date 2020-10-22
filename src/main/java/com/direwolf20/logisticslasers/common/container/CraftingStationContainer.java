@@ -38,6 +38,7 @@ public class CraftingStationContainer extends Container {
         this.craftingHandler = tile.craftMatrixHandler;
         this.setup(playerInventory);
         tile.calcResult();
+        tile.markDirtyClient();
         if (playerInventory.player instanceof ServerPlayerEntity && tile.getControllerTE() != null)
             tile.getControllerTE().updateItemCounts((ServerPlayerEntity) playerInventory.player);
     }
