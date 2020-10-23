@@ -674,12 +674,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         IItemHandler stockerItemHandler = getAttachedInventory(stockerPos); //Get the inventory handler of the block the stocker's inventory node is facing
         if (stockerItemHandler == null) return false; //If its empty, move onto the next stocker
 
-        ArrayList<ItemStack> tempArray = findStockersForPos(stockerPos); //Get the list of items to keep in stock for this node
+        ArrayList<ItemStack> tempArray = new ArrayList(findStockersForPos(stockerPos)); //Get the list of items to keep in stock for this node
         if (tempArray.isEmpty()) return false; //If nothing to stock, move onto the next one!
 
         ItemHandlerUtil.InventoryCounts invCache = new ItemHandlerUtil.InventoryCounts(stockerItemHandler); //Get a count of all itemstacks in this inventory
 
         int slot = stockerSlot.getOrDefault(stockerPos, 0); //Which item in the list of stockerItems we are working on this time around
+        if (slot >= tempArray.size()) slot = 0;
         ItemStack item = tempArray.get(slot); //The item stack itself
 
         //First check if the stocker is satisfied, including stacks 'in flight'
