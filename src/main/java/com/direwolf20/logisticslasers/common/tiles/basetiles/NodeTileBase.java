@@ -1,5 +1,7 @@
 package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
+import com.direwolf20.logisticslasers.common.network.PacketHandler;
+import com.direwolf20.logisticslasers.common.network.packets.PacketUpdateLaserRender;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -8,6 +10,8 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.server.ServerChunkProvider;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.*;
@@ -75,10 +79,17 @@ public class NodeTileBase extends TileBase {
         routeList.clear();
     }
 
+    public void updateLaserConnections() {
+        Chunk chunk = world.getChunkAt(this.pos);
+        ((ServerChunkProvider) chunk.getWorld().getChunkProvider()).chunkManager.getTrackingPlayers(chunk.getPos(), false).forEach((player) -> {
+            PacketHandler.sendTo(new PacketUpdateLaserRender(), player);
+        });
+    }
+
     public void controllerReDiscover() {
         if (!hasController()) {
             markDirtyClient();
-            //LaserConnections.buildLaserList();
+            updateLaserConnections();
             return;
         }
         ControllerTile te = getControllerTE();

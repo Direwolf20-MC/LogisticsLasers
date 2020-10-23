@@ -28,7 +28,7 @@ public class LaserConnections {
     public static SetMultimap<BlockPos, BlockPos> lasers = HashMultimap.create();
 
     public static void renderLasers(RenderWorldLastEvent evt) {
-        if (((System.currentTimeMillis() - lastRefreshTime) / 1000) >= 1) {
+        if (((System.currentTimeMillis() - lastRefreshTime) / 1000) >= 5) {
             //System.out.println("Refreshing Laser List");
             buildLaserList();
         }

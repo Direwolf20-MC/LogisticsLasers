@@ -50,6 +50,7 @@ public class PacketHandler {
 
         //Going to Client Side
         registerMessage(PacketItemCountsSync.class, PacketItemCountsSync::encode, PacketItemCountsSync::decode, PacketItemCountsSync.Handler::handle);
+        registerMessage(PacketUpdateLaserRender.class, PacketUpdateLaserRender::encode, PacketUpdateLaserRender::decode, PacketUpdateLaserRender.Handler::handle);
     }
 
     public static void sendTo(Object msg, ServerPlayerEntity player) {

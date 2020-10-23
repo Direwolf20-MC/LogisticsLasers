@@ -160,7 +160,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         }
         refreshAllInvNodes();
-        //LaserConnections.buildLaserList();
+        updateLaserConnections();
     }
 
     /**
