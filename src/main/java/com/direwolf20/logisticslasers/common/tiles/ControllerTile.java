@@ -123,6 +123,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public void discoverAllNodes() {
         System.out.println("Discovering All Nodes!");
         Set<BlockPos> oldNodes = new HashSet<>(allNodes); //Store the list of nodes this used to control, used to remove controller data from that pos later
+        clearCachedRoutes(); //Clear the cached routing of all nodes in the network
         //Clear all the cached node data
         allNodes.clear();
         crafterNodes.clear();
@@ -131,7 +132,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         Queue<BlockPos> nodesToCheck = new LinkedList<>();
         Set<BlockPos> checkedNodes = new HashSet<>();
         nodesToCheck.addAll(connectedNodes); //Add all the nodes connected to this controller to the list of nodes to check out
-        clearCachedRoutes(); //Clear the cached routing of all nodes in the network
+
 
         while (nodesToCheck.size() > 0) {
             BlockPos posToCheck = nodesToCheck.remove(); //Pop the stack
@@ -798,7 +799,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public boolean transferItemStack(BlockPos fromPos, BlockPos toPos, ItemStack itemStack) {
         ticksPerBlock = 4;
         TileEntity te = world.getTileEntity(fromPos);
-        ArrayList<BlockPos> route;
+        List<BlockPos> route;
         //if (!(te instanceof InventoryNodeTile) && !(te instanceof CraftingStationTile)) return false;
         if (te instanceof InventoryNodeTile)
             route = ((InventoryNodeTile) te).getRouteTo(toPos);

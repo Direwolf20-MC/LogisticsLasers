@@ -19,7 +19,7 @@ import java.util.*;
 public class NodeTileBase extends TileBase {
     protected final Set<BlockPos> connectedNodes = new HashSet<>();
     protected BlockPos controllerPos = BlockPos.ZERO;
-    private HashMap<BlockPos, ArrayList<BlockPos>> routeList = new HashMap<>();
+    private HashMap<BlockPos, List<BlockPos>> routeList = new HashMap<>();
 
     public NodeTileBase(TileEntityType<?> type) {
         super(type);
@@ -34,44 +34,62 @@ public class NodeTileBase extends TileBase {
         return te instanceof ControllerTile ? (ControllerTile) te : null;
     }
 
-    public ArrayList<BlockPos> getRouteTo(BlockPos pos) {
+    public List<BlockPos> getRouteTo(BlockPos pos) {
         if (!routeList.containsKey(pos))
             findRouteFor(pos);
         return routeList.get(pos);
     }
 
     public boolean findRouteFor(BlockPos pos) {
-        System.out.println("Finding route for: " + pos);
-        routeList.remove(pos);
+        routeList.remove(pos); //Shouldn't be needed but why not
         ControllerTile te = getControllerTE();
-        if (te == null) return false;
-        ArrayList<BlockPos> routePath = findRouteToPos(pos, new HashSet<BlockPos>());
+        if (te == null) return false; //This also shouldn't happen
+        List<BlockPos> routePath = findRouteToPos(pos);
         Collections.reverse(routePath);
         routeList.put(pos, routePath);
-        System.out.println("Found route: " + routePath);
         return !routePath.isEmpty();
     }
 
-    public ArrayList<BlockPos> findRouteToPos(BlockPos targetPos, Set<BlockPos> checkedPos) {
-        ArrayList<BlockPos> route = new ArrayList<>();
-        if (targetPos.equals(pos)) {
-            route.add(pos);
-            return route;
-        }
-        ArrayList<BlockPos> connections = new ArrayList<>(getConnectedNodes());
-        connections.sort(Comparator.comparingDouble(blockPos -> blockPos.distanceSq(targetPos)));
-        for (BlockPos testPos : connections) {
-            if (checkedPos.contains(testPos))
-                continue;
-            checkedPos.add(testPos);
-            NodeTileBase te = (NodeTileBase) world.getTileEntity(testPos);
-            ArrayList<BlockPos> tempList = te.findRouteToPos(targetPos, checkedPos);
-            if (tempList.contains(testPos)) {
-                tempList.add(pos);
-                return tempList;
+    public List<BlockPos> findRouteToPos(BlockPos targetPos) {
+        List<BlockPos> route = new ArrayList<>(); //The route we're building
+        Queue<BlockPos> nodesToCheck = new LinkedList<>(); //A list of nodes remaining to be checked
+        Set<BlockPos> checkedNodes = new HashSet<>(); //A list of all nodes we've checked already
+        Map<BlockPos, BlockPos> priorNodeMap = new HashMap<>(); //A lookup of the node and the one that lead us to it, used to create the path
 
+        //Initialize the list of nodes to check out by looking at all the nodes this one connects to
+        //Also initialize the priorNodeMap
+        for (BlockPos connectedNode : getConnectedNodes()) {
+            nodesToCheck.add(connectedNode);
+            priorNodeMap.put(connectedNode, this.pos);
+        }
+        boolean foundRoute = false;
+        while (!nodesToCheck.isEmpty()) { //Loop through all nodes to check until we run out of find our destination
+            BlockPos posToCheck = nodesToCheck.remove(); //Pop the stack
+            if (checkedNodes.contains(posToCheck) || posToCheck.equals(this.pos))
+                continue; //Don't check nodes we've checked before, and don't operate on the starting node
+            checkedNodes.add(posToCheck); //Add this position to the list of nodes we already checked
+            TileEntity te = world.getTileEntity(posToCheck);
+            if (te instanceof NodeTileBase) {
+                for (BlockPos connectedNode : ((NodeTileBase) te).getConnectedNodes()) { //Loop through all the connected nodes
+                    if (connectedNode.equals(targetPos)) { //If we found the one we're looking for, CELEBRATE!
+                        foundRoute = true;
+                    }
+                    if (!checkedNodes.contains(connectedNode)) { //As long as we haven't checked this node before, add it to the list and note its prior node
+                        nodesToCheck.add(connectedNode);
+                        priorNodeMap.put(connectedNode, posToCheck);
+                    }
+                    if (foundRoute) break;
+                }
+                if (foundRoute) break;
             }
         }
+        if (!foundRoute) return route; //This probably shouldn't be possible?
+        BlockPos routePos = targetPos; //Starting at the destination, work back through the list of priorNodeMap objects to find a path
+        while (routePos != this.pos) {
+            route.add(routePos);
+            routePos = priorNodeMap.get(routePos);
+        }
+        route.add(this.pos); //Finally add this position, since it isn't added above
         return route;
     }
 
