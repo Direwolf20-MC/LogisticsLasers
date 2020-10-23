@@ -913,7 +913,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (!remainingStack.isEmpty()) {
                 cancelTask(task.parentGUID);
                 handleLostStack(remainingStack, task.toPos);
-                //Block.spawnAsEntity(world, task.fromPos, remainingStack); //TODO Implement storing in the controller
             }
         } else if (task.isInsert()) {
             ItemStack remainingStack = doInsert(task);
