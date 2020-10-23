@@ -52,7 +52,7 @@ public class NodeTileBase extends TileBase {
 
     public List<BlockPos> findRouteToPos(BlockPos targetPos) {
         List<BlockPos> route = new ArrayList<>(); //The route we're building
-        Queue<BlockPos> nodesToCheck = new LinkedList<>(); //A list of nodes remaining to be checked
+        Queue<BlockPos> nodesToCheck = new PriorityQueue<>(Comparator.comparingDouble(blockPos -> blockPos.distanceSq(this.pos))); //A list of nodes remaining to be checked
         Set<BlockPos> checkedNodes = new HashSet<>(); //A list of all nodes we've checked already
         Map<BlockPos, BlockPos> priorNodeMap = new HashMap<>(); //A lookup of the node and the one that lead us to it, used to create the path
 
