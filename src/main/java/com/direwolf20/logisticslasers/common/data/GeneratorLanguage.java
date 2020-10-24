@@ -22,6 +22,7 @@ public class GeneratorLanguage extends LanguageProvider {
         addItem(ModItems.CARD_EXTRACTOR, "Extractor Module");
         addItem(ModItems.CARD_INSERTER, "Inserter Module");
         addItem(ModItems.CARD_INSERTER_MOD, "Mod Inserter Module");
+        addItem(ModItems.CARD_INSERTER_TAG, "Tag Inserter Module");
         addItem(ModItems.CARD_STOCKER, "Stocker Module");
         addItem(ModItems.CARD_PROVIDER, "Provider Module");
         addItem(ModItems.CARD_POLYMORPH, "Polymorph Module");
@@ -31,12 +32,14 @@ public class GeneratorLanguage extends LanguageProvider {
         add("item.logisticslasers.basicfilterscreen", "Basic Filter");
         add("item.logisticslasers.stockerfilterscreen", "Stocker Filter");
         add("item.logisticslasers.polyfilterscreen", "Polymorph Filter");
+        add("item.logisticslasers.tagfilterscreen", "Tag Filter");
 
 
         add("item.logisticslasers.basicfilterscreen.priority", "Priority: %d");
 
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");
         add("screen.logisticslasers.add", "Add");
+        add("screen.logisticslasers.remove", "Remove");
         add("screen.logisticslasers.clear", "Clear");
         add("screen.logisticslasers.set", "Set");
         add("screen.logisticslasers.refresh", "Refresh");

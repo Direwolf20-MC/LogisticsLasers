@@ -2,62 +2,65 @@ package com.direwolf20.logisticslasers.client.screens;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
+import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
-import com.google.common.collect.ArrayListMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PolymorphScreen extends Screen {
+public class InserterTagScreen extends Screen {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/polymorphscreen.png");
 
     int guiLeft;
     int guiTop;
     protected int xSize = 176;
     protected int ySize = 166;
-    private ArrayListMultimap<Item, ItemStack> itemMap;
+    private TextFieldWidget tagField;
     private int page = 0;
     private int maxPages = 0;
     private int overSlot = -1;
-    private int Z_LEVEL_ITEMS = 100;
-    private int Z_LEVEL_QTY = 300;
+    private int selectedSlot = -1;
+    List<String> displayTags;
+    private boolean isWhitelist;
 
     ItemStack card;
     int cardSlot;
     public BlockPos sourceContainer;
 
-    public PolymorphScreen(ItemStack stack) {
+    public InserterTagScreen(ItemStack stack) {
         super(new StringTextComponent("title"));
         card = stack;
         sourceContainer = BlockPos.ZERO;
+        isWhitelist = BaseCard.getWhiteList(card);
     }
 
-    public PolymorphScreen(ItemStack stack, BlockPos sourceContainerPos, int sourceContainerSlot) {
+    public InserterTagScreen(ItemStack stack, BlockPos sourceContainerPos, int sourceContainerSlot) {
         super(new StringTextComponent("title"));
         card = stack;
         sourceContainer = sourceContainerPos;
         cardSlot = sourceContainerSlot;
+        isWhitelist = BaseCard.getWhiteList(card);
     }
 
     public ResourceLocation getBackground() {
@@ -90,19 +93,36 @@ public class PolymorphScreen extends Screen {
             if (page > 0) page--;
         }));
 
-        leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.set"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketButtonSetOrRemove(cardSlot, sourceContainer));
+        leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 40, 10, new TranslationTextComponent("screen.logisticslasers.remove"), (button) -> {
+            if (!sourceContainer.equals(BlockPos.ZERO) && selectedSlot != -1) {
+                PacketHandler.sendToServer(new PacketButtonSetOrRemove(cardSlot, sourceContainer, displayTags.get(selectedSlot)));
+                selectedSlot = -1;
+            }
         }));
 
-        leftWidgets.add(new DireButton(guiLeft + 110, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
+        leftWidgets.add(new DireButton(guiLeft + 130, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
+            if (!sourceContainer.equals(BlockPos.ZERO)) {
                 PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+                selectedSlot = -1;
+                page = 0;
+            }
         }));
 
-        leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer));
+        leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
+            if (!sourceContainer.equals(BlockPos.ZERO) && !tagField.getText().isEmpty()) {
+                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase()));
+                tagField.setText("");
+            }
+        }));
+
+        tagField = new TextFieldWidget(font, guiLeft + 7, guiTop + 30, 155, 15, StringTextComponent.EMPTY);
+        leftWidgets.add(tagField);
+
+        WhiteListButton blackwhitelist;
+        leftWidgets.add(blackwhitelist = new WhiteListButton(guiLeft + 110, guiTop + 3, 10, 10, isWhitelist, (button) -> {
+            isWhitelist = !isWhitelist;
+            ((WhiteListButton) button).setWhitelist(isWhitelist);
+            PacketHandler.sendToServer(new PacketToggleWhitelist(cardSlot));
         }));
 
 
@@ -120,60 +140,34 @@ public class PolymorphScreen extends Screen {
         super.render(stack, mouseX, mouseY, partialTicks);
 
         int availableItemsstartX = guiLeft + 7;
-        int availableItemstartY = guiTop + 30;
+        int availableItemstartY = guiTop + 50;
         int color = 0x885B5B5B;
 
         stack.push();
         RenderSystem.disableLighting();
         RenderSystem.disableDepthTest();
         RenderSystem.colorMask(true, true, true, false);
-        fillGradient(stack, availableItemsstartX - 2, availableItemstartY - 2, availableItemsstartX + 162, availableItemstartY + 130, color, color);
+        fillGradient(stack, availableItemsstartX - 2, availableItemstartY - 2, availableItemsstartX + 162, availableItemstartY + 110, color, color);
         RenderSystem.colorMask(true, true, true, true);
         stack.pop();
-
-        ArrayList<ItemStack> filterStacks = CardPolymorph.getListFromCard(card);
-        int totalItems = filterStacks.size();
-        int itemsPerRow = 9;
-        int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
-        int maxRows = 9;
-
-        if (filterStacks.isEmpty()) return;
-
-        int itemsPerPage = 81;
-        maxPages = (int) Math.floor((double) filterStacks.size() / itemsPerPage);
-        int itemStackMin = (page * itemsPerPage);
-        int itemStackMax = Math.min((page * itemsPerPage) + itemsPerPage, filterStacks.size());
-        List<ItemStack> displayStacks = filterStacks.subList(itemStackMin, itemStackMax);
         font.drawString(stack, MagicHelpers.withSuffix(page), guiLeft + 155 - font.getStringWidth(MagicHelpers.withSuffix(page)) * 0.65f, guiTop + 5, TextFormatting.DARK_GRAY.getColor());
+
+        List<String> tags = new ArrayList<>(CardInserterTag.getTags(card));
+        int tagsPerPage = 11;
+        maxPages = (int) Math.floor((double) tags.size() / tagsPerPage);
+        int itemStackMin = (page * tagsPerPage);
+        int itemStackMax = Math.min((page * tagsPerPage) + tagsPerPage, tags.size());
+        displayTags = tags.subList(itemStackMin, itemStackMax);
+        int tagStartY = availableItemstartY;
 
         int slot = 0;
         overSlot = -1;
-        for (int i = 0; i < displayStacks.size(); i++) {
-            ItemStack filterstack = displayStacks.get(i);
-            int row = (int) Math.floor((double) slot / 9);
-            if (row >= maxRows) break;
-            int col = slot % 9;
-            int count = filterstack.getCount();
-            int x = availableItemsstartX + col * 18;
-            int y = availableItemstartY + row * 18;
+        for (String tag : displayTags) {
+            Minecraft.getInstance().fontRenderer.drawString(stack, tag, availableItemsstartX, tagStartY, Color.RED.getRGB());
+            //int x = availableItemsstartX;
+            //int y = availableItemstartY + row * 18;
 
-            setBlitOffset(Z_LEVEL_ITEMS);
-            itemRenderer.zLevel = Z_LEVEL_ITEMS;
-            this.itemRenderer.renderItemIntoGUI(filterstack, x, y);
-            this.itemRenderer.renderItemOverlayIntoGUI(font, ItemHandlerHelper.copyStackWithSize(filterstack, 1), x, y, null);
-            stack.push();
-            stack.translate(x, y, Z_LEVEL_QTY);
-            stack.scale(0.65f, 0.65f, 0.65f);
-            setBlitOffset(0);
-
-            itemRenderer.zLevel = 0;
-
-
-            //font.drawStringWithShadow(stack, MagicHelpers.withSuffix(count), 19 - font.getStringWidth(MagicHelpers.withSuffix(count)) * 0.65f, 18, TextFormatting.WHITE.getColor());
-
-            stack.pop();
-
-            if (MiscTools.inBounds(x, y, 18, 18, mouseX, mouseY)) {
+            if (MiscTools.inBounds(availableItemsstartX, tagStartY - 2, 160, 8, mouseX, mouseY)) {
                 overSlot = slot;
                 color = -2130706433;// : 0xFF5B5B5B;
 
@@ -181,12 +175,12 @@ public class PolymorphScreen extends Screen {
                 RenderSystem.disableLighting();
                 RenderSystem.disableDepthTest();
                 RenderSystem.colorMask(true, true, true, false);
-                fillGradient(stack, x, y, x + 18, y + 18, color, color);
+                fillGradient(stack, availableItemsstartX - 1, tagStartY - 2, availableItemsstartX + 160, tagStartY + 8, color, color);
                 RenderSystem.colorMask(true, true, true, true);
                 stack.pop();
             }
 
-            /*if (slot == selectedSlot) {
+            if (slot == selectedSlot) {
                 color = 0xFFFF0000;
 
                 stack.push();
@@ -194,18 +188,18 @@ public class PolymorphScreen extends Screen {
                 RenderSystem.disableDepthTest();
                 RenderSystem.colorMask(true, true, true, false);
 
-                int x1 = x + 18;
-                int y1 = y + 18;
-                hLine(stack, x - 1, x1 - 1, y - 1, color);
-                hLine(stack, x - 1, x1 - 1, y1 - 1, color);
-                vLine(stack, x - 1, y - 1, y1 - 1, color);
-                vLine(stack, x1 - 1, y - 1, y1 - 1, color);
+                int x1 = availableItemsstartX + 160;
+                int y1 = tagStartY + 10;
+                hLine(stack, availableItemsstartX - 2, x1 - 0, tagStartY - 2, color);
+                hLine(stack, availableItemsstartX - 2, x1 - 0, y1 - 2, color);
+                vLine(stack, availableItemsstartX - 2, tagStartY - 2, y1 - 2, color);
+                vLine(stack, x1 - 0, tagStartY - 2, y1 - 2, color);
 
                 RenderSystem.colorMask(true, true, true, true);
                 stack.pop();
-            }*/
+            }
 
-
+            tagStartY += 10;
             slot++;
         }
     }
@@ -218,7 +212,7 @@ public class PolymorphScreen extends Screen {
     }
 
     protected void drawGuiContainerForegroundLayer(MatrixStack stack) {
-        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.polyfilterscreen"), guiLeft + 50, guiTop + 5, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.tagfilterscreen"), guiLeft + 50, guiTop + 5, Color.DARK_GRAY.getRGB());
         Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), guiLeft + 3, guiTop + 5, Color.DARK_GRAY.getRGB());
         Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + BaseCard.getPriority(card)).getString(), guiLeft + 18, guiTop + 15, Color.DARK_GRAY.getRGB());
     }
@@ -238,4 +232,43 @@ public class PolymorphScreen extends Screen {
     private static TranslationTextComponent getTrans(String key, Object... args) {
         return new TranslationTextComponent(LogisticsLasers.MOD_ID + "." + key, args);
     }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (MiscTools.inBounds(tagField.x, tagField.y, tagField.getWidth(), 15, mouseX, mouseY) && button == 1)
+            tagField.setText("");
+
+        if (overSlot >= 0) {
+            selectedSlot = overSlot;
+            //tagField.setText(displayTags.get(selectedSlot));
+            return true;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double x, double y, int btn) {
+        return true;
+    }
+
+    @Override
+    public boolean mouseScrolled(double x, double y, double amt) {
+        return true;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        InputMappings.Input mouseKey = InputMappings.getInputByCode(keyCode, scanCode);
+        if (tagField.isFocused() && this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(mouseKey))
+            return true;
+        if (tagField.isFocused() && keyCode == 257) { //enter key
+            if (!sourceContainer.equals(BlockPos.ZERO) && !tagField.getText().isEmpty()) {
+                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase()));
+                tagField.setText("");
+            }
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
 }

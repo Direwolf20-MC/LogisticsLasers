@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
@@ -9,31 +10,30 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.Supplier;
 
-public class PacketPolymorphSet {
+public class PacketCardApply {
     private int slotNumber;
     private BlockPos sourcePos;
 
-    public PacketPolymorphSet(int slotNumber, BlockPos pos) {
+    public PacketCardApply(int slotNumber, BlockPos pos) {
         this.slotNumber = slotNumber;
         this.sourcePos = pos;
     }
 
-    public static void encode(PacketPolymorphSet msg, PacketBuffer buffer) {
+    public static void encode(PacketCardApply msg, PacketBuffer buffer) {
         buffer.writeInt(msg.slotNumber);
         buffer.writeBlockPos(msg.sourcePos);
     }
 
-    public static PacketPolymorphSet decode(PacketBuffer buffer) {
-        return new PacketPolymorphSet(buffer.readInt(), buffer.readBlockPos());
+    public static PacketCardApply decode(PacketBuffer buffer) {
+        return new PacketCardApply(buffer.readInt(), buffer.readBlockPos());
 
     }
 
     public static class Handler {
-        public static void handle(PacketPolymorphSet msg, Supplier<NetworkEvent.Context> ctx) {
+        public static void handle(PacketCardApply msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
                 ServerPlayerEntity sender = ctx.get().getSender();
                 if (sender == null)
@@ -46,10 +46,9 @@ public class PacketPolymorphSet {
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
                 ItemStack itemStack = slot.getStack();
 
-                if (itemStack.getItem() instanceof CardPolymorph) {
+                if (itemStack.getItem() instanceof CardPolymorph || itemStack.getItem() instanceof CardInserterTag) {
                     if (container instanceof InventoryNodeContainer) {
-                        CardPolymorph.setListFromContainer(itemStack, ((InventoryNodeContainer) container).tile.getHandler().orElse(new ItemStackHandler(0)));
-                        //((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());
+                        ((InventoryNodeContainer) container).tile.getControllerTE().checkInvNode(((InventoryNodeContainer) container).tile.getPos());
                     }
                 }
             });

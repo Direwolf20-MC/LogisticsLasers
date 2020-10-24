@@ -11,11 +11,13 @@
   "item.logisticslasers.card_extractor": "Extractor Module",
   "item.logisticslasers.card_inserter": "Inserter Module",
   "item.logisticslasers.card_inserter_mod": "Mod Inserter Module",
+  "item.logisticslasers.card_inserter_tag": "Tag Inserter Module",
   "item.logisticslasers.card_polymorph": "Polymorph Module",
   "item.logisticslasers.card_provider": "Provider Module",
   "item.logisticslasers.card_stocker": "Stocker Module",
   "item.logisticslasers.polyfilterscreen": "Polymorph Filter",
   "item.logisticslasers.stockerfilterscreen": "Stocker Filter",
+  "item.logisticslasers.tagfilterscreen": "Tag Filter",
   "item.logisticslasers.wrench": "Laser Wrench",
   "message.logisticslasers.connectionfailed": "Connection failed to: %d",
   "message.logisticslasers.connectionmade": "Connection made to: %d",
@@ -26,6 +28,7 @@
   "screen.logisticslasers.clear": "Clear",
   "screen.logisticslasers.energy": "Energy: %s/%s FE",
   "screen.logisticslasers.refresh": "Refresh",
+  "screen.logisticslasers.remove": "Remove",
   "screen.logisticslasers.request": "Request",
   "screen.logisticslasers.set": "Set"
 }

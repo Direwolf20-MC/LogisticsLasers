@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
@@ -13,27 +14,36 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.Supplier;
 
-public class PacketPolymorphAdd {
+public class PacketButtonSetOrRemove {
     private int slotNumber;
     private BlockPos sourcePos;
+    private String tag;
 
-    public PacketPolymorphAdd(int slotNumber, BlockPos pos) {
+    public PacketButtonSetOrRemove(int slotNumber, BlockPos pos) {
         this.slotNumber = slotNumber;
         this.sourcePos = pos;
+        this.tag = "";
     }
 
-    public static void encode(PacketPolymorphAdd msg, PacketBuffer buffer) {
+    public PacketButtonSetOrRemove(int slotNumber, BlockPos pos, String tag) {
+        this.slotNumber = slotNumber;
+        this.sourcePos = pos;
+        this.tag = tag;
+    }
+
+    public static void encode(PacketButtonSetOrRemove msg, PacketBuffer buffer) {
         buffer.writeInt(msg.slotNumber);
         buffer.writeBlockPos(msg.sourcePos);
+        buffer.writeString(msg.tag);
     }
 
-    public static PacketPolymorphAdd decode(PacketBuffer buffer) {
-        return new PacketPolymorphAdd(buffer.readInt(), buffer.readBlockPos());
+    public static PacketButtonSetOrRemove decode(PacketBuffer buffer) {
+        return new PacketButtonSetOrRemove(buffer.readInt(), buffer.readBlockPos(), buffer.readString());
 
     }
 
     public static class Handler {
-        public static void handle(PacketPolymorphAdd msg, Supplier<NetworkEvent.Context> ctx) {
+        public static void handle(PacketButtonSetOrRemove msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
                 ServerPlayerEntity sender = ctx.get().getSender();
                 if (sender == null)
@@ -48,8 +58,10 @@ public class PacketPolymorphAdd {
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     if (container instanceof InventoryNodeContainer) {
-                        CardPolymorph.addContainerToList(itemStack, ((InventoryNodeContainer) container).tile.getHandler().orElse(new ItemStackHandler(0)));
+                        CardPolymorph.setListFromContainer(itemStack, ((InventoryNodeContainer) container).tile.getHandler().orElse(new ItemStackHandler(0)));
                     }
+                } else if (itemStack.getItem() instanceof CardInserterTag) {
+                    CardInserterTag.removeTag(itemStack, msg.tag);
                 }
             });
 

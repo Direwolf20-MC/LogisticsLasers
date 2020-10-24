@@ -40,11 +40,11 @@ public class PacketHandler {
         registerMessage(PacketRequestGridMissing.class, PacketRequestGridMissing::encode, PacketRequestGridMissing::decode, PacketRequestGridMissing.Handler::handle);
         registerMessage(PacketItemCountsRefresh.class, PacketItemCountsRefresh::encode, PacketItemCountsRefresh::decode, PacketItemCountsRefresh.Handler::handle);
         registerMessage(PacketSortStackFromCrafter.class, PacketSortStackFromCrafter::encode, PacketSortStackFromCrafter::decode, PacketSortStackFromCrafter.Handler::handle);
-        registerMessage(PacketPolymorphClear.class, PacketPolymorphClear::encode, PacketPolymorphClear::decode, PacketPolymorphClear.Handler::handle);
-        registerMessage(PacketPolymorphSet.class, PacketPolymorphSet::encode, PacketPolymorphSet::decode, PacketPolymorphSet.Handler::handle);
+        registerMessage(PacketButtonClear.class, PacketButtonClear::encode, PacketButtonClear::decode, PacketButtonClear.Handler::handle);
+        registerMessage(PacketButtonSetOrRemove.class, PacketButtonSetOrRemove::encode, PacketButtonSetOrRemove::decode, PacketButtonSetOrRemove.Handler::handle);
         registerMessage(PacketPolymorphPriority.class, PacketPolymorphPriority::encode, PacketPolymorphPriority::decode, PacketPolymorphPriority.Handler::handle);
-        registerMessage(PacketPolymorphApply.class, PacketPolymorphApply::encode, PacketPolymorphApply::decode, PacketPolymorphApply.Handler::handle);
-        registerMessage(PacketPolymorphAdd.class, PacketPolymorphAdd::encode, PacketPolymorphAdd::decode, PacketPolymorphAdd.Handler::handle);
+        registerMessage(PacketCardApply.class, PacketCardApply::encode, PacketCardApply::decode, PacketCardApply.Handler::handle);
+        registerMessage(PacketButtonAdd.class, PacketButtonAdd::encode, PacketButtonAdd::decode, PacketButtonAdd.Handler::handle);
         registerMessage(PacketToggleNBTFilter.class, PacketToggleNBTFilter::encode, PacketToggleNBTFilter::decode, PacketToggleNBTFilter.Handler::handle);
         registerMessage(PacketChangeExtractAmt.class, PacketChangeExtractAmt::encode, PacketChangeExtractAmt::decode, PacketChangeExtractAmt.Handler::handle);
 

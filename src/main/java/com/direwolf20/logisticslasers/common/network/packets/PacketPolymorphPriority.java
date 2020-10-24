@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
@@ -49,7 +50,7 @@ public class PacketPolymorphPriority {
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
                 ItemStack itemStack = slot.getStack();
 
-                if (itemStack.getItem() instanceof CardPolymorph) {
+                if (itemStack.getItem() instanceof CardPolymorph || itemStack.getItem() instanceof CardInserterTag) {
                     if (container instanceof InventoryNodeContainer) {
                         BaseCard.setPriority(itemStack, BaseCard.getPriority(itemStack) + msg.change);
                     }

@@ -12,4 +12,12 @@ public class ModScreens {
     public static void openPolymorphScreen(ItemStack itemstack, BlockPos pos, int slot) {
         Minecraft.getInstance().displayGuiScreen(new PolymorphScreen(itemstack, pos, slot));
     }
+
+    public static void openInsertTagScreen(ItemStack itemstack) {
+        Minecraft.getInstance().displayGuiScreen(new InserterTagScreen(itemstack));
+    }
+
+    public static void openInsertTagScreen(ItemStack itemstack, BlockPos pos, int slot) {
+        Minecraft.getInstance().displayGuiScreen(new InserterTagScreen(itemstack, pos, slot));
+    }
 }

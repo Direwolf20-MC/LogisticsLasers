@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.client.screens.ModScreens;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardStocker;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -58,6 +59,8 @@ public class PacketOpenFilter {
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     ModScreens.openPolymorphScreen(itemStack, msg.sourcePos, msg.slotNumber);
+                } else if (itemStack.getItem() instanceof CardInserterTag) {
+                    ModScreens.openInsertTagScreen(itemStack, msg.sourcePos, msg.slotNumber);
                 } else {
                     ItemStackHandler handler = getInventory(itemStack);
                     IIntArray tempArray = new IIntArray() {
