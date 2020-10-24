@@ -16,6 +16,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -51,6 +52,7 @@ public class PolymorphScreen extends Screen {
         super(new StringTextComponent("title"));
         card = stack;
         sourceContainer = BlockPos.ZERO;
+        cardSlot = -1;
     }
 
     public PolymorphScreen(ItemStack stack, BlockPos sourceContainerPos, int sourceContainerSlot) {
@@ -73,13 +75,11 @@ public class PolymorphScreen extends Screen {
 
         Button plusPriority;
         leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 15, 15, 10, new StringTextComponent("+"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
+            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
         }));
         Button minusPriority;
         leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 15, 15, 10, new StringTextComponent("-"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
+            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
@@ -96,8 +96,7 @@ public class PolymorphScreen extends Screen {
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 110, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+            PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
@@ -132,9 +131,6 @@ public class PolymorphScreen extends Screen {
         stack.pop();
 
         ArrayList<ItemStack> filterStacks = CardPolymorph.getListFromCard(card);
-        int totalItems = filterStacks.size();
-        int itemsPerRow = 9;
-        int rows = (int) Math.ceil((double) totalItems / (double) itemsPerRow);
         int maxRows = 9;
 
         if (filterStacks.isEmpty()) return;
@@ -168,9 +164,6 @@ public class PolymorphScreen extends Screen {
 
             itemRenderer.zLevel = 0;
 
-
-            //font.drawStringWithShadow(stack, MagicHelpers.withSuffix(count), 19 - font.getStringWidth(MagicHelpers.withSuffix(count)) * 0.65f, 18, TextFormatting.WHITE.getColor());
-
             stack.pop();
 
             if (MiscTools.inBounds(x, y, 18, 18, mouseX, mouseY)) {
@@ -185,26 +178,6 @@ public class PolymorphScreen extends Screen {
                 RenderSystem.colorMask(true, true, true, true);
                 stack.pop();
             }
-
-            /*if (slot == selectedSlot) {
-                color = 0xFFFF0000;
-
-                stack.push();
-                RenderSystem.disableLighting();
-                RenderSystem.disableDepthTest();
-                RenderSystem.colorMask(true, true, true, false);
-
-                int x1 = x + 18;
-                int y1 = y + 18;
-                hLine(stack, x - 1, x1 - 1, y - 1, color);
-                hLine(stack, x - 1, x1 - 1, y1 - 1, color);
-                vLine(stack, x - 1, y - 1, y1 - 1, color);
-                vLine(stack, x1 - 1, y - 1, y1 - 1, color);
-
-                RenderSystem.colorMask(true, true, true, true);
-                stack.pop();
-            }*/
-
 
             slot++;
         }
@@ -233,6 +206,16 @@ public class PolymorphScreen extends Screen {
         if (!sourceContainer.equals(BlockPos.ZERO))
             PacketHandler.sendToServer(new PacketCardApply(cardSlot, sourceContainer)); //Notify controller of changes to this card
         super.onClose();
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        InputMappings.Input mouseKey = InputMappings.getInputByCode(keyCode, scanCode);
+        if (this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(mouseKey)) {
+            closeScreen();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private static TranslationTextComponent getTrans(String key, Object... args) {

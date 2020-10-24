@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -50,11 +51,16 @@ public class PacketButtonAdd {
                     return;
 
                 Container container = sender.openContainer;
-                if (container == null)
-                    return;
 
-                Slot slot = container.inventorySlots.get(msg.slotNumber);
-                ItemStack itemStack = slot.getStack();
+                ItemStack itemStack;
+                if (msg.slotNumber == -1) {
+                    itemStack = sender.getHeldItemMainhand();
+                    if (!(itemStack.getItem() instanceof BaseCard))
+                        itemStack = sender.getHeldItemOffhand();
+                } else {
+                    Slot slot = container.inventorySlots.get(msg.slotNumber);
+                    itemStack = slot.getStack();
+                }
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     if (container instanceof InventoryNodeContainer) {

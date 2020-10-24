@@ -53,6 +53,7 @@ public class InserterTagScreen extends Screen {
         card = stack;
         sourceContainer = BlockPos.ZERO;
         isWhitelist = BaseCard.getWhiteList(card);
+        cardSlot = -1;
     }
 
     public InserterTagScreen(ItemStack stack, BlockPos sourceContainerPos, int sourceContainerSlot) {
@@ -76,13 +77,11 @@ public class InserterTagScreen extends Screen {
 
         Button plusPriority;
         leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 15, 15, 10, new StringTextComponent("+"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
+            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
         }));
         Button minusPriority;
         leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 15, 15, 10, new StringTextComponent("-"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
+            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
@@ -94,22 +93,20 @@ public class InserterTagScreen extends Screen {
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 40, 10, new TranslationTextComponent("screen.logisticslasers.remove"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO) && selectedSlot != -1) {
+            if (selectedSlot != -1) {
                 PacketHandler.sendToServer(new PacketButtonSetOrRemove(cardSlot, sourceContainer, displayTags.get(selectedSlot)));
                 selectedSlot = -1;
             }
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 130, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO)) {
-                PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
-                selectedSlot = -1;
-                page = 0;
-            }
+            PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+            selectedSlot = -1;
+            page = 0;
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO) && !tagField.getText().isEmpty()) {
+            if (!tagField.getText().isEmpty()) {
                 PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase()));
                 tagField.setText("");
             }
@@ -163,7 +160,7 @@ public class InserterTagScreen extends Screen {
         int slot = 0;
         overSlot = -1;
         for (String tag : displayTags) {
-            Minecraft.getInstance().fontRenderer.drawString(stack, tag, availableItemsstartX, tagStartY, Color.RED.getRGB());
+            Minecraft.getInstance().fontRenderer.drawString(stack, tag, availableItemsstartX, tagStartY, Color.BLUE.getRGB());
             //int x = availableItemsstartX;
             //int y = availableItemstartY + row * 18;
 
@@ -260,10 +257,16 @@ public class InserterTagScreen extends Screen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         InputMappings.Input mouseKey = InputMappings.getInputByCode(keyCode, scanCode);
-        if (tagField.isFocused() && this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(mouseKey))
-            return true;
-        if (tagField.isFocused() && keyCode == 257) { //enter key
-            if (!sourceContainer.equals(BlockPos.ZERO) && !tagField.getText().isEmpty()) {
+        if (this.minecraft.gameSettings.keyBindInventory.isActiveAndMatches(mouseKey)) {
+            if (tagField.isFocused())
+                return true;
+            else {
+                closeScreen();
+                return true;
+            }
+        }
+        if (tagField.isFocused() && (keyCode == 257 || keyCode == 335)) { //enter key
+            if (!tagField.getText().isEmpty()) {
                 PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase()));
                 tagField.setText("");
             }
