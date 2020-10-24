@@ -76,7 +76,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final HashMap<BlockPos, ArrayList<ItemStack>> stockerCache = new HashMap<>(); //A cache of all stocker requests
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
-    private Object2IntMap<BlockPos> stockerSlot = new Object2IntOpenHashMap<>(); //Used to track which stocker item an inventory node is currently working on.
     private Table<BlockPos, ItemStackKey, Integer> extractorAmounts = HashBasedTable.create();
 
 
@@ -615,17 +614,6 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             invNodeSlot.put(fromPos, currentSlot + 1);
     }
 
-    /**
-     * Increment the current processing slot for the @param fromPos stocker node, up to @param max
-     */
-    public void incrementStockerSlot(BlockPos fromPos, int max) {
-        int currentSlot = stockerSlot.getOrDefault(fromPos, 0);
-        if (currentSlot + 1 >= max)
-            stockerSlot.put(fromPos, 0);
-        else
-            stockerSlot.put(fromPos, currentSlot + 1);
-    }
-
     public boolean canExtractItemFromPos(ItemStack itemStack, BlockPos fromPos) {
         ItemStackKey key = new ItemStackKey(itemStack);
         if (extractorCache.containsKey(key)) {
@@ -648,12 +636,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     /**
      * Attempts to extract an item from the current processing slot in the @param fromPos inventory
      * If successful - do not increment current processing slot, if not ++
-     *
-     * @return if an item was extracted.
      */
-    public boolean attemptExtract(BlockPos fromPos) {
+    public void attemptExtract(BlockPos fromPos) {
         IItemHandler sourceitemHandler = getAttachedInventory(fromPos); //Get the inventory handler of the block the inventory node is facing
-        if (sourceitemHandler == null) return false; //If its empty, return false
+        if (sourceitemHandler == null) return; //If its empty, return false
 
         int slot = invNodeSlot.getOrDefault(fromPos, 0);
         ItemStack stackInSlot = sourceitemHandler.getStackInSlot(slot);
@@ -661,66 +647,59 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (canExtractItemFromPos(stackInSlot, fromPos)) {
                 int extractAmt = Math.min(extractorAmounts.get(fromPos, new ItemStackKey(stackInSlot)), stackInSlot.getCount());
                 ItemStack stack = sourceitemHandler.extractItem(slot, extractAmt, true); //Pretend to remove the x items from the stack we found
-                //System.out.println("Extracting " + stack.getCount() + " " + stack.getItem() + "from " + fromPos);
                 if (!stack.isEmpty())
                     if (extractItemFromPos(stack, fromPos, slot) < extractAmt) //if we extracted SOMETHING
-                        return true;
+                        return;
             }
         }
         incrementInvNodeSlot(fromPos, sourceitemHandler.getSlots());
-        return false;
     }
 
-    public boolean attemptStock(BlockPos stockerPos) {
+    /**
+     * Attempts to satisfy all stocker cards at a specific location @param stockerPos
+     */
+    public void attemptStock(BlockPos stockerPos) {
         IItemHandler stockerItemHandler = getAttachedInventory(stockerPos); //Get the inventory handler of the block the stocker's inventory node is facing
-        if (stockerItemHandler == null) return false; //If its empty, move onto the next stocker
+        if (stockerItemHandler == null) return; //If its empty, move onto the next stocker
 
-        ArrayList<ItemStack> tempArray = new ArrayList(findStockersForPos(stockerPos)); //Get the list of items to keep in stock for this node
-        if (tempArray.isEmpty()) return false; //If nothing to stock, move onto the next one!
+        ArrayList<ItemStack> stockerList = new ArrayList(findStockersForPos(stockerPos)); //Get the list of items to keep in stock for this node
+        if (stockerList.isEmpty()) return; //If nothing to stock, move onto the next one!
 
         ItemHandlerUtil.InventoryCounts invCache = new ItemHandlerUtil.InventoryCounts(stockerItemHandler); //Get a count of all itemstacks in this inventory
 
-        int slot = stockerSlot.getOrDefault(stockerPos, 0); //Which item in the list of stockerItems we are working on this time around
-        if (slot >= tempArray.size()) slot = 0;
-        ItemStack item = tempArray.get(slot); //The item stack itself
+        for (ItemStack item : stockerList) {
+            //First check if the stocker is satisfied, including stacks 'in flight'
+            int countOfItem = invCache.getCount(item); //How many items are currently in the inventory
+            int desiredAmt = item.getCount(); //How many we want
+            if (countOfItem >= desiredAmt) { //Compare what we want to the itemstack cache, if we have enough go to next item
+                continue;
+            }
 
-        //First check if the stocker is satisfied, including stacks 'in flight'
-        int countOfItem = invCache.getCount(item); //How many items are currently in the inventory
-        int desiredAmt = item.getCount(); //How many we want
-        if (countOfItem >= desiredAmt) { //Compare what we want to the itemstack cache, if we have enough go to next item
-            incrementStockerSlot(stockerPos, findStockersForPos(stockerPos).size());
-            return false;
-        }
+            countOfItem += countItemsInFlight(item, stockerPos); //Count the items in flight to this destination
+            if (countOfItem >= desiredAmt) { //We're done checking for this item if we found enough of the item including items in flight, move onto next item
+                continue;
+            }
 
-        countOfItem += countItemsInFlight(item, stockerPos); //Count the items in flight to this destination
-        if (countOfItem >= desiredAmt) { //We're done checking for this item if we found enough of the item including items in flight, move onto next item
-            incrementStockerSlot(stockerPos, findStockersForPos(stockerPos).size());
-            return false;
-        }
+            //Doing this rather than copying.
+            int extractAmt = item.getCount() - countOfItem; //How many items we need to fulfill this stocker
+            int stockerCount = item.getCount(); //Store the size of the stocker stack for re-applying later
+            item.setCount(extractAmt); //Set the size of the stocker stack, rather than copying it
 
-        //Doing this rather than copying.
-        int extractAmt = item.getCount() - countOfItem;
-        int stockerCount = item.getCount();
-        //ItemStack stack = item.copy();
-        item.setCount(extractAmt);
+            //Before we even look for the item to insert, lets see if it'll fit here first!
+            int count = testInsertToInventory(stockerItemHandler, stockerPos, item);
+            if (count == 0) { //If we can't fit any items in here, nope out!
+                item.setCount(stockerCount);
+                continue;
+            }
+            if (count < item.getCount())
+                item.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
 
-        //Before we even look for the item to insert, lets see if it'll fit here first!
-        int count = testInsertToInventory(stockerItemHandler, stockerPos, item);
-        if (count == 0) { //If we can't fit any items in here, nope out!
-            incrementStockerSlot(stockerPos, findStockersForPos(stockerPos).size());
+            if (!(provideItemStacksToPos(item, stockerPos).getCount() == 0)) {//If we couldn't find any items
+                item.setCount(stockerCount);
+                continue;
+            }
             item.setCount(stockerCount);
-            return false;
         }
-        if (count < item.getCount())
-            item.setCount(count); //If we can only fit 8 items, but were trying to get 16, adjust to 8
-
-        if (!(provideItemStacksToPos(item, stockerPos).getCount() == 0)) {//If we couldn't find any items
-            incrementStockerSlot(stockerPos, findStockersForPos(stockerPos).size());
-            item.setCount(stockerCount);
-            return false;
-        }
-        item.setCount(stockerCount);
-        return true; //Don't increment the stockerSlot - this keeps stocking the same item until its satisfied, then moves onto the next
     }
 
     public void handleInternalInventory() {
@@ -1009,8 +988,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 refreshAllInvNodes();
             handleInternalInventory();
             handleExtractors();
-            if (world.getGameTime() % 20 == 0)
-                handleStockers(); //Stocking is somewhat expensive operation, so only do it once a second, rather than once a tick.
+            if (world.getGameTime() % 100 == 0)
+                handleStockers(); //Stocking is somewhat expensive operation, so only do it every 5 seconds, rather than once a tick.
             handleTasks();
         }
     }
