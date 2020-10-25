@@ -1,16 +1,22 @@
 package com.direwolf20.logisticslasers.common.items.logiccards;
 
-import com.direwolf20.logisticslasers.client.screens.ModScreens;
+import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
+import net.minecraft.util.IIntArray;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +31,34 @@ public class CardInserterTag extends CardInserter {
     public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity player, Hand hand) {
         ItemStack itemStack = player.getHeldItem(hand);
         if (world.isRemote) return new ActionResult<>(ActionResultType.PASS, itemStack);
-        ModScreens.openInsertTagScreen(itemStack);
+        ItemStackHandler handler = getInventory(itemStack);
+        IIntArray tempArray = new IIntArray() {
+            @Override
+            public int get(int index) {
+                switch (index) {
+                    case 0:
+                        return getPriority(itemStack);
+                    case 1:
+                        return getExtractAmt(itemStack);
+                    default:
+                        throw new IllegalArgumentException("Invalid index: " + index);
+                }
+            }
+
+            @Override
+            public void set(int index, int value) {
+                throw new IllegalStateException("Cannot set values through IIntArray");
+            }
+
+            @Override
+            public int size() {
+                return 2;
+            }
+        };
+        NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
+                (windowId, playerInventory, playerEntity) -> new TagFilterContainer(itemStack, windowId, playerInventory, handler, tempArray), new StringTextComponent("")), (buf -> {
+            buf.writeItemStack(itemStack);
+        }));
         return new ActionResult<>(ActionResultType.PASS, itemStack);
     }
 

@@ -1,5 +1,6 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
+import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
@@ -39,15 +40,19 @@ public class PacketToggleWhitelist {
                 Container container = sender.openContainer;
 
                 ItemStack itemStack;
-                if (msg.slotNumber == -1) {
-                    itemStack = sender.getHeldItemMainhand();
-                    if (!(itemStack.getItem() instanceof BaseCard))
-                        itemStack = sender.getHeldItemOffhand();
-                } else {
-                    Slot slot = container.inventorySlots.get(msg.slotNumber);
-                    itemStack = slot.getStack();
-                }
 
+                if (container instanceof TagFilterContainer) {
+                    itemStack = ((TagFilterContainer) container).filterItemStack;
+                } else {
+                    if (msg.slotNumber == -1) {
+                        itemStack = sender.getHeldItemMainhand();
+                        if (!(itemStack.getItem() instanceof BaseCard))
+                            itemStack = sender.getHeldItemOffhand();
+                    } else {
+                        Slot slot = container.inventorySlots.get(msg.slotNumber);
+                        itemStack = slot.getStack();
+                    }
+                }
                 if (itemStack.getItem() instanceof BaseCard) {
                     BaseCard.setWhiteList(itemStack, !BaseCard.getWhiteList(itemStack));
                 }

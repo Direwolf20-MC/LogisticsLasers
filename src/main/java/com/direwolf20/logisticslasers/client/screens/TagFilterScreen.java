@@ -3,6 +3,8 @@ package com.direwolf20.logisticslasers.client.screens;
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
 import com.direwolf20.logisticslasers.client.screens.widgets.WhiteListButton;
+import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
+import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
@@ -12,15 +14,17 @@ import com.direwolf20.logisticslasers.common.util.MiscTools;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.InputMappings;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -28,14 +32,15 @@ import net.minecraft.util.text.TranslationTextComponent;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class InserterTagScreen extends Screen {
-    private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/polymorphscreen.png");
+public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
+    private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/tagfilterscreen.png");
 
     int guiLeft;
     int guiTop;
-    protected int xSize = 176;
-    protected int ySize = 166;
+    protected int xSize = 200;
+    protected int ySize = 254;
     private TextFieldWidget tagField;
     private int page = 0;
     private int maxPages = 0;
@@ -48,20 +53,12 @@ public class InserterTagScreen extends Screen {
     int cardSlot;
     public BlockPos sourceContainer;
 
-    public InserterTagScreen(ItemStack stack) {
-        super(new StringTextComponent("title"));
-        card = stack;
-        sourceContainer = BlockPos.ZERO;
+    public TagFilterScreen(TagFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
+        super(container, playerInventory, title);
+        card = container.filterItemStack;
+        sourceContainer = container.sourceContainer;
         isWhitelist = BaseCard.getWhiteList(card);
         cardSlot = -1;
-    }
-
-    public InserterTagScreen(ItemStack stack, BlockPos sourceContainerPos, int sourceContainerSlot) {
-        super(new StringTextComponent("title"));
-        card = stack;
-        sourceContainer = sourceContainerPos;
-        cardSlot = sourceContainerSlot;
-        isWhitelist = BaseCard.getWhiteList(card);
     }
 
     public ResourceLocation getBackground() {
@@ -77,11 +74,11 @@ public class InserterTagScreen extends Screen {
 
         Button plusPriority;
         leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 15, 15, 10, new StringTextComponent("+"), (button) -> {
-            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
+            PacketHandler.sendToServer(new PacketChangePriority(1));
         }));
         Button minusPriority;
         leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 15, 15, 10, new StringTextComponent("-"), (button) -> {
-            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
+            PacketHandler.sendToServer(new PacketChangePriority(-1));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
@@ -95,20 +92,31 @@ public class InserterTagScreen extends Screen {
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 40, 10, new TranslationTextComponent("screen.logisticslasers.remove"), (button) -> {
             if (selectedSlot != -1) {
                 PacketHandler.sendToServer(new PacketButtonSetOrRemove(cardSlot, sourceContainer, displayTags.get(selectedSlot)));
+                CardInserterTag.removeTag(card, displayTags.get(selectedSlot));
                 selectedSlot = -1;
             }
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 130, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
             PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+            CardInserterTag.clearTags(card);
             selectedSlot = -1;
             page = 0;
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
             if (!tagField.getText().isEmpty()) {
-                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase()));
+                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase(Locale.ROOT)));
+                CardInserterTag.addTag(card, tagField.getText().toLowerCase(Locale.ROOT));
                 tagField.setText("");
+            } else {
+                if (!container.handler.getStackInSlot(0).isEmpty()) {
+                    ItemStack stack = container.handler.getStackInSlot(0);
+                    for (ResourceLocation res : stack.getItem().getTags()) {
+                        PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, res.toString().toLowerCase(Locale.ROOT)));
+                        CardInserterTag.addTag(card, res.toString().toLowerCase(Locale.ROOT));
+                    }
+                }
             }
         }));
 
@@ -119,7 +127,7 @@ public class InserterTagScreen extends Screen {
         leftWidgets.add(blackwhitelist = new WhiteListButton(guiLeft + 110, guiTop + 3, 10, 10, isWhitelist, (button) -> {
             isWhitelist = !isWhitelist;
             ((WhiteListButton) button).setWhitelist(isWhitelist);
-            PacketHandler.sendToServer(new PacketToggleWhitelist(cardSlot));
+            PacketHandler.sendToServer(new PacketToggleWhitelist());
         }));
 
 
@@ -132,8 +140,7 @@ public class InserterTagScreen extends Screen {
 
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(stack);
-        drawGuiContainerForegroundLayer(stack);
+        this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
 
         int availableItemsstartX = guiLeft + 7;
@@ -201,17 +208,26 @@ public class InserterTagScreen extends Screen {
         }
     }
 
-    @Override
+    /*@Override
     public void renderBackground(MatrixStack stack) {
+        RenderSystem.color4f(1, 1, 1, 1);
+        getMinecraft().getTextureManager().bindTexture(getBackground());
+        this.blit(stack, guiLeft, guiTop, 0, 0, xSize, ySize);
+    }*/
+
+    @Override
+    protected void drawGuiContainerBackgroundLayer(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.color4f(1, 1, 1, 1);
         getMinecraft().getTextureManager().bindTexture(getBackground());
         this.blit(stack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
-    protected void drawGuiContainerForegroundLayer(MatrixStack stack) {
-        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.tagfilterscreen"), guiLeft + 50, guiTop + 5, Color.DARK_GRAY.getRGB());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), guiLeft + 3, guiTop + 5, Color.DARK_GRAY.getRGB());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + BaseCard.getPriority(card)).getString(), guiLeft + 18, guiTop + 15, Color.DARK_GRAY.getRGB());
+    @Override
+    protected void drawGuiContainerForegroundLayer(MatrixStack stack, int x, int y) {
+        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.tagfilterscreen"), 40, -40, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), -7, -40, Color.DARK_GRAY.getRGB());
+        String priority = Integer.toString(container.getPriority());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 8, -27, Color.DARK_GRAY.getRGB());
     }
 
     @Override
@@ -241,16 +257,30 @@ public class InserterTagScreen extends Screen {
             return true;
         }
 
+        if (hoveredSlot instanceof BasicFilterSlot) {
+            // By splitting the stack we can get air easily :) perfect removal basically
+            ItemStack stack = getMinecraft().player.inventory.getItemStack();
+            stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
+            hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
+
+            PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseReleased(double x, double y, int btn) {
+        if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
+            return super.mouseReleased(x, y, btn);
+
         return true;
     }
 
     @Override
     public boolean mouseScrolled(double x, double y, double amt) {
+        if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
+            return super.mouseScrolled(x, y, amt);
+
         return true;
     }
 
@@ -267,7 +297,8 @@ public class InserterTagScreen extends Screen {
         }
         if (tagField.isFocused() && (keyCode == 257 || keyCode == 335)) { //enter key
             if (!tagField.getText().isEmpty()) {
-                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase()));
+                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase(Locale.ROOT)));
+                CardInserterTag.addTag(card, tagField.getText().toLowerCase(Locale.ROOT));
                 tagField.setText("");
             }
         }

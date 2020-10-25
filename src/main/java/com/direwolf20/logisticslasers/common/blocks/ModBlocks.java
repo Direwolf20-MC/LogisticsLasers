@@ -6,6 +6,7 @@ import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import com.direwolf20.logisticslasers.common.tiles.CraftingStationTile;
@@ -52,6 +53,7 @@ public class ModBlocks {
     public static final RegistryObject<ContainerType<ControllerContainer>> CONTROLLER_CONTAINER = CONTAINERS.register("controller_container", () -> IForgeContainerType.create(ControllerContainer::new));
     public static final RegistryObject<ContainerType<InventoryNodeContainer>> INVENTORY_NODE_CONTAINER = CONTAINERS.register("inventory_node_container", () -> IForgeContainerType.create(InventoryNodeContainer::new));
     public static final RegistryObject<ContainerType<BasicFilterContainer>> BASIC_FILTER_CONTAINER = CONTAINERS.register("basic_filter_container", () -> IForgeContainerType.create(BasicFilterContainer::new));
+    public static final RegistryObject<ContainerType<TagFilterContainer>> TAG_FILTER_CONTAINER = CONTAINERS.register("tag_filter_container", () -> IForgeContainerType.create(TagFilterContainer::new));
     public static final RegistryObject<ContainerType<StockerFilterContainer>> STOCKER_FILTER_CONTAINER = CONTAINERS.register("stocker_filter_container", () -> IForgeContainerType.create(StockerFilterContainer::new));
     public static final RegistryObject<ContainerType<CraftingStationContainer>> CRAFTING_STATION_CONTAINER = CONTAINERS.register("crafting_station_container", () -> IForgeContainerType.create(CraftingStationContainer::new));
 }

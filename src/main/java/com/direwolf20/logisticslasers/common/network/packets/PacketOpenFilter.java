@@ -3,6 +3,7 @@ package com.direwolf20.logisticslasers.common.network.packets;
 import com.direwolf20.logisticslasers.client.screens.ModScreens;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
@@ -59,8 +60,6 @@ public class PacketOpenFilter {
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     ModScreens.openPolymorphScreen(itemStack, msg.sourcePos, msg.slotNumber);
-                } else if (itemStack.getItem() instanceof CardInserterTag) {
-                    ModScreens.openInsertTagScreen(itemStack, msg.sourcePos, msg.slotNumber);
                 } else {
                     ItemStackHandler handler = getInventory(itemStack);
                     IIntArray tempArray = new IIntArray() {
@@ -89,6 +88,11 @@ public class PacketOpenFilter {
                     if (itemStack.getItem() instanceof CardStocker) {
                         NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
                                 (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                            buf.writeItemStack(itemStack);
+                        }));
+                    } else if (itemStack.getItem() instanceof CardInserterTag) {
+                        NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                                (windowId, playerInventory, playerEntity) -> new TagFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
                             buf.writeItemStack(itemStack);
                         }));
                     } else {

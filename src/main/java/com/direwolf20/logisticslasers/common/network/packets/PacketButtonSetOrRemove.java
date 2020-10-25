@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
@@ -53,15 +54,19 @@ public class PacketButtonSetOrRemove {
                 Container container = sender.openContainer;
 
                 ItemStack itemStack;
-                if (msg.slotNumber == -1) {
-                    itemStack = sender.getHeldItemMainhand();
-                    if (!(itemStack.getItem() instanceof BaseCard))
-                        itemStack = sender.getHeldItemOffhand();
-                } else {
-                    Slot slot = container.inventorySlots.get(msg.slotNumber);
-                    itemStack = slot.getStack();
-                }
 
+                if (container instanceof TagFilterContainer) {
+                    itemStack = ((TagFilterContainer) container).filterItemStack;
+                } else {
+                    if (msg.slotNumber == -1) {
+                        itemStack = sender.getHeldItemMainhand();
+                        if (!(itemStack.getItem() instanceof BaseCard))
+                            itemStack = sender.getHeldItemOffhand();
+                    } else {
+                        Slot slot = container.inventorySlots.get(msg.slotNumber);
+                        itemStack = slot.getStack();
+                    }
+                }
                 if (itemStack.getItem() instanceof CardPolymorph) {
                     if (container instanceof InventoryNodeContainer) {
                         CardPolymorph.setListFromContainer(itemStack, ((InventoryNodeContainer) container).tile.getHandler().orElse(new ItemStackHandler(0)));

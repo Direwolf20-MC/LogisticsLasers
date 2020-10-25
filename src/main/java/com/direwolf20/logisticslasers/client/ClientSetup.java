@@ -3,6 +3,7 @@ package com.direwolf20.logisticslasers.client;
 import com.direwolf20.logisticslasers.client.screens.ControllerScreen;
 import com.direwolf20.logisticslasers.client.screens.CraftingStationScreen;
 import com.direwolf20.logisticslasers.client.screens.InventoryNodeScreen;
+import com.direwolf20.logisticslasers.client.screens.TagFilterScreen;
 import com.direwolf20.logisticslasers.client.screens.cards.BasicFilterScreen;
 import com.direwolf20.logisticslasers.client.screens.cards.StockerFilterScreen;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
@@ -29,6 +30,7 @@ public final class ClientSetup {
         ScreenManager.registerFactory(ModBlocks.BASIC_FILTER_CONTAINER.get(), BasicFilterScreen::new);
         ScreenManager.registerFactory(ModBlocks.STOCKER_FILTER_CONTAINER.get(), StockerFilterScreen::new);
         ScreenManager.registerFactory(ModBlocks.CRAFTING_STATION_CONTAINER.get(), CraftingStationScreen::new);
+        ScreenManager.registerFactory(ModBlocks.TAG_FILTER_CONTAINER.get(), TagFilterScreen::new);
     }
 
     /**
