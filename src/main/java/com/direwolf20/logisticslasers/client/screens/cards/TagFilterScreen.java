@@ -1,4 +1,4 @@
-package com.direwolf20.logisticslasers.client.screens;
+package com.direwolf20.logisticslasers.client.screens.cards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
