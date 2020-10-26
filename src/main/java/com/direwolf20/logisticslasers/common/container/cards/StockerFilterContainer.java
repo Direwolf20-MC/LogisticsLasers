@@ -2,17 +2,13 @@ package com.direwolf20.logisticslasers.common.container.cards;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
-import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIntArray;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
@@ -111,16 +107,6 @@ public class StockerFilterContainer extends BasicFilterContainer {
 
     @Override
     public void onContainerClosed(PlayerEntity playerIn) {
-        World world = playerIn.getEntityWorld();
-        if (!world.isRemote) {
-            BaseCard.setInventory(filterItemStack, handler);
-            if (!sourceContainer.equals(BlockPos.ZERO)) {
-                TileEntity te = world.getTileEntity(sourceContainer);
-                if (te instanceof InventoryNodeTile) {
-                    ((InventoryNodeTile) te).notifyControllerOfChanges();
-                }
-            }
-        }
         super.onContainerClosed(playerIn);
     }
 
