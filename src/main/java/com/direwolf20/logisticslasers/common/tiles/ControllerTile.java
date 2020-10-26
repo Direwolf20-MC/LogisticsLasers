@@ -77,7 +77,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
     private Table<BlockPos, ItemStackKey, Integer> extractorAmounts = HashBasedTable.create();
-
+    private boolean checkedNodes = false;
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -451,7 +451,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (inserterCache.containsKey(key)) {
             return inserterCache.get(key);
         }
-        System.out.println("Building Inserter Cache for: " + itemStack);
+        //System.out.println("Building Inserter Cache for: " + itemStack);
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (int priority : insertPriorities.keySet()) {
             for (BlockPos toPos : insertPriorities.get(priority)) { //If we found an item to transfer, start looping through the inserters
@@ -476,7 +476,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (providerCache.containsKey(key)) {
             return providerCache.get(key);
         }
-        System.out.println("Building Provider Cache for: " + itemStack);
+        //System.out.println("Building Provider Cache for: " + itemStack);
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (BlockPos toPos : providerNodes) { //Loop through all provider nodes
             for (ItemStack providerCard : getProviderFilters(toPos)) { //Loop through all the cached providerCards
@@ -496,7 +496,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     public ArrayList<ItemStack> findStockersForPos(BlockPos pos) {
         if (stockerCache.containsKey(pos))
             return stockerCache.get(pos);
-        System.out.println("Building Stocker Cache for: " + pos);
+        //System.out.println("Building Stocker Cache for: " + pos);
         ArrayList<ItemStack> tempArray = new ArrayList<>();
         for (ItemStack stockerCard : getStockerFilters(pos)) { //Loop through all the cached stockerCards
             tempArray.addAll(BaseCard.getFilteredItems(stockerCard)); //Get all the items we should be requesting
@@ -619,7 +619,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (extractorCache.containsKey(key)) {
             return extractorCache.get(key).contains(fromPos);
         }
-        System.out.println("Building Extractor Cache for: " + itemStack);
+        //System.out.println("Building Extractor Cache for: " + itemStack);
         ArrayList<BlockPos> tempArray = new ArrayList<>();
         for (BlockPos toPos : extractorNodes) { //Loop through all extractor nodes
             for (ItemStack extractorCard : getExtractFilters(toPos)) { //Loop through all the cached extractorCards
@@ -984,8 +984,10 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (!world.isRemote) {
             //System.out.println("I'm here!");
             energyStorage.receiveEnergy(1000, false); //Testing
-            if (inventoryNodes.size() > 0 && (extractorNodes.isEmpty() && inserterNodes.isEmpty() && providerNodes.isEmpty() && stockerNodes.isEmpty())) //Todo cleaner
+            if (!checkedNodes) {
                 refreshAllInvNodes();
+                checkedNodes = true;
+            }
             handleInternalInventory();
             handleExtractors();
             if (world.getGameTime() % 100 == 0)
