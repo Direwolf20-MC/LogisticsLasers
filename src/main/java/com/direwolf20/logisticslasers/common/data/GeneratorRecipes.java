@@ -1,10 +1,13 @@
 package com.direwolf20.logisticslasers.common.data;
 
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.IFinishedRecipe;
-import net.minecraft.data.RecipeProvider;
+import net.minecraft.data.*;
+import net.minecraft.item.Items;
+import net.minecraftforge.common.Tags;
 
 import java.util.function.Consumer;
+
+import static com.direwolf20.logisticslasers.common.items.ModItems.CARD_BLANK;
+import static com.direwolf20.logisticslasers.common.items.ModItems.CARD_EXTRACTOR;
 
 public class GeneratorRecipes extends RecipeProvider {
     public GeneratorRecipes(DataGenerator generator) {
@@ -19,6 +22,21 @@ public class GeneratorRecipes extends RecipeProvider {
      */
     @Override
     protected void registerRecipes(Consumer<IFinishedRecipe> consumer) {
-
+        ShapedRecipeBuilder.shapedRecipe(CARD_BLANK.get())
+                .key('g', Tags.Items.NUGGETS_GOLD)
+                .key('p', Items.PAPER)
+                .key('r', Tags.Items.DUSTS_REDSTONE)
+                .key('l', Tags.Items.GEMS_LAPIS)
+                .key('q', Tags.Items.GEMS_QUARTZ)
+                .patternLine("rlr")
+                .patternLine("qpq")
+                .patternLine("ggg")
+                .addCriterion("has_quartz", hasItem(Items.QUARTZ))
+                .build(consumer);
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_EXTRACTOR.get())
+                .addIngredient(Items.HOPPER)
+                .addIngredient(CARD_BLANK.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer);
     }
 }

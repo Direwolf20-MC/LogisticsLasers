@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rlr",
+    "qpq",
+    "ggg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "p": {
+      "item": "minecraft:paper"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "l": {
+      "tag": "forge:gems/lapis"
+    },
+    "q": {
+      "tag": "forge:gems/quartz"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:card_blank"
+  }
+}
