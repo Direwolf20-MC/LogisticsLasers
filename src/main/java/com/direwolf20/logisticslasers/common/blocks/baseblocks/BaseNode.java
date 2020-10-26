@@ -32,8 +32,8 @@ public class BaseNode extends Block {
             return ActionResultType.PASS;
 
         //player.sendStatusMessage(new TranslationTextComponent("message.logisticslasers.controllerat", ((NodeTileBase) te).getControllerPos()), true);
-        System.out.println("Connected Nodes: " + ((NodeTileBase) te).getConnectedNodes());
-        System.out.println("Controller: " + ((NodeTileBase) te).getControllerPos());
+        //System.out.println("Connected Nodes: " + ((NodeTileBase) te).getConnectedNodes());
+        //System.out.println("Controller: " + ((NodeTileBase) te).getControllerPos());
         return ActionResultType.SUCCESS;
     }
 
