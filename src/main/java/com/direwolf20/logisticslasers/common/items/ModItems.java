@@ -23,6 +23,8 @@ public class ModItems {
 
     // Items
     public static final RegistryObject<Item> WRENCH = BASICITEMS.register("wrench", Wrench::new);
+    public static final RegistryObject<Item> ROUTING_LOGIC_MODULE = BASICITEMS.register("routing_logic_module", RoutingLogicModule::new);
+    public static final RegistryObject<Item> CARD_BLANK = BASICITEMS.register("card_blank", CardBlank::new);
     public static final RegistryObject<Item> CARD_EXTRACTOR = BASICITEMS.register("card_extractor", CardExtractor::new);
     public static final RegistryObject<Item> CARD_INSERTER = BASICITEMS.register("card_inserter", CardInserter::new);
     public static final RegistryObject<Item> CARD_INSERTER_MOD = BASICITEMS.register("card_inserter_mod", CardInserterMod::new);

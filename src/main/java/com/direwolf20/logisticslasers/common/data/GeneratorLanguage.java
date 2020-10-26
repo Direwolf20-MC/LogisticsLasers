@@ -19,6 +19,8 @@ public class GeneratorLanguage extends LanguageProvider {
         addBlock(ModBlocks.INVENTORY_NODE, "Inventory Node");
 
         addItem(ModItems.WRENCH, "Laser Wrench");
+        addItem(ModItems.CARD_BLANK, "Blank Module");
+        addItem(ModItems.ROUTING_LOGIC_MODULE, "Routing Logic Module");
         addItem(ModItems.CARD_EXTRACTOR, "Extractor Module");
         addItem(ModItems.CARD_INSERTER, "Inserter Module");
         addItem(ModItems.CARD_INSERTER_MOD, "Mod Inserter Module");
