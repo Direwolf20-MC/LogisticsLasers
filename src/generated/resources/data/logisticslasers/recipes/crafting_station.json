@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "idi",
+    "rbr",
+    "iri"
+  ],
+  "key": {
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "b": {
+      "item": "logisticslasers:basicnode"
+    },
+    "i": {
+      "tag": "forge:ingots/iron"
+    },
+    "d": {
+      "item": "minecraft:crafting_table"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:crafting_station"
+  }
+}

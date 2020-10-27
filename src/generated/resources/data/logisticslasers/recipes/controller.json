@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gdg",
+    "dbd",
+    "gdg"
+  ],
+  "key": {
+    "b": {
+      "item": "logisticslasers:basicnode"
+    },
+    "g": {
+      "tag": "forge:ingots/gold"
+    },
+    "d": {
+      "tag": "forge:gems/diamond"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:controller"
+  }
+}

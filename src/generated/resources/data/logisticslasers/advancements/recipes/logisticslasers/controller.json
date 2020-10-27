@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "logisticslasers:controller"
+    ]
+  },
+  "criteria": {
+    "has_basic_node": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "logisticslasers:basicnode"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "logisticslasers:controller"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_basic_node",
+      "has_the_recipe"
+    ]
+  ]
+}

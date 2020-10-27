@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rgr",
+    "gbg",
+    "gcg"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:glass"
+    },
+    "b": {
+      "item": "logisticslasers:card_blank"
+    },
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "c": {
+      "item": "minecraft:compass"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:routing_logic_module"
+  }
+}
