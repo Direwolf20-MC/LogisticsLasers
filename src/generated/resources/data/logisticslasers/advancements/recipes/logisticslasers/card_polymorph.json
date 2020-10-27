@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "logisticslasers:card_polymorph"
+    ]
+  },
+  "criteria": {
+    "has_card_inserter": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "logisticslasers:card_inserter"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "logisticslasers:card_polymorph"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_card_inserter",
+      "has_the_recipe"
+    ]
+  ]
+}

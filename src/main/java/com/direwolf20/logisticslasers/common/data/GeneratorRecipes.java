@@ -6,8 +6,7 @@ import net.minecraftforge.common.Tags;
 
 import java.util.function.Consumer;
 
-import static com.direwolf20.logisticslasers.common.items.ModItems.CARD_BLANK;
-import static com.direwolf20.logisticslasers.common.items.ModItems.CARD_EXTRACTOR;
+import static com.direwolf20.logisticslasers.common.items.ModItems.*;
 
 public class GeneratorRecipes extends RecipeProvider {
     public GeneratorRecipes(DataGenerator generator) {
@@ -38,5 +37,48 @@ public class GeneratorRecipes extends RecipeProvider {
                 .addIngredient(CARD_BLANK.get())
                 .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
                 .build(consumer);
+        ShapedRecipeBuilder.shapedRecipe(CARD_INSERTER.get())
+                .key('g', Tags.Items.GLASS_PANES)
+                .key('b', CARD_BLANK.get())
+                .key('i', Items.IRON_BARS)
+                .patternLine("igi")
+                .patternLine("gbg")
+                .patternLine("igi")
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer);
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_PROVIDER.get())
+                .addIngredient(Items.OBSERVER)
+                .addIngredient(CARD_BLANK.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer);
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_STOCKER.get())
+                .addIngredient(Items.ENDER_EYE)
+                .addIngredient(CARD_BLANK.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer);
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_INSERTER_TAG.get())
+                .addIngredient(Items.BOOK)
+                .addIngredient(CARD_INSERTER.get())
+                .addCriterion("has_card_inserter", hasItem(CARD_INSERTER.get()))
+                .build(consumer);
+        ShapedRecipeBuilder.shapedRecipe(CARD_INSERTER_MOD.get())
+                .key('g', Tags.Items.GLASS_PANES)
+                .key('b', CARD_INSERTER.get())
+                .key('i', Tags.Items.DUSTS_GLOWSTONE)
+                .patternLine("igi")
+                .patternLine("gbg")
+                .patternLine("igi")
+                .addCriterion("has_card_inserter", hasItem(CARD_INSERTER.get()))
+                .build(consumer);
+        ShapedRecipeBuilder.shapedRecipe(CARD_POLYMORPH.get())
+                .key('g', Tags.Items.GLASS_PANES)
+                .key('b', CARD_INSERTER.get())
+                .key('i', Items.CLAY_BALL)
+                .patternLine("igi")
+                .patternLine("gbg")
+                .patternLine("igi")
+                .addCriterion("has_card_inserter", hasItem(CARD_INSERTER.get()))
+                .build(consumer);
     }
+
 }

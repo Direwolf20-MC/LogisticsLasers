@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "gbg",
+    "igi"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:glass_panes"
+    },
+    "b": {
+      "item": "logisticslasers:card_blank"
+    },
+    "i": {
+      "item": "minecraft:iron_bars"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:card_inserter"
+  }
+}

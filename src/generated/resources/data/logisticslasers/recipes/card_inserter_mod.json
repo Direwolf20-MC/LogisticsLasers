@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "gbg",
+    "igi"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:glass_panes"
+    },
+    "b": {
+      "item": "logisticslasers:card_inserter"
+    },
+    "i": {
+      "tag": "forge:dusts/glowstone"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:card_inserter_mod"
+  }
+}

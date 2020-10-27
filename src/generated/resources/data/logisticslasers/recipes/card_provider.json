@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:observer"
+    },
+    {
+      "item": "logisticslasers:card_blank"
+    }
+  ],
+  "result": {
+    "item": "logisticslasers:card_provider"
+  }
+}

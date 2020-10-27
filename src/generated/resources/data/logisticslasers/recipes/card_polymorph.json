@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "gbg",
+    "igi"
+  ],
+  "key": {
+    "g": {
+      "tag": "forge:glass_panes"
+    },
+    "b": {
+      "item": "logisticslasers:card_inserter"
+    },
+    "i": {
+      "item": "minecraft:clay_ball"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:card_polymorph"
+  }
+}
