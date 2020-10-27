@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "rgr",
-    "gbg",
+    "lbl",
     "gcg"
   ],
   "key": {
@@ -17,6 +17,9 @@
     },
     "c": {
       "item": "minecraft:compass"
+    },
+    "l": {
+      "item": "logisticslasers:logic_chip"
     }
   },
   "result": {

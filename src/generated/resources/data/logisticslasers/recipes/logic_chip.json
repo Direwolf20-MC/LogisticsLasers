@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "item": "logisticslasers:raw_logic_chip"
+  },
+  "result": "logisticslasers:logic_chip",
+  "experience": 0.1,
+  "cookingtime": 100
+}

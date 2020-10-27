@@ -18,6 +18,8 @@ public class GeneratorLanguage extends LanguageProvider {
         addBlock(ModBlocks.BASIC_NODE, "Basic Node");
         addBlock(ModBlocks.INVENTORY_NODE, "Inventory Node");
 
+        addItem(ModItems.RAW_LOGIC_CHIP, "Raw Logic Chip");
+        addItem(ModItems.LOGIC_CHIP, "Logic Chip");
         addItem(ModItems.WRENCH, "Laser Wrench");
         addItem(ModItems.CARD_BLANK, "Blank Module");
         addItem(ModItems.ROUTING_LOGIC_MODULE, "Routing Logic Module");

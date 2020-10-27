@@ -2,16 +2,16 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "logisticslasers:card_blank"
+      "logisticslasers:logic_chip"
     ]
   },
   "criteria": {
-    "has_logic_chip": {
+    "has_raw_chip": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "logisticslasers:logic_chip"
+            "item": "logisticslasers:raw_logic_chip"
           }
         ]
       }
@@ -19,13 +19,13 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "logisticslasers:card_blank"
+        "recipe": "logisticslasers:logic_chip"
       }
     }
   },
   "requirements": [
     [
-      "has_logic_chip",
+      "has_raw_chip",
       "has_the_recipe"
     ]
   ]

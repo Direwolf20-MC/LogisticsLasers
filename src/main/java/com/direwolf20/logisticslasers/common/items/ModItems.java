@@ -22,6 +22,8 @@ public class ModItems {
     public static final RegistryObject<Item> CRAFTING_STATION_ITEM = ITEMS.register("crafting_station", () -> new BlockItem(ModBlocks.CRAFTING_STATION.get(), ITEM_GROUP));
 
     // Items
+    public static final RegistryObject<Item> RAW_LOGIC_CHIP = BASICITEMS.register("raw_logic_chip", RawLogicChip::new);
+    public static final RegistryObject<Item> LOGIC_CHIP = BASICITEMS.register("logic_chip", LogicChip::new);
     public static final RegistryObject<Item> WRENCH = BASICITEMS.register("wrench", Wrench::new);
     public static final RegistryObject<Item> ROUTING_LOGIC_MODULE = BASICITEMS.register("routing_logic_module", RoutingLogicModule::new);
     public static final RegistryObject<Item> CARD_BLANK = BASICITEMS.register("card_blank", CardBlank::new);

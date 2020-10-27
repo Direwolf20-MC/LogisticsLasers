@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.data;
 
 import net.minecraft.data.*;
 import net.minecraft.item.Items;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraftforge.common.Tags;
 
 import java.util.function.Consumer;
@@ -23,14 +24,14 @@ public class GeneratorRecipes extends RecipeProvider {
     protected void registerRecipes(Consumer<IFinishedRecipe> consumer) {
         ShapedRecipeBuilder.shapedRecipe(CARD_BLANK.get())
                 .key('g', Tags.Items.NUGGETS_GOLD)
-                .key('p', Items.PAPER)
+                .key('p', LOGIC_CHIP.get())
                 .key('r', Tags.Items.DUSTS_REDSTONE)
                 .key('l', Tags.Items.GEMS_LAPIS)
                 .key('q', Tags.Items.GEMS_QUARTZ)
                 .patternLine("rlr")
                 .patternLine("qpq")
                 .patternLine("ggg")
-                .addCriterion("has_quartz", hasItem(Items.QUARTZ))
+                .addCriterion("has_logic_chip", hasItem(LOGIC_CHIP.get()))
                 .build(consumer);
         ShapelessRecipeBuilder.shapelessRecipe(CARD_EXTRACTOR.get())
                 .addIngredient(Items.HOPPER)
@@ -84,8 +85,9 @@ public class GeneratorRecipes extends RecipeProvider {
                 .key('b', CARD_BLANK.get())
                 .key('r', Tags.Items.DUSTS_REDSTONE)
                 .key('c', Items.COMPASS)
+                .key('l', LOGIC_CHIP.get())
                 .patternLine("rgr")
-                .patternLine("gbg")
+                .patternLine("lbl")
                 .patternLine("gcg")
                 .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
                 .build(consumer);
@@ -134,6 +136,19 @@ public class GeneratorRecipes extends RecipeProvider {
                 .patternLine(" b ")
                 .patternLine(" i ")
                 .addCriterion("has_routing_module", hasItem(ROUTING_LOGIC_MODULE.get()))
+                .build(consumer);
+        ShapedRecipeBuilder.shapedRecipe(RAW_LOGIC_CHIP.get())
+                .key('r', Tags.Items.DUSTS_REDSTONE)
+                .key('q', Items.QUARTZ_BLOCK)
+                .key('g', Tags.Items.NUGGETS_GOLD)
+                .key('c', Items.CLAY_BALL)
+                .patternLine("rgr")
+                .patternLine("cqc")
+                .patternLine("rgr")
+                .addCriterion("has_quartz", hasItem(Items.QUARTZ_BLOCK))
+                .build(consumer);
+        CookingRecipeBuilder.smeltingRecipe(Ingredient.fromItems(RAW_LOGIC_CHIP.get()), LOGIC_CHIP.get(), 0.1f, 100)
+                .addCriterion("has_raw_chip", hasItem(RAW_LOGIC_CHIP.get()))
                 .build(consumer);
     }
 

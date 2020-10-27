@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rgr",
+    "cqc",
+    "rgr"
+  ],
+  "key": {
+    "r": {
+      "tag": "forge:dusts/redstone"
+    },
+    "q": {
+      "item": "minecraft:quartz_block"
+    },
+    "g": {
+      "tag": "forge:nuggets/gold"
+    },
+    "c": {
+      "item": "minecraft:clay_ball"
+    }
+  },
+  "result": {
+    "item": "logisticslasers:raw_logic_chip"
+  }
+}

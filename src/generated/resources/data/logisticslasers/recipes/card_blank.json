@@ -10,7 +10,7 @@
       "tag": "forge:nuggets/gold"
     },
     "p": {
-      "item": "minecraft:paper"
+      "item": "logisticslasers:logic_chip"
     },
     "r": {
       "tag": "forge:dusts/redstone"
