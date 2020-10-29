@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.client.screens;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
+import com.direwolf20.logisticslasers.common.container.customslot.CardSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketOpenFilter;
@@ -64,7 +65,7 @@ public class InventoryNodeScreen extends ContainerScreen<InventoryNodeContainer>
         if (hoveredSlot == null || hoveredSlot.getStack().isEmpty() || !(hoveredSlot.getStack().getItem() instanceof BaseCard))
             return super.mouseClicked(x, y, btn);
 
-        if (btn == 1) { //Right click
+        if (btn == 1 && hoveredSlot instanceof CardSlot) { //Right click
             int slot = hoveredSlot.slotNumber;
 
             PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber, container.tile.getPos()));
