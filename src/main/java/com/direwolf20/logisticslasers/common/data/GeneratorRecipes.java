@@ -150,6 +150,13 @@ public class GeneratorRecipes extends RecipeProvider {
         CookingRecipeBuilder.smeltingRecipe(Ingredient.fromItems(RAW_LOGIC_CHIP.get()), LOGIC_CHIP.get(), 0.1f, 100)
                 .addCriterion("has_raw_chip", hasItem(RAW_LOGIC_CHIP.get()))
                 .build(consumer);
+
+
+        //NBT Clearing recipes
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_EXTRACTOR.get())
+                .addIngredient(CARD_EXTRACTOR.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, "extractor_clear");
     }
 
 }

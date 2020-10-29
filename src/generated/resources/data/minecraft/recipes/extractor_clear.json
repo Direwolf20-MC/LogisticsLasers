@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "logisticslasers:card_extractor"
+    }
+  ],
+  "result": {
+    "item": "logisticslasers:card_extractor"
+  }
+}
