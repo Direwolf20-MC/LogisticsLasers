@@ -156,7 +156,7 @@ public class GeneratorRecipes extends RecipeProvider {
         ShapelessRecipeBuilder.shapelessRecipe(CARD_EXTRACTOR.get())
                 .addIngredient(CARD_EXTRACTOR.get())
                 .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
-                .build(consumer, "extractor_clear");
+                .build(consumer, CARD_EXTRACTOR.getId() + "_nbtclear");
     }
 
 }

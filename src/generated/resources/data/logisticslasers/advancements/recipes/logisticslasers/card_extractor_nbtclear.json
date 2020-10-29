@@ -2,7 +2,7 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "minecraft:extractor_clear"
+      "logisticslasers:card_extractor_nbtclear"
     ]
   },
   "criteria": {
@@ -19,7 +19,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "minecraft:extractor_clear"
+        "recipe": "logisticslasers:card_extractor_nbtclear"
       }
     }
   },
