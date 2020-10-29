@@ -5,7 +5,7 @@ license="MIT (https://github.com/Direwolf20-MC/LogisticsLasers/blob/master/LICEN
 
 [[mods]]
 modId="logisticslasers"
-version="${version}"
+version="${file.jarVersion}"
 displayName="Logistics Lasers"
 updateJSONURL="https://raw.githubusercontent.com/Direwolf20-MC/LogisticsLasers/master/update.json"
 displayURL="https://github.com/Direwolf20-MC/LogisticsLasers/"
