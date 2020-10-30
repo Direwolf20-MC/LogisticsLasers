@@ -24,7 +24,7 @@ public class CardPolymorph extends CardInserter {
     @Override
     public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity player, Hand hand) {
         ItemStack itemStack = player.getHeldItem(hand);
-        if (world.isRemote) return new ActionResult<>(ActionResultType.PASS, itemStack);
+        if (!world.isRemote) return new ActionResult<>(ActionResultType.PASS, itemStack);
         ModScreens.openPolymorphScreen(itemStack);
         return new ActionResult<>(ActionResultType.PASS, itemStack);
     }
