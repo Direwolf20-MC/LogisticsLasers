@@ -548,14 +548,24 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (count == 0) continue; //If none, try elsewhere!
 
             ItemStack extractedStack;
-            if (slot == -1) //Slot -1 indicates this method was called by the controller's internal inventory.
-                extractedStack = storedItems.removeStack(stack, count);
-            else
-                extractedStack = sourceitemHandler.extractItem(slot, count, false); //Actually remove the items this time
-
+            int rfCost;
+            if (slot == -1) { //Slot -1 indicates this method was called by the controller's internal inventory.
+                rfCost = count * Config.CONTROLLER_INTERNAL_REMOVE.get();
+                if (useEnergy(rfCost))
+                    extractedStack = storedItems.removeStack(stack, count);
+                else
+                    return stackSize;
+            } else {
+                rfCost = count * Config.CONTROLLER_EXTRACTOR.get();
+                if (useEnergy(rfCost))
+                    extractedStack = sourceitemHandler.extractItem(slot, count, false); //Actually remove the items this time
+                else
+                    return stackSize;
+            }
             boolean successfullySent = transferItemStack(fromPos, toPos, extractedStack);
             if (!successfullySent) { //Attempt to send items
                 ItemHandlerHelper.insertItem(sourceitemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                energyStorage.receiveEnergy(rfCost, false); //Refund your RF cost
             } else {
                 stackSize -= extractedStack.getCount();
             }
@@ -573,6 +583,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      */
     public ItemStack provideItemStacksToPos(ItemStack stack, BlockPos toPos) {
         boolean successfullySent = false;
+        TileEntity te = world.getTileEntity(toPos);
+        int rfBaseCost = (te instanceof InventoryNodeTile) ? Config.CONTROLLER_STOCKER.get() : Config.CRAFTING_STATION_REQUEST.get();
         ArrayList<BlockPos> possibleProviders = new ArrayList<>(findProviderForItemstack(stack)); //Find a list of possible Providers
         possibleProviders.remove(toPos); //Remove this chest
         if (possibleProviders.isEmpty()) return stack; //If nothing can provide to here, stop working
@@ -589,7 +601,13 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 }
                 int extractCount = simulated.getCount(); //How many items were successfully removed from the inventory
                 stack.setCount(extractCount);
-                ItemStack extractedStack = ItemHandlerUtil.extractItem(providerItemHandler, stack, false); //Actually remove the items this time
+                ItemStack extractedStack;
+                if (useEnergy(rfBaseCost * stack.getCount()))
+                    extractedStack = ItemHandlerUtil.extractItem(providerItemHandler, stack, false); //Actually remove the items this time
+                else {
+                    stack.setCount(desiredAmt);
+                    return stack;
+                }
                 successfullySent = transferItemStack(providerPos, toPos, extractedStack);
                 if (!successfullySent) { //Attempt to send items
                     ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
@@ -989,7 +1007,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 refreshAllInvNodes();
                 checkedNodes = true;
             }
-            if (useEnergy(Config.PASSIVE_CONTROLLER_COST.get())) { //Use our passive energy amount, if it fails don't process anything below this line
+            if (useEnergy(Config.CONTROLLER_PASSIVE.get())) { //Use our passive energy amount, if it fails don't process anything below this line
+                useEnergy(Config.CONTROLLER_INTERNAL.get() * storedItems.getTotalCount()); //Burn RF for stored items.
                 handleInternalInventory();
                 handleExtractors();
                 if (world.getGameTime() % 100 == 0)
@@ -1012,9 +1031,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         public int get(int index) {
             switch (index) {
                 case 0:
-                    return energyStorage.getEnergyStored() / 32;
+                    return energyStorage.getEnergyStored();
                 case 1:
-                    return energyStorage.getMaxEnergyStored() / 32;
+                    return energyStorage.getMaxEnergyStored();
                 default:
                     throw new IllegalArgumentException("Invalid index: " + index);
             }

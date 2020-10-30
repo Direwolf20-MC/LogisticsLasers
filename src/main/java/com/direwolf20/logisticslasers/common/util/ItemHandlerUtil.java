@@ -186,6 +186,7 @@ public class ItemHandlerUtil {
 
     public static class InventoryCounts {
         private final ArrayListMultimap<Item, ItemStack> itemMap = ArrayListMultimap.create();
+        private int totalCount = 0;
 
         public InventoryCounts() {
 
@@ -249,10 +250,12 @@ public class ItemHandlerUtil {
             for (ItemStack cacheStack : itemMap.get(stack.getItem())) {
                 if (ItemHandlerHelper.canItemStacksStack(cacheStack, stack)) {
                     cacheStack.grow(stack.getCount());
+                    totalCount += stack.getCount();
                     return;
                 }
             }
             itemMap.put(stack.getItem(), stack.copy());
+            totalCount += stack.getCount();
         }
 
         public ItemStack removeStack(ItemStack stack, int count) {
@@ -266,6 +269,7 @@ public class ItemHandlerUtil {
             if (returnStack.equals(ItemStack.EMPTY)) return returnStack;
 
             itemMap.get(returnStack.getItem()).removeIf(o -> o.isEmpty());
+            totalCount -= returnStack.getCount();
             return returnStack;
         }
 
@@ -275,6 +279,10 @@ public class ItemHandlerUtil {
                     return cacheStack.getCount();
             }
             return 0;
+        }
+
+        public int getTotalCount() {
+            return totalCount;
         }
     }
 }
