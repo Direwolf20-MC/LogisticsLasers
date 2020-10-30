@@ -1003,6 +1003,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (!world.isRemote) {
             //System.out.println("I'm here!");
             //energyStorage.receiveEnergy(1000, false); //Testing
+            if (allNodes.size() == 0) return;
             if (!checkedNodes) {
                 refreshAllInvNodes();
                 checkedNodes = true;
