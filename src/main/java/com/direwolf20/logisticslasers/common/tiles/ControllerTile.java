@@ -122,7 +122,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * Resets all the cached node data and rediscovers the network by depth first searching (I think).
      */
     public void discoverAllNodes() {
-        System.out.println("Discovering All Nodes!");
+        //System.out.println("Discovering All Nodes!");
         Set<BlockPos> oldNodes = new HashSet<>(allNodes); //Store the list of nodes this used to control, used to remove controller data from that pos later
         clearCachedRoutes(); //Clear the cached routing of all nodes in the network
         //Clear all the cached node data
@@ -187,7 +187,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * This method clears the non-persistent inventory node data variables and regenerates them from scratch
      */
     public void refreshAllInvNodes() {
-        System.out.println("Scanning all inventory nodes");
+        //System.out.println("Scanning all inventory nodes");
         extractorNodes.clear();
         inserterNodes.clear();
         providerNodes.clear();
@@ -211,7 +211,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * This method is called by refreshAllInvNodes() or on demand when the contents of an inventory node's container is changed
      */
     public void checkInvNode(BlockPos pos) {
-        System.out.println("Updating cache at: " + pos);
+        //System.out.println("Updating cache at: " + pos);
         InventoryNodeTile te = (InventoryNodeTile) world.getTileEntity(pos);
         //Remove this position from all caches, so we can repopulate below
         extractorNodes.remove(pos);
@@ -763,7 +763,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      * @return the remains of the itemstack that could not be inserted anywhere else in the network
      */
     public ItemStack handleLostStack(ItemStack stack, BlockPos lostAt) {
-        System.out.println("Stack Lost");
+        //System.out.println("Stack Lost");
         for (BlockPos toPos : findDestinationForItemstack(stack)) { //Start looping through the inserters
             IItemHandler destitemHandler = getAttachedInventory(toPos); //Get the inventory handler of the block the inventory node is facing
             if (destitemHandler == null) continue; //If its empty, move onto the next inserter

@@ -48,7 +48,7 @@ public class InventoryNodeTile extends NodeTileBase implements INamedContainerPr
     public void notifyControllerOfChanges() {
         ControllerTile te = getControllerTE();
         if (te == null) return;
-        System.out.println("Telling controller at " + getControllerPos() + " to check inventory at " + this.pos);
+        //System.out.println("Telling controller at " + getControllerPos() + " to check inventory at " + this.pos);
         te.checkInvNode(this.pos);
     }
 
