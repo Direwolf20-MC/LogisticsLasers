@@ -117,6 +117,8 @@ dependencies {
 
     //Other mods for dev environment
     runtimeOnly fg.deobf("ignored:Mekanism:1.16.3-10.0.9")
+    runtimeOnly fg.deobf("ignored:InventoryEssentials:1.16.3-2.2.0")
+    runtimeOnly fg.deobf("ignored:inventorysorter:1.16.1-18.1.0")
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
