@@ -56,6 +56,7 @@ public class GeneratorLanguage extends LanguageProvider {
         add("message.logisticslasers.connectionmade", "Connection made to: %d");
         add("message.logisticslasers.connectionfailed", "Connection failed to: %d");
         add("message.logisticslasers.failedRequest", "Failed to request %d %d");
+        add("message.logisticslasers.wrenchrange", "Connection exceeds maximum range of %d");
 
     }
 }

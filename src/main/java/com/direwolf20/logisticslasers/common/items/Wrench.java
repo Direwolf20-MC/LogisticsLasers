@@ -17,6 +17,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceContext;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 public class Wrench extends Item {
@@ -41,7 +42,8 @@ public class Wrench extends Item {
         if (world.isRemote) //No client
             return new ActionResult<>(ActionResultType.PASS, wrench);
 
-        int range = 20;
+        int range = 10;
+        int maxDistance = 8;
         BlockRayTraceResult lookingAt = VectorHelper.getLookingAt((PlayerEntity) player, RayTraceContext.FluidMode.NONE, range);
         if (lookingAt == null || (world.getBlockState(VectorHelper.getLookingAt((PlayerEntity) player, wrench, range).getPos()) == Blocks.AIR.getDefaultState())) {
             if (player.isSneaking()) {
@@ -58,12 +60,18 @@ public class Wrench extends Item {
             if (getConnectionPos(wrench).equals(BlockPos.ZERO))
                 storeConnectionPos(wrench, pos);
             else {
-                if (pos.equals(getConnectionPos(wrench)))
+                if (pos.equals(getConnectionPos(wrench))) {
+                    storeConnectionPos(wrench, BlockPos.ZERO);
                     return new ActionResult<>(ActionResultType.PASS, wrench);
+                }
                 BlockPos sourcePos = getConnectionPos(wrench);
                 TileEntity sourceTE = world.getTileEntity(sourcePos);
                 if (!(sourceTE instanceof NodeTileBase)) {
                     storeConnectionPos(wrench, BlockPos.ZERO);
+                    return new ActionResult<>(ActionResultType.PASS, wrench);
+                }
+                if (!pos.withinDistance(sourcePos, maxDistance)) {
+                    player.sendStatusMessage(new TranslationTextComponent("message.logisticslasers.wrenchrange", maxDistance), true);
                     return new ActionResult<>(ActionResultType.PASS, wrench);
                 }
                 if (!((NodeTileBase) te).addConnection(sourcePos))

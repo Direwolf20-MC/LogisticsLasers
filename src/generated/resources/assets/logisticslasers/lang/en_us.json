@@ -28,6 +28,7 @@
   "message.logisticslasers.connections": "Connected to: %d",
   "message.logisticslasers.controllerat": "Controller Located at: %d",
   "message.logisticslasers.failedRequest": "Failed to request %d %d",
+  "message.logisticslasers.wrenchrange": "Connection exceeds maximum range of %d",
   "screen.logisticslasers.add": "Add",
   "screen.logisticslasers.clear": "Clear",
   "screen.logisticslasers.energy": "Energy: %s/%s FE",
