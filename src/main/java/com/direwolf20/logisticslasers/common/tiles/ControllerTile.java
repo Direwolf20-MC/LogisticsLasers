@@ -1,5 +1,6 @@
 package com.direwolf20.logisticslasers.common.tiles;
 
+import com.direwolf20.logisticslasers.Config;
 import com.direwolf20.logisticslasers.client.particles.itemparticle.ItemFlowParticleData;
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.capabilities.FEEnergyStorage;
@@ -983,17 +984,26 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         //Server Only
         if (!world.isRemote) {
             //System.out.println("I'm here!");
-            energyStorage.receiveEnergy(1000, false); //Testing
+            //energyStorage.receiveEnergy(1000, false); //Testing
             if (!checkedNodes) {
                 refreshAllInvNodes();
                 checkedNodes = true;
             }
-            handleInternalInventory();
-            handleExtractors();
-            if (world.getGameTime() % 100 == 0)
-                handleStockers(); //Stocking is somewhat expensive operation, so only do it every 5 seconds, rather than once a tick.
-            handleTasks();
+            if (useEnergy(Config.PASSIVE_CONTROLLER_COST.get())) { //Use our passive energy amount, if it fails don't process anything below this line
+                handleInternalInventory();
+                handleExtractors();
+                if (world.getGameTime() % 100 == 0)
+                    handleStockers(); //Stocking is somewhat expensive operation, so only do it every 5 seconds, rather than once a tick.
+            }
+            handleTasks(); //We let tasks finish, even if the power runs out. This way items still reach their destination
         }
+    }
+
+    public boolean useEnergy(int amt) {
+        if (energyStorage.getEnergyStored() < amt)
+            return false;
+        energyStorage.consumeEnergy(amt, false);
+        return true;
     }
 
     // Handles tracking changes, kinda messy but apparently this is how the cool kids do it these days
