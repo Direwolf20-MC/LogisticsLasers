@@ -6,7 +6,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -15,6 +17,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 
@@ -50,5 +53,28 @@ public class CraftingStation extends BaseNode {
 
         NetworkHooks.openGui((ServerPlayerEntity) player, (INamedContainerProvider) te, pos);
         return super.onBlockActivated(state, worldIn, pos, player, hand, blockRayTraceResult);
+    }
+
+    @Override
+    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.isIn(newState.getBlock())) {
+            TileEntity tileentity = worldIn.getTileEntity(pos);
+            if (tileentity instanceof CraftingStationTile) {
+                dropInventoryItems(worldIn, pos, ((CraftingStationTile) tileentity).getInventoryStacks());
+                worldIn.updateComparatorOutputLevel(pos, this);
+            }
+
+            super.onReplaced(state, worldIn, pos, newState, isMoving);
+        }
+    }
+
+    private static void dropInventoryItems(World worldIn, BlockPos pos, IItemHandler inventory) {
+        for (int i = 0; i < inventory.getSlots(); ++i) {
+            ItemStack itemstack = inventory.getStackInSlot(i);
+
+            if (itemstack.getCount() > 0) {
+                InventoryHelper.spawnItemStack(worldIn, (double) pos.getX(), (double) pos.getY(), (double) pos.getZ(), itemstack);
+            }
+        }
     }
 }
