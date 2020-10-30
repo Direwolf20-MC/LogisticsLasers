@@ -44,7 +44,7 @@ public class Config {
     private static void setupRFCostConfig() {
         COMMON_BUILDER.comment("Controller").push(SUBCATEGORY_CONTROLLER);
         CONTROLLER_PASSIVE = COMMON_BUILDER.comment("The passive RF/Tick cost of the controller")
-                .defineInRange("rf_controller_passive", 100, 0, Integer.MAX_VALUE);
+                .defineInRange("rf_controller_passive", 50, 0, Integer.MAX_VALUE);
         CONTROLLER_INTERNAL = COMMON_BUILDER.comment("The RF cost per item to store items in the controller's internal inventory.")
                 .defineInRange("rf_controller_internal", 10, 0, Integer.MAX_VALUE);
         CONTROLLER_INTERNAL_REMOVE = COMMON_BUILDER.comment("The RF cost per item to remove an item from the internal stored inventory")
