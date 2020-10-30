@@ -79,6 +79,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
     private Table<BlockPos, ItemStackKey, Integer> extractorAmounts = HashBasedTable.create();
     private boolean checkedNodes = false;
+    private int passiveRFCost = 0;
 
     private final IItemHandler EMPTY = new ItemStackHandler(0);
 
@@ -136,9 +137,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         while (nodesToCheck.size() > 0) {
             BlockPos posToCheck = nodesToCheck.remove(); //Pop the stack
-            if (checkedNodes.contains(posToCheck) || posToCheck.equals(this.pos))
+            if (posToCheck.equals(this.pos))
                 continue; //Don't check nodes we've checked before, and don't operate on the controller itself
-            checkedNodes.add(posToCheck);
+            if (!checkedNodes.add(posToCheck)) continue;
             TileEntity te = world.getTileEntity(posToCheck);
             if (te instanceof NodeTileBase) {
                 addToAllNodes(posToCheck); //Add this node to the all nodes list
@@ -162,6 +163,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         }
         refreshAllInvNodes();
         updateLaserConnections();
+        passiveRFCost = passiveControllerPowerCost();
     }
 
     /**
@@ -1003,20 +1005,34 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         if (!world.isRemote) {
             //System.out.println("I'm here!");
             //energyStorage.receiveEnergy(1000, false); //Testing
-            if (allNodes.size() == 0) return;
             if (!checkedNodes) {
                 refreshAllInvNodes();
                 checkedNodes = true;
             }
-            if (useEnergy(Config.CONTROLLER_PASSIVE.get())) { //Use our passive energy amount, if it fails don't process anything below this line
+            if (allNodes.size() == 0) return;
+            if (useEnergy(passiveRFCost)) { //Use our passive energy amount, if it fails don't process anything below this line
                 useEnergy(Config.CONTROLLER_INTERNAL.get() * storedItems.getTotalCount()); //Burn RF for stored items.
                 handleInternalInventory();
                 handleExtractors();
                 if (world.getGameTime() % 100 == 0)
                     handleStockers(); //Stocking is somewhat expensive operation, so only do it every 5 seconds, rather than once a tick.
+
             }
             handleTasks(); //We let tasks finish, even if the power runs out. This way items still reach their destination
         }
+    }
+
+    public int countBasicNodes() {
+        return allNodes.size() - crafterNodes.size() - inventoryNodes.size();
+    }
+
+    public int passiveControllerPowerCost() {
+        int amt = Config.CONTROLLER_PASSIVE.get();
+        amt += (countBasicNodes() * Config.CONTROLLER_BASIC_NODE_PASSIVE.get());
+        amt += (inventoryNodes.size() * Config.CONTROLLER_INV_NODE_PASSIVE.get());
+        amt += (crafterNodes.size() * Config.CRAFTING_STATION_PASSIVE.get());
+        System.out.println(amt);
+        return amt;
     }
 
     public boolean useEnergy(int amt) {
@@ -1076,6 +1092,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             BlockPos blockPos = NBTUtil.readBlockPos(craftnodes.getCompound(i).getCompound("pos"));
             crafterNodes.add(blockPos);
         }
+        passiveRFCost = passiveControllerPowerCost();
         //refreshAllInvNodes();
         //System.out.println("Reading");
 
