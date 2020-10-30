@@ -1048,9 +1048,9 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         public int get(int index) {
             switch (index) {
                 case 0:
-                    return energyStorage.getEnergyStored();
+                    return energyStorage.getEnergyStored() / 32;
                 case 1:
-                    return energyStorage.getMaxEnergyStored();
+                    return energyStorage.getMaxEnergyStored() / 32;
                 case 2:
                     return passiveRFCost;
                 default:

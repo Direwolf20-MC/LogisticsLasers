@@ -94,10 +94,10 @@ public abstract class FEContainerBase extends Container {
     }
 
     public int getMaxPower() {
-        return this.data.get(1);
+        return this.data.get(1) * 32;
     }
 
     public int getEnergy() {
-        return this.data.get(0);
+        return this.data.get(0) * 32;
     }
 }
