@@ -42,6 +42,7 @@ public class GeneratorLanguage extends LanguageProvider {
         add("item.logisticslasers.basicfilterscreen.priority", "Priority: %d");
 
         add("screen.logisticslasers.energy", "Energy: %s/%s FE");
+        add("screen.logisticslasers.fepertick", "FE/T: %s FE");
         add("screen.logisticslasers.add", "Add");
         add("screen.logisticslasers.remove", "Remove");
         add("screen.logisticslasers.clear", "Clear");

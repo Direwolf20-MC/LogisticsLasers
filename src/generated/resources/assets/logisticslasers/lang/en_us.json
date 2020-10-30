@@ -32,6 +32,7 @@
   "screen.logisticslasers.add": "Add",
   "screen.logisticslasers.clear": "Clear",
   "screen.logisticslasers.energy": "Energy: %s/%s FE",
+  "screen.logisticslasers.fepertick": "FE/T: %s FE",
   "screen.logisticslasers.refresh": "Refresh",
   "screen.logisticslasers.remove": "Remove",
   "screen.logisticslasers.request": "Request",

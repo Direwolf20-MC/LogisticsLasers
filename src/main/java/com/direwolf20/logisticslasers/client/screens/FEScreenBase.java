@@ -2,18 +2,13 @@ package com.direwolf20.logisticslasers.client.screens;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.FEContainerBase;
-import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.LanguageMap;
 import net.minecraft.util.text.TranslationTextComponent;
-
-import java.util.Arrays;
 
 public abstract class FEScreenBase<T extends FEContainerBase> extends ContainerScreen<T> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/controller.png");
@@ -35,7 +30,7 @@ public abstract class FEScreenBase<T extends FEContainerBase> extends ContainerS
         super.render(stack, mouseX, mouseY, partialTicks);
 
         this.func_230459_a_(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
-        if (mouseX > (guiLeft + 7) && mouseX < (guiLeft + 7) + 18 && mouseY > (guiTop + 7) && mouseY < (guiTop + 7) + 73)
+        /*if (mouseX > (guiLeft + 7) && mouseX < (guiLeft + 7) + 18 && mouseY > (guiTop + 7) && mouseY < (guiTop + 7) + 73)
             if (Screen.hasShiftDown())
                 this.renderTooltip(stack, LanguageMap.getInstance().func_244260_a(Arrays.asList(
                         new TranslationTextComponent("screen.logisticslasers.energy", this.container.getEnergy(), MagicHelpers.withSuffix(this.container.getMaxPower())))
@@ -43,7 +38,7 @@ public abstract class FEScreenBase<T extends FEContainerBase> extends ContainerS
             else
                 this.renderTooltip(stack, LanguageMap.getInstance().func_244260_a(Arrays.asList(
                         new TranslationTextComponent("screen.logisticslasers.energy", MagicHelpers.withSuffix(this.container.getEnergy()), MagicHelpers.withSuffix(this.container.getMaxPower())))
-                ), mouseX, mouseY);
+                ), mouseX, mouseY);*/
     }
 
     @Override

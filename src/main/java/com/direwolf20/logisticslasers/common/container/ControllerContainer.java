@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 
 public class ControllerContainer extends FEContainerBase {
     public ControllerContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        this((ControllerTile) playerInventory.player.world.getTileEntity(extraData.readBlockPos()), new IntArray(2), windowId, playerInventory);
+        this((ControllerTile) playerInventory.player.world.getTileEntity(extraData.readBlockPos()), new IntArray(3), windowId, playerInventory);
     }
 
     public ControllerContainer(@Nullable ControllerTile tile, IIntArray data, int windowId, PlayerInventory playerInventory) {
@@ -37,5 +37,9 @@ public class ControllerContainer extends FEContainerBase {
     public boolean canInteractWith(PlayerEntity playerIn) {
         BlockPos pos = this.tile.getPos();
         return this.tile != null && !this.tile.isRemoved() && playerIn.getDistanceSq(new Vector3d(pos.getX(), pos.getY(), pos.getZ()).add(0.5D, 0.5D, 0.5D)) <= 64D;
+    }
+
+    public int getRFCost() {
+        return this.data.get(2);
     }
 }

@@ -1031,7 +1031,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
         amt += (countBasicNodes() * Config.CONTROLLER_BASIC_NODE_PASSIVE.get());
         amt += (inventoryNodes.size() * Config.CONTROLLER_INV_NODE_PASSIVE.get());
         amt += (crafterNodes.size() * Config.CRAFTING_STATION_PASSIVE.get());
-        System.out.println(amt);
+        //System.out.println(amt);
         return amt;
     }
 
@@ -1051,6 +1051,8 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     return energyStorage.getEnergyStored();
                 case 1:
                     return energyStorage.getMaxEnergyStored();
+                case 2:
+                    return passiveRFCost;
                 default:
                     throw new IllegalArgumentException("Invalid index: " + index);
             }
@@ -1063,7 +1065,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
 
         @Override
         public int size() {
-            return 2;
+            return 3;
         }
     };
 

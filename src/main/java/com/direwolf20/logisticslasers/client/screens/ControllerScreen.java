@@ -11,22 +11,19 @@ import com.google.common.collect.ArrayListMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.awt.Color;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ControllerScreen extends FEScreenBase<ControllerContainer> {
@@ -79,6 +76,21 @@ public class ControllerScreen extends FEScreenBase<ControllerContainer> {
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         super.render(stack, mouseX, mouseY, partialTicks);
+
+        if (mouseX > (guiLeft + 7) && mouseX < (guiLeft + 7) + 18 && mouseY > (guiTop + 7) && mouseY < (guiTop + 7) + 73)
+            if (mouseX > (guiLeft + 7) && mouseX < (guiLeft + 7) + 18 && mouseY > (guiTop + 7) && mouseY < (guiTop + 7) + 73)
+                if (Screen.hasShiftDown())
+                    this.renderTooltip(stack, LanguageMap.getInstance().func_244260_a(Arrays.asList(
+                            new TranslationTextComponent("screen.logisticslasers.energy", this.container.getEnergy(), MagicHelpers.withSuffix(this.container.getMaxPower())),
+                            new TranslationTextComponent("screen.logisticslasers.fepertick", MagicHelpers.withSuffix(this.container.getRFCost()), MagicHelpers.withSuffix(this.container.getMaxPower()))
+                            )
+                    ), mouseX, mouseY);
+                else
+                    this.renderTooltip(stack, LanguageMap.getInstance().func_244260_a(Arrays.asList(
+                            new TranslationTextComponent("screen.logisticslasers.energy", MagicHelpers.withSuffix(this.container.getEnergy()), MagicHelpers.withSuffix(this.container.getMaxPower())),
+                            new TranslationTextComponent("screen.logisticslasers.fepertick", MagicHelpers.withSuffix(this.container.getRFCost()), MagicHelpers.withSuffix(this.container.getMaxPower()))
+                            )
+                    ), mouseX, mouseY);
 
         leftButton.visible = false;
         rightButton.visible = false;
