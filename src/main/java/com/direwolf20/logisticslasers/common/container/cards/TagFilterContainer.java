@@ -102,14 +102,14 @@ public class TagFilterContainer extends Container {
         // Slots for the hotbar
         for (int row = 0; row < 9; ++row) {
             int x = 8 - 12 + row * 18;
-            int y = 56 + 86 + 46;
+            int y = 56 + 86 + 44;
             addSlot(new Slot(inventory, row, x, y));
         }
         // Slots for the main inventory
         for (int row = 1; row < 4; ++row) {
             for (int col = 0; col < 9; ++col) {
                 int x = 8 - 12 + col * 18;
-                int y = row * 18 + (56 + 10 + 46);
+                int y = row * 18 + (56 + 10 + 44);
                 addSlot(new Slot(inventory, col + row * 9, x, y));
             }
         }

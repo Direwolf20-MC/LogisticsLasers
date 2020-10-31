@@ -219,7 +219,7 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
     protected void drawGuiContainerBackgroundLayer(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.color4f(1, 1, 1, 1);
         getMinecraft().getTextureManager().bindTexture(getBackground());
-        this.blit(stack, guiLeft, guiTop, 0, 0, xSize, ySize);
+        this.blit(stack, guiLeft, guiTop, 0, 0, xSize, ySize, xSize, ySize);
     }
 
     @Override
