@@ -4,6 +4,7 @@ import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.CardSlot;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketOpenFilter;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -12,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -67,8 +69,12 @@ public class InventoryNodeScreen extends ContainerScreen<InventoryNodeContainer>
 
         if (btn == 1 && hoveredSlot instanceof CardSlot) { //Right click
             int slot = hoveredSlot.slotNumber;
-
-            PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber, container.tile.getPos()));
+            ItemStack card = hoveredSlot.getStack();
+            if (card.getItem() instanceof CardPolymorph) {
+                ModScreens.openPolymorphScreen(card, container.tile.getPos(), slot);
+            } else {
+                PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber, container.tile.getPos()));
+            }
             //FilterSlotHandler handler = getInventory(itemstack);
             /*NetworkHooks.openGui((ServerPlayerEntity) getMinecraft().player, new SimpleNamedContainerProvider(
                     (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemstack, windowId, playerInventory, handler), new StringTextComponent("")));*/

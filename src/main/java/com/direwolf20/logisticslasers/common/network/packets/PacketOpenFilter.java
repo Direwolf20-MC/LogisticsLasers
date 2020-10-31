@@ -1,6 +1,5 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
-import com.direwolf20.logisticslasers.client.screens.ModScreens;
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
@@ -59,7 +58,7 @@ public class PacketOpenFilter {
                 ItemStack itemStack = slot.getStack();
 
                 if (itemStack.getItem() instanceof CardPolymorph) {
-                    ModScreens.openPolymorphScreen(itemStack, msg.sourcePos, msg.slotNumber);
+                    //ModScreens.openPolymorphScreen(itemStack, msg.sourcePos, msg.slotNumber);
                 } else {
                     ItemStackHandler handler = getInventory(itemStack);
                     IIntArray tempArray = new IIntArray() {
