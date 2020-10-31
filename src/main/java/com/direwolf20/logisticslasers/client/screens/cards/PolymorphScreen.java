@@ -76,10 +76,12 @@ public class PolymorphScreen extends Screen {
         Button plusPriority;
         leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 15, 15, 10, new StringTextComponent("+"), (button) -> {
             PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
+            BaseCard.setPriority(card, BaseCard.getPriority(card) + 1);
         }));
         Button minusPriority;
         leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 15, 15, 10, new StringTextComponent("-"), (button) -> {
             PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
+            BaseCard.setPriority(card, BaseCard.getPriority(card) - 1);
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
@@ -97,6 +99,7 @@ public class PolymorphScreen extends Screen {
 
         leftWidgets.add(new DireButton(guiLeft + 110, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
             PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+            CardPolymorph.clearList(card);
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
