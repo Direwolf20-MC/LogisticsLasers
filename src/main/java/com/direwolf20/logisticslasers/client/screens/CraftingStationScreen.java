@@ -88,7 +88,10 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         RenderSystem.colorMask(true, true, true, true);
         matrixStack.pop();
 
-        if (container.tile.getControllerTE() == null) return;
+        if (container.tile.getControllerTE() == null) {
+            selectedSlot = -1;
+            return;
+        }
 
         itemMap = container.tile.getControllerTE().getItemCounts().getItemCounts();
         int totalItems = itemMap.values().size();
@@ -107,7 +110,10 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             } else
                 itemStacks.removeIf(p -> !p.getDisplayName().getString().toLowerCase(Locale.ROOT).contains(search));
         }
-        if (itemStacks.isEmpty()) return;
+        if (itemStacks.isEmpty()) {
+            selectedSlot = -1;
+            return;
+        }
         Collections.reverse(itemStacks);
 
         int itemsPerPage = 81;
@@ -119,6 +125,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
         int slot = 0;
         overSlot = -1;
+        if (selectedSlot >= displayStacks.size()) selectedSlot = -1;
         for (int i = 0; i < displayStacks.size(); i++) {
             ItemStack stack = displayStacks.get(i);
             int row = (int) Math.floor((double) slot / 9);

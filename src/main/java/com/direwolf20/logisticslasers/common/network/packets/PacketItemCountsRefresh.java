@@ -36,8 +36,10 @@ public class PacketItemCountsRefresh {
 
                 if (container instanceof CraftingStationContainer) {
                     CraftingStationTile te = ((CraftingStationContainer) container).tile;
-                    ControllerTile controllerTile = te.getControllerTE();
-                    controllerTile.updateItemCounts(sender);
+                    if (te.hasController()) {
+                        ControllerTile controllerTile = te.getControllerTE();
+                        controllerTile.updateItemCounts(sender);
+                    }
                 }
 
 
