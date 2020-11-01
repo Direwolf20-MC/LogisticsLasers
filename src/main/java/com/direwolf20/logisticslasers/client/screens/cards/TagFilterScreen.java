@@ -260,7 +260,7 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
             stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
             hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
             PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
-            //return true;
+            return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
