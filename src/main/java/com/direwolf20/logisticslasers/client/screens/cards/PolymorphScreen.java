@@ -2,25 +2,30 @@ package com.direwolf20.logisticslasers.client.screens.cards;
 
 import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
-import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
+import com.direwolf20.logisticslasers.common.container.cards.PolyFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
-import com.direwolf20.logisticslasers.common.network.packets.*;
+import com.direwolf20.logisticslasers.common.network.packets.PacketButtonAdd;
+import com.direwolf20.logisticslasers.common.network.packets.PacketButtonClear;
+import com.direwolf20.logisticslasers.common.network.packets.PacketButtonSetOrRemove;
+import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
 import com.google.common.collect.ArrayListMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.InputMappings;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -30,7 +35,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PolymorphScreen extends Screen {
+public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/polymorphscreen.png");
 
     int guiLeft;
@@ -48,7 +53,7 @@ public class PolymorphScreen extends Screen {
     int cardSlot;
     public BlockPos sourceContainer;
 
-    public PolymorphScreen(ItemStack stack) {
+    /*public PolymorphScreen(ItemStack stack) {
         super(new StringTextComponent("title"));
         card = stack;
         sourceContainer = BlockPos.ZERO;
@@ -60,6 +65,13 @@ public class PolymorphScreen extends Screen {
         card = stack;
         sourceContainer = sourceContainerPos;
         cardSlot = sourceContainerSlot;
+    }*/
+
+    public PolymorphScreen(PolyFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
+        super(container, playerInventory, title);
+        card = container.filterItemStack;
+        sourceContainer = container.sourceContainer;
+        cardSlot = -1;
     }
 
     public ResourceLocation getBackground() {
@@ -75,13 +87,11 @@ public class PolymorphScreen extends Screen {
 
         Button plusPriority;
         leftWidgets.add(plusPriority = new DireButton(guiLeft + 30, guiTop + 15, 15, 10, new StringTextComponent("+"), (button) -> {
-            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, 1));
-            BaseCard.setPriority(card, BaseCard.getPriority(card) + 1);
+            PacketHandler.sendToServer(new PacketChangePriority(1));
         }));
         Button minusPriority;
         leftWidgets.add(minusPriority = new DireButton(guiLeft + 2, guiTop + 15, 15, 10, new StringTextComponent("-"), (button) -> {
-            PacketHandler.sendToServer(new PacketPolymorphPriority(cardSlot, sourceContainer, -1));
-            BaseCard.setPriority(card, BaseCard.getPriority(card) - 1);
+            PacketHandler.sendToServer(new PacketChangePriority(-1));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 160, guiTop + 4, 15, 10, new StringTextComponent(">"), (button) -> {
@@ -93,18 +103,24 @@ public class PolymorphScreen extends Screen {
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.set"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketButtonSetOrRemove(cardSlot, sourceContainer));
+            //if (!sourceContainer.equals(BlockPos.ZERO))
+            PacketHandler.sendToServer(new PacketButtonSetOrRemove(sourceContainer, ""));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 110, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
-            PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+            PacketHandler.sendToServer(new PacketButtonClear(sourceContainer));
             CardPolymorph.clearList(card);
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
-            if (!sourceContainer.equals(BlockPos.ZERO))
-                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer));
+            if (!sourceContainer.equals(BlockPos.ZERO)) {
+                PacketHandler.sendToServer(new PacketButtonAdd(sourceContainer, ""));
+               /* World world = Minecraft.getInstance().world;
+                TileEntity te = world.getTileEntity(sourceContainer);
+                if (te instanceof InventoryNodeTile) {
+                    card = ((InventoryNodeTile) te).getInventoryStacks().getStackInSlot(cardSlot);
+                }*/
+            }
         }));
 
 
@@ -118,7 +134,7 @@ public class PolymorphScreen extends Screen {
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         renderBackground(stack);
-        drawGuiContainerForegroundLayer(stack);
+        //drawGuiContainerForegroundLayer(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
 
         int availableItemsstartX = guiLeft + 7;
@@ -187,16 +203,18 @@ public class PolymorphScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(MatrixStack stack) {
+    protected void drawGuiContainerBackgroundLayer(MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.color4f(1, 1, 1, 1);
         getMinecraft().getTextureManager().bindTexture(getBackground());
         this.blit(stack, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
 
-    protected void drawGuiContainerForegroundLayer(MatrixStack stack) {
-        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.polyfilterscreen"), guiLeft + 50, guiTop + 5, Color.DARK_GRAY.getRGB());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), guiLeft + 3, guiTop + 5, Color.DARK_GRAY.getRGB());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent("" + BaseCard.getPriority(card)).getString(), guiLeft + 18, guiTop + 15, Color.DARK_GRAY.getRGB());
+    @Override
+    protected void drawGuiContainerForegroundLayer(MatrixStack stack, int x, int y) {
+        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.polyfilterscreen"), 55, 5, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 5, 5, Color.DARK_GRAY.getRGB());
+        String priority = Integer.toString(container.getPriority());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 18, 15, Color.DARK_GRAY.getRGB());
     }
 
     @Override
@@ -206,8 +224,8 @@ public class PolymorphScreen extends Screen {
 
     @Override
     public void onClose() {
-        if (!sourceContainer.equals(BlockPos.ZERO))
-            PacketHandler.sendToServer(new PacketCardApply(cardSlot, sourceContainer)); //Notify controller of changes to this card
+        /*if (!sourceContainer.equals(BlockPos.ZERO))
+            PacketHandler.sendToServer(new PacketCardApply(cardSlot, sourceContainer)); //Notify controller of changes to this card*/
         super.onClose();
     }
 

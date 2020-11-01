@@ -43,7 +43,7 @@ public class PacketHandler {
         registerMessage(PacketButtonClear.class, PacketButtonClear::encode, PacketButtonClear::decode, PacketButtonClear.Handler::handle);
         registerMessage(PacketButtonSetOrRemove.class, PacketButtonSetOrRemove::encode, PacketButtonSetOrRemove::decode, PacketButtonSetOrRemove.Handler::handle);
         registerMessage(PacketPolymorphPriority.class, PacketPolymorphPriority::encode, PacketPolymorphPriority::decode, PacketPolymorphPriority.Handler::handle);
-        registerMessage(PacketCardApply.class, PacketCardApply::encode, PacketCardApply::decode, PacketCardApply.Handler::handle);
+        //registerMessage(PacketCardApply.class, PacketCardApply::encode, PacketCardApply::decode, PacketCardApply.Handler::handle);
         registerMessage(PacketButtonAdd.class, PacketButtonAdd::encode, PacketButtonAdd::decode, PacketButtonAdd.Handler::handle);
         registerMessage(PacketToggleNBTFilter.class, PacketToggleNBTFilter::encode, PacketToggleNBTFilter::decode, PacketToggleNBTFilter.Handler::handle);
         registerMessage(PacketChangeExtractAmt.class, PacketChangeExtractAmt::encode, PacketChangeExtractAmt::decode, PacketChangeExtractAmt.Handler::handle);

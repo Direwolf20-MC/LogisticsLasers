@@ -50,7 +50,6 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
     private boolean isWhitelist;
 
     ItemStack card;
-    int cardSlot;
     public BlockPos sourceContainer;
 
     public TagFilterScreen(TagFilterContainer container, PlayerInventory playerInventory, ITextComponent title) {
@@ -58,7 +57,6 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
         card = container.filterItemStack;
         sourceContainer = container.sourceContainer;
         isWhitelist = BaseCard.getWhiteList(card);
-        cardSlot = -1;
     }
 
     public ResourceLocation getBackground() {
@@ -91,14 +89,14 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
 
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 40, 10, new TranslationTextComponent("screen.logisticslasers.remove"), (button) -> {
             if (selectedSlot != -1) {
-                PacketHandler.sendToServer(new PacketButtonSetOrRemove(cardSlot, sourceContainer, displayTags.get(selectedSlot)));
+                PacketHandler.sendToServer(new PacketButtonSetOrRemove(sourceContainer, displayTags.get(selectedSlot)));
                 CardInserterTag.removeTag(card, displayTags.get(selectedSlot));
                 selectedSlot = -1;
             }
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 130, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
-            PacketHandler.sendToServer(new PacketButtonClear(cardSlot, sourceContainer));
+            PacketHandler.sendToServer(new PacketButtonClear(sourceContainer));
             CardInserterTag.clearTags(card);
             selectedSlot = -1;
             page = 0;
@@ -106,14 +104,14 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
 
         leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
             if (!tagField.getText().isEmpty()) {
-                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase(Locale.ROOT)));
+                PacketHandler.sendToServer(new PacketButtonAdd(sourceContainer, tagField.getText().toLowerCase(Locale.ROOT)));
                 CardInserterTag.addTag(card, tagField.getText().toLowerCase(Locale.ROOT));
                 tagField.setText("");
             } else {
                 if (!container.handler.getStackInSlot(0).isEmpty()) {
                     ItemStack stack = container.handler.getStackInSlot(0);
                     for (ResourceLocation res : stack.getItem().getTags()) {
-                        PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, res.toString().toLowerCase(Locale.ROOT)));
+                        PacketHandler.sendToServer(new PacketButtonAdd(sourceContainer, res.toString().toLowerCase(Locale.ROOT)));
                         CardInserterTag.addTag(card, res.toString().toLowerCase(Locale.ROOT));
                     }
                 }
@@ -237,8 +235,8 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
 
     @Override
     public void onClose() {
-        if (!sourceContainer.equals(BlockPos.ZERO))
-            PacketHandler.sendToServer(new PacketCardApply(cardSlot, sourceContainer)); //Notify controller of changes to this card
+        /*if (!sourceContainer.equals(BlockPos.ZERO))
+            PacketHandler.sendToServer(new PacketCardApply(cardSlot, sourceContainer)); //Notify controller of changes to this card*/
         super.onClose();
     }
 
@@ -297,7 +295,7 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
         }
         if (tagField.isFocused() && (keyCode == 257 || keyCode == 335)) { //enter key
             if (!tagField.getText().isEmpty()) {
-                PacketHandler.sendToServer(new PacketButtonAdd(cardSlot, sourceContainer, tagField.getText().toLowerCase(Locale.ROOT)));
+                PacketHandler.sendToServer(new PacketButtonAdd(sourceContainer, tagField.getText().toLowerCase(Locale.ROOT)));
                 CardInserterTag.addTag(card, tagField.getText().toLowerCase(Locale.ROOT));
                 tagField.setText("");
             }

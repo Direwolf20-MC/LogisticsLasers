@@ -71,7 +71,8 @@ public class InventoryNodeScreen extends ContainerScreen<InventoryNodeContainer>
             int slot = hoveredSlot.slotNumber;
             ItemStack card = hoveredSlot.getStack();
             if (card.getItem() instanceof CardPolymorph) {
-                ModScreens.openPolymorphScreen(card, container.tile.getPos(), slot);
+                PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber, container.tile.getPos()));
+                //ModScreens.openPolymorphScreen(card, container.tile.getPos(), slot);
             } else {
                 PacketHandler.sendToServer(new PacketOpenFilter(hoveredSlot.slotNumber, container.tile.getPos()));
             }

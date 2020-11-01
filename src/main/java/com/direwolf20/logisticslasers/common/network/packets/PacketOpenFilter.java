@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.PolyFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
@@ -57,50 +58,56 @@ public class PacketOpenFilter {
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
                 ItemStack itemStack = slot.getStack();
 
-                if (itemStack.getItem() instanceof CardPolymorph) {
+               /* if (itemStack.getItem() instanceof CardPolymorph) {
                     //ModScreens.openPolymorphScreen(itemStack, msg.sourcePos, msg.slotNumber);
-                } else {
-                    ItemStackHandler handler = getInventory(itemStack);
-                    IIntArray tempArray = new IIntArray() {
-                        @Override
-                        public int get(int index) {
-                            switch (index) {
-                                case 0:
-                                    return BaseCard.getPriority(itemStack);
-                                case 1:
-                                    return BaseCard.getExtractAmt(itemStack);
-                                default:
-                                    throw new IllegalArgumentException("Invalid index: " + index);
-                            }
+                } else {*/
+                ItemStackHandler handler = getInventory(itemStack);
+                IIntArray tempArray = new IIntArray() {
+                    @Override
+                    public int get(int index) {
+                        switch (index) {
+                            case 0:
+                                return BaseCard.getPriority(itemStack);
+                            case 1:
+                                return BaseCard.getExtractAmt(itemStack);
+                            default:
+                                throw new IllegalArgumentException("Invalid index: " + index);
                         }
-
-                        @Override
-                        public void set(int index, int value) {
-                            throw new IllegalStateException("Cannot set values through IIntArray");
-                        }
-
-                        @Override
-                        public int size() {
-                            return 2;
-                        }
-                    };
-                    if (itemStack.getItem() instanceof CardStocker) {
-                        NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                                (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
-                            buf.writeItemStack(itemStack);
-                        }));
-                    } else if (itemStack.getItem() instanceof CardInserterTag) {
-                        NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                                (windowId, playerInventory, playerEntity) -> new TagFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
-                            buf.writeItemStack(itemStack);
-                        }));
-                    } else {
-                        NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
-                                (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
-                            buf.writeItemStack(itemStack);
-                        }));
                     }
+
+                    @Override
+                    public void set(int index, int value) {
+                        throw new IllegalStateException("Cannot set values through IIntArray");
+                    }
+
+                    @Override
+                    public int size() {
+                        return 2;
+                    }
+                };
+                if (itemStack.getItem() instanceof CardStocker) {
+                    NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                            (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                        buf.writeItemStack(itemStack);
+                    }));
+                } else if (itemStack.getItem() instanceof CardInserterTag) {
+                    NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                            (windowId, playerInventory, playerEntity) -> new TagFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                        buf.writeItemStack(itemStack);
+                    }));
+                } else if (itemStack.getItem() instanceof CardPolymorph) {
+                    NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                            (windowId, playerInventory, playerEntity) -> new PolyFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                        buf.writeItemStack(itemStack);
+                        buf.writeBlockPos(msg.sourcePos);
+                    }));
+                } else {
+                    NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
+                            (windowId, playerInventory, playerEntity) -> new BasicFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
+                        buf.writeItemStack(itemStack);
+                    }));
                 }
+                //}
             });
 
             ctx.get().setPacketHandled(true);

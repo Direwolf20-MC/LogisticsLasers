@@ -1,19 +1,6 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
-import com.direwolf20.logisticslasers.common.container.InventoryNodeContainer;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
-import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
-
-import java.util.function.Supplier;
-
-public class PacketCardApply {
+/*public class PacketCardApply {
     private int slotNumber;
     private BlockPos sourcePos;
 
@@ -56,4 +43,4 @@ public class PacketCardApply {
             ctx.get().setPacketHandled(true);
         }
     }
-}
+}*/

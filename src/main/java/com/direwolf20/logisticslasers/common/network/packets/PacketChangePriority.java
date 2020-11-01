@@ -1,6 +1,7 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
 import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContainer;
+import com.direwolf20.logisticslasers.common.container.cards.PolyFilterContainer;
 import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -42,6 +43,9 @@ public class PacketChangePriority {
                     BaseCard.setPriority(itemStack, BaseCard.getPriority(itemStack) + msg.priorityChange);
                 } else if (container instanceof TagFilterContainer) {
                     ItemStack itemStack = ((TagFilterContainer) container).filterItemStack;
+                    BaseCard.setPriority(itemStack, BaseCard.getPriority(itemStack) + msg.priorityChange);
+                } else if (container instanceof PolyFilterContainer) {
+                    ItemStack itemStack = ((PolyFilterContainer) container).filterItemStack;
                     BaseCard.setPriority(itemStack, BaseCard.getPriority(itemStack) + msg.priorityChange);
                 }
 
