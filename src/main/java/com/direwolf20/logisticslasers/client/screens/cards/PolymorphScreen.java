@@ -9,6 +9,7 @@ import com.direwolf20.logisticslasers.common.network.packets.PacketButtonAdd;
 import com.direwolf20.logisticslasers.common.network.packets.PacketButtonClear;
 import com.direwolf20.logisticslasers.common.network.packets.PacketButtonSetOrRemove;
 import com.direwolf20.logisticslasers.common.network.packets.PacketChangePriority;
+import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
 import com.google.common.collect.ArrayListMultimap;
@@ -23,12 +24,14 @@ import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.awt.*;
@@ -71,7 +74,7 @@ public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
         super(container, playerInventory, title);
         card = container.filterItemStack;
         sourceContainer = container.sourceContainer;
-        cardSlot = -1;
+        cardSlot = container.cardSlot;
     }
 
     public ResourceLocation getBackground() {
@@ -103,23 +106,19 @@ public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 60, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.set"), (button) -> {
-            //if (!sourceContainer.equals(BlockPos.ZERO))
-            PacketHandler.sendToServer(new PacketButtonSetOrRemove(sourceContainer, ""));
+            if (!sourceContainer.equals(BlockPos.ZERO))
+                PacketHandler.sendToServer(new PacketButtonSetOrRemove(sourceContainer, ""));
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 110, guiTop + 15, 30, 10, new TranslationTextComponent("screen.logisticslasers.clear"), (button) -> {
             PacketHandler.sendToServer(new PacketButtonClear(sourceContainer));
-            CardPolymorph.clearList(card);
+            if (sourceContainer.equals(BlockPos.ZERO))
+                CardPolymorph.clearList(card);
         }));
 
         leftWidgets.add(new DireButton(guiLeft + 85, guiTop + 15, 20, 10, new TranslationTextComponent("screen.logisticslasers.add"), (button) -> {
             if (!sourceContainer.equals(BlockPos.ZERO)) {
                 PacketHandler.sendToServer(new PacketButtonAdd(sourceContainer, ""));
-               /* World world = Minecraft.getInstance().world;
-                TileEntity te = world.getTileEntity(sourceContainer);
-                if (te instanceof InventoryNodeTile) {
-                    card = ((InventoryNodeTile) te).getInventoryStacks().getStackInSlot(cardSlot);
-                }*/
             }
         }));
 
@@ -136,6 +135,14 @@ public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
         renderBackground(stack);
         //drawGuiContainerForegroundLayer(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
+
+        if (cardSlot != -1) {
+            World world = Minecraft.getInstance().world;
+            TileEntity te = world.getTileEntity(sourceContainer);
+            if (te instanceof InventoryNodeTile) {
+                card = ((InventoryNodeTile) te).getInventoryStacks().getStackInSlot(cardSlot);
+            }
+        }
 
         int availableItemsstartX = guiLeft + 7;
         int availableItemstartY = guiTop + 30;

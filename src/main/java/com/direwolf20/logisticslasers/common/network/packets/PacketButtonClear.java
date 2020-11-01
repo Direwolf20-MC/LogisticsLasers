@@ -4,11 +4,14 @@ import com.direwolf20.logisticslasers.common.container.cards.PolyFilterContainer
 import com.direwolf20.logisticslasers.common.container.cards.TagFilterContainer;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardInserterTag;
 import com.direwolf20.logisticslasers.common.items.logiccards.CardPolymorph;
+import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -49,6 +52,11 @@ public class PacketButtonClear {
                     itemStack = ((PolyFilterContainer) container).filterItemStack;
                     if (itemStack.getItem() instanceof CardPolymorph) {
                         CardPolymorph.clearList(itemStack);
+                        World world = sender.getServerWorld();
+                        TileEntity te = world.getTileEntity(msg.sourcePos);
+                        if (te instanceof InventoryNodeTile) {
+                            ((InventoryNodeTile) te).markDirtyClient();
+                        }
                     }
                 } else {
                     return;

@@ -26,11 +26,14 @@ public class PolyFilterContainer extends Container {
 
     // ItemStack can be null and shouldn't be used for accessing any data that needs to be up to date on both sides
     public ItemStack filterItemStack;
+    public boolean filterStackDirty = false;
+    public int cardSlot;
 
     public PolyFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
         this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(2));
         filterItemStack = extraData.readItemStack();
         sourceContainer = extraData.readBlockPos();
+        cardSlot = extraData.readInt();
     }
 
     public PolyFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {

@@ -59,6 +59,7 @@ public class PacketButtonSetOrRemove {
                         TileEntity te = world.getTileEntity(msg.sourcePos);
                         if (te instanceof InventoryNodeTile) {
                             CardPolymorph.setListFromContainer(itemStack, ((InventoryNodeTile) te).getHandler().orElse(new ItemStackHandler(0)));
+                            ((InventoryNodeTile) te).markDirtyClient();
                         }
                     }
                 } else {

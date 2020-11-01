@@ -100,6 +100,7 @@ public class PacketOpenFilter {
                             (windowId, playerInventory, playerEntity) -> new PolyFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {
                         buf.writeItemStack(itemStack);
                         buf.writeBlockPos(msg.sourcePos);
+                        buf.writeInt(msg.slotNumber);
                     }));
                 } else {
                     NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(

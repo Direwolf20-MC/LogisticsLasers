@@ -12,6 +12,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.IIntArray;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
@@ -59,6 +60,8 @@ public class CardPolymorph extends CardInserter {
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
                 (windowId, playerInventory, playerEntity) -> new PolyFilterContainer(itemStack, windowId, playerInventory, handler, tempArray), new StringTextComponent("")), (buf -> {
             buf.writeItemStack(itemStack);
+            buf.writeBlockPos(BlockPos.ZERO);
+            buf.writeInt(-1);
         }));
         return new ActionResult<>(ActionResultType.PASS, itemStack);
     }

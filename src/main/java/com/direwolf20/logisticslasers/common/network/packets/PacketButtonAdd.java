@@ -58,6 +58,7 @@ public class PacketButtonAdd {
                     TileEntity te = world.getTileEntity(msg.sourcePos);
                     if (te instanceof InventoryNodeTile) {
                         CardPolymorph.addContainerToList(itemStack, ((InventoryNodeTile) te).getHandler().orElse(new ItemStackHandler(0)));
+                        ((InventoryNodeTile) te).markDirtyClient();
                     }
                 } else {
                     return;
