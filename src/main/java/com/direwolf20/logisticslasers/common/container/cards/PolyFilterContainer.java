@@ -5,6 +5,7 @@ import com.direwolf20.logisticslasers.common.items.logiccards.*;
 import com.direwolf20.logisticslasers.common.tiles.InventoryNodeTile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.ItemStack;
@@ -92,6 +93,12 @@ public class PolyFilterContainer extends Container {
         return BaseCard.getNBTFilter(filterItemStack);
     }
 
+    @Override
+    public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+        if (clickTypeIn == ClickType.SWAP)
+            return ItemStack.EMPTY;
+        return super.slotClick(slotId, dragType, clickTypeIn, player);
+    }
 
     public void setup(PlayerInventory inventory) {
         /*//Slots
