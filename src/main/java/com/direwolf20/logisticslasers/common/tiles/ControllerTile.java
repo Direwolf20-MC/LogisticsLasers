@@ -596,6 +596,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
             if (providerItemHandler == null) continue; //If its empty, move onto the next provider
 
             do {
+                if (stack.getCount() > stack.getMaxStackSize()) stack.setCount(stack.getMaxStackSize());
                 ItemStack simulated = ItemHandlerUtil.extractItem(providerItemHandler, stack, true); //Pretend to extract the stack from the provider's inventory
 
                 if (simulated.getCount() == 0) {
