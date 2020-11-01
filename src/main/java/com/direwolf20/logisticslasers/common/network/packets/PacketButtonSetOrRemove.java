@@ -32,7 +32,7 @@ public class PacketButtonSetOrRemove {
     }
 
     public static PacketButtonSetOrRemove decode(PacketBuffer buffer) {
-        return new PacketButtonSetOrRemove(buffer.readBlockPos(), buffer.readString());
+        return new PacketButtonSetOrRemove(buffer.readBlockPos(), buffer.readString(255));
 
     }
 
