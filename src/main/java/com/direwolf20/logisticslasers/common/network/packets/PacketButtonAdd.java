@@ -32,8 +32,7 @@ public class PacketButtonAdd {
     }
 
     public static PacketButtonAdd decode(PacketBuffer buffer) {
-        return new PacketButtonAdd(buffer.readBlockPos(), buffer.readString());
-
+        return new PacketButtonAdd(buffer.readBlockPos(), buffer.readString(32767));
     }
 
     public static class Handler {
