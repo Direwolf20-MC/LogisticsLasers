@@ -41,10 +41,6 @@ import java.util.List;
 public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/polymorphscreen.png");
 
-    int guiLeft;
-    int guiTop;
-    protected int xSize = 176;
-    protected int ySize = 166;
     private ArrayListMultimap<Item, ItemStack> itemMap;
     private int page = 0;
     private int maxPages = 0;
@@ -75,6 +71,8 @@ public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
         card = container.filterItemStack;
         sourceContainer = container.sourceContainer;
         cardSlot = container.cardSlot;
+        xSize = 176;
+        ySize = 166;
     }
 
     public ResourceLocation getBackground() {
@@ -84,8 +82,8 @@ public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
     @Override
     protected void init() {
         super.init();
-        this.guiLeft = (this.width - this.xSize) / 2;
-        this.guiTop = (this.height - this.ySize) / 2;
+        //this.guiLeft = (this.width - this.xSize) / 2;
+        //this.guiTop = (this.height - this.ySize) / 2;
         List<Widget> leftWidgets = new ArrayList<>();
 
         Button plusPriority;

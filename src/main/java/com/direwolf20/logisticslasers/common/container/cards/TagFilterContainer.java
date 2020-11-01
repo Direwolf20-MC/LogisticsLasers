@@ -93,23 +93,23 @@ public class TagFilterContainer extends Container {
 
     public void setup(PlayerInventory inventory) {
         //Slots
-        int startX = 165;
-        int startY = -38;
+        int startX = 177;
+        int startY = 6;
 
         addSlot(new BasicFilterSlot(handler, 0, startX, startY));
 
 
         // Slots for the hotbar
         for (int row = 0; row < 9; ++row) {
-            int x = 8 - 12 + row * 18;
-            int y = 56 + 86 + 44;
+            int x = 8 + row * 18;
+            int y = 56 + 86 + 88;
             addSlot(new Slot(inventory, row, x, y));
         }
         // Slots for the main inventory
         for (int row = 1; row < 4; ++row) {
             for (int col = 0; col < 9; ++col) {
-                int x = 8 - 12 + col * 18;
-                int y = row * 18 + (56 + 10 + 44);
+                int x = 8 + col * 18;
+                int y = row * 18 + (56 + 10 + 88);
                 addSlot(new Slot(inventory, col + row * 9, x, y));
             }
         }

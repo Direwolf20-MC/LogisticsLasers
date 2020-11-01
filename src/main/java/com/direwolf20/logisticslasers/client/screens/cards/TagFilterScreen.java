@@ -37,10 +37,6 @@ import java.util.Locale;
 public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
     private static final ResourceLocation background = new ResourceLocation(LogisticsLasers.MOD_ID, "textures/gui/tagfilterscreen.png");
 
-    int guiLeft;
-    int guiTop;
-    protected int xSize = 200;
-    protected int ySize = 254;
     private TextFieldWidget tagField;
     private int page = 0;
     private int maxPages = 0;
@@ -57,6 +53,8 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
         card = container.filterItemStack;
         sourceContainer = container.sourceContainer;
         isWhitelist = BaseCard.getWhiteList(card);
+        xSize = 200;
+        ySize = 254;
     }
 
     public ResourceLocation getBackground() {
@@ -66,6 +64,7 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
     @Override
     protected void init() {
         super.init();
+
         this.guiLeft = (this.width - this.xSize) / 2;
         this.guiTop = (this.height - this.ySize) / 2;
         List<Widget> leftWidgets = new ArrayList<>();
@@ -222,10 +221,10 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
 
     @Override
     protected void drawGuiContainerForegroundLayer(MatrixStack stack, int x, int y) {
-        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.tagfilterscreen"), 40, -40, Color.DARK_GRAY.getRGB());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), -7, -40, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, I18n.format("item.logisticslasers.tagfilterscreen"), 50, 5, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("item.logisticslasers.basicfilterscreen.priority").getString(), 3, 5, Color.DARK_GRAY.getRGB());
         String priority = Integer.toString(container.getPriority());
-        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 8, -27, Color.DARK_GRAY.getRGB());
+        Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 18, 18, Color.DARK_GRAY.getRGB());
     }
 
     @Override
@@ -260,8 +259,8 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
             ItemStack stack = getMinecraft().player.inventory.getItemStack();
             stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
             hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
-
             PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
+            //return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
