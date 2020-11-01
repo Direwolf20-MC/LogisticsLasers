@@ -7,6 +7,7 @@ import com.direwolf20.logisticslasers.common.container.cards.BasicFilterContaine
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
+import com.direwolf20.logisticslasers.common.util.MiscTools;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -49,6 +50,26 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
         this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
         this.func_230459_a_(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
+        if (container.showNBTFilter() && isNBTFilter) {
+            if (MiscTools.inBounds(guiLeft + 25, guiTop + 40, 10, 10, mouseX, mouseY)) {
+                this.renderTooltip(stack, new TranslationTextComponent("screen.logisticslasers.nbt"), mouseX, mouseY);
+            }
+        }
+        if (container.showNBTFilter() && !isNBTFilter) {
+            if (MiscTools.inBounds(guiLeft + 25, guiTop + 40, 10, 10, mouseX, mouseY)) {
+                this.renderTooltip(stack, new TranslationTextComponent("screen.logisticslasers.nonbt"), mouseX, mouseY);
+            }
+        }
+        if (container.showWhiteList() && isWhitelist) {
+            if (MiscTools.inBounds(guiLeft + 10, guiTop + 40, 10, 10, mouseX, mouseY)) {
+                this.renderTooltip(stack, new TranslationTextComponent("screen.logisticslasers.whitelist"), mouseX, mouseY);
+            }
+        }
+        if (container.showWhiteList() && !isWhitelist) {
+            if (MiscTools.inBounds(guiLeft + 10, guiTop + 40, 10, 10, mouseX, mouseY)) {
+                this.renderTooltip(stack, new TranslationTextComponent("screen.logisticslasers.blacklist"), mouseX, mouseY);
+            }
+        }
     }
 
     @Override
@@ -136,6 +157,7 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
             Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(priority).getString(), 18 - font.getStringWidth(priority) / 3, 25, Color.DARK_GRAY.getRGB());
         }
         if (container.showExtractAmt()) {
+            Minecraft.getInstance().fontRenderer.drawString(stack, new TranslationTextComponent("screen.logisticslasers.extractamt").getString(), 135, 15, Color.DARK_GRAY.getRGB());
             String extractAmt = Integer.toString(container.getExtractAmt());
             Minecraft.getInstance().fontRenderer.drawString(stack, new StringTextComponent(extractAmt).getString(), 150 - font.getStringWidth(extractAmt) / 3, 25, Color.DARK_GRAY.getRGB());
         }

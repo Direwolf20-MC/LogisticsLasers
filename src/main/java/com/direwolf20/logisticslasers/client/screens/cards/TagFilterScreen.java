@@ -140,6 +140,17 @@ public class TagFilterScreen extends ContainerScreen<TagFilterContainer> {
         this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
 
+        if (isWhitelist) {
+            if (MiscTools.inBounds(guiLeft + 110, guiTop + 3, 10, 10, mouseX, mouseY)) {
+                this.renderTooltip(stack, new TranslationTextComponent("screen.logisticslasers.whitelist"), mouseX, mouseY);
+            }
+        }
+        if (!isWhitelist) {
+            if (MiscTools.inBounds(guiLeft + 110, guiTop + 3, 10, 10, mouseX, mouseY)) {
+                this.renderTooltip(stack, new TranslationTextComponent("screen.logisticslasers.blacklist"), mouseX, mouseY);
+            }
+        }
+
         int availableItemsstartX = guiLeft + 7;
         int availableItemstartY = guiTop + 50;
         int color = 0x885B5B5B;

@@ -49,6 +49,11 @@ public class GeneratorLanguage extends LanguageProvider {
         add("screen.logisticslasers.set", "Set");
         add("screen.logisticslasers.refresh", "Refresh");
         add("screen.logisticslasers.request", "Request");
+        add("screen.logisticslasers.nbt", "NBT Match");
+        add("screen.logisticslasers.nonbt", "No NBT Match");
+        add("screen.logisticslasers.whitelist", "Whitelist");
+        add("screen.logisticslasers.blacklist", "Blacklist");
+        add("screen.logisticslasers.extractamt", "Extract");
 
 
         add("block.logisticslasers.inventorynodescreen", "Inventory Node");
