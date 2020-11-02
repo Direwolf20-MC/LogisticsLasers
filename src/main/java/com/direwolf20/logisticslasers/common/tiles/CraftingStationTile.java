@@ -192,14 +192,14 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public boolean requestItem(ItemStack stack, PlayerEntity requestor, int gridSlot) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
-        ItemStack returnedStack = te.provideItemStacksToPos(stack.copy(), pos);
+        ItemStack returnedStack = te.provideItemStacksToPos(stack, pos);
         if (returnedStack.getCount() > 0) { //If we couldn't get the stack we're looking for
             boolean success = false;
             if (gridSlot != -1) {
                 Set<ItemStack> alternates = alternateIngredients.getOrDefault(gridSlot, new HashSet<>());
                 for (ItemStack altStack : alternates) {
                     returnedStack = te.provideItemStacksToPos(altStack.copy(), pos);
-                    if (returnedStack.getCount() == 0) { //If we couldn't get the stack we're looking for
+                    if (returnedStack.getCount() == 0) { //If we found what we're looking for
                         success = true;
                         break;
                     }
@@ -224,7 +224,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public void requestGridOnlyMissing(PlayerEntity requestor) {
         ItemStackHandler handler = getInventoryStacks();
         ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
-        ItemHandlerUtil.InventoryCounts craftingGridCounts = new ItemHandlerUtil.InventoryCounts(craftMatrixHandler);
         for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
             ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
             if (requestStack.isEmpty()) continue;
@@ -235,9 +234,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 requestItem(new ItemStack(requestStack.getItem(), 1), requestor, i);
             }
         }
-        /*for (ItemStack stack : craftingGridCounts.getItemCounts().values()) {
-            requestItem(new ItemStack(stack.getItem(), stack.getCount() - storageCounts.getCount(stack)), requestor);
-        }*/
     }
 
     public ItemStackHandler getInventoryStacks() {
