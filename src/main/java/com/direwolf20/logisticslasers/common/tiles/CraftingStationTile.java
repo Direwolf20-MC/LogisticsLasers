@@ -6,6 +6,8 @@ import com.direwolf20.logisticslasers.common.container.customhandler.CraftingSta
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
 import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,9 +36,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -50,6 +50,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
+    private Int2ObjectMap<Set<ItemStack>> alternateIngredients = new Int2ObjectOpenHashMap<>();
 
     public CraftingStationTile() {
         super(ModBlocks.CRAFTING_STATION_TILE.get());
@@ -80,11 +81,24 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
             if (recipe != lastRecipe) {
                 craftResult.setStackInSlot(0, result);
                 this.lastRecipe = recipe;
+                findAlternateRecipes(recipe, manager);
             }
         } else {
             //If the recipe is not valid, clear the last recipe and output slot.
             this.lastRecipe = null;
             craftResult.setStackInSlot(0, ItemStack.EMPTY);
+        }
+    }
+
+    public void findAlternateRecipes(ICraftingRecipe recipe, RecipeManager manager) {
+        alternateIngredients.clear();
+        List<Ingredient> ingredients = recipe.getIngredients();
+        for (int i = 0; i < recipe.getIngredients().size(); i++) {
+            Ingredient ingredient = ingredients.get(i);
+            if (ingredient.getMatchingStacks().length > 1) {
+                Set<ItemStack> tempSet = new HashSet<>(Arrays.asList(ingredient.getMatchingStacks()));
+                alternateIngredients.put(i, tempSet);
+            }
         }
     }
 
@@ -175,12 +189,24 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
-    public boolean requestItem(ItemStack stack, PlayerEntity requestor) {
+    public boolean requestItem(ItemStack stack, PlayerEntity requestor, int gridSlot) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
         ItemStack returnedStack = te.provideItemStacksToPos(stack.copy(), pos);
-        if (returnedStack.getCount() > 0) {
-            requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), returnedStack.getItem())), false);
+        if (returnedStack.getCount() > 0) { //If we couldn't get the stack we're looking for
+            boolean success = false;
+            if (gridSlot != -1) {
+                Set<ItemStack> alternates = alternateIngredients.getOrDefault(gridSlot, new HashSet<>());
+                for (ItemStack altStack : alternates) {
+                    returnedStack = te.provideItemStacksToPos(altStack.copy(), pos);
+                    if (returnedStack.getCount() == 0) { //If we couldn't get the stack we're looking for
+                        success = true;
+                        break;
+                    }
+                }
+            }
+            if (!success)
+                requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), stack.getItem())), false);
         }
         te.updateItemCounts((ServerPlayerEntity) requestor);
         return returnedStack.getCount() == 0;
@@ -191,7 +217,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
                 requestStack.setCount(amt);
                 if (!requestStack.isEmpty())
-                    requestItem(requestStack, requestor);
+                    requestItem(requestStack, requestor, i);
             }
     }
 
@@ -199,9 +225,19 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         ItemStackHandler handler = getInventoryStacks();
         ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
         ItemHandlerUtil.InventoryCounts craftingGridCounts = new ItemHandlerUtil.InventoryCounts(craftMatrixHandler);
-        for (ItemStack stack : craftingGridCounts.getItemCounts().values()) {
-            requestItem(new ItemStack(stack.getItem(), stack.getCount() - storageCounts.getCount(stack)), requestor);
+        for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
+            ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
+            if (requestStack.isEmpty()) continue;
+            if (storageCounts.getCount(requestStack) > 0) { //If we have 1 of these items in the inventory already, decrement the storageCount of it and move onto the next
+                storageCounts.removeStack(requestStack, 1);
+                continue;
+            } else { //otherwise request the item
+                requestItem(new ItemStack(requestStack.getItem(), 1), requestor, i);
+            }
         }
+        /*for (ItemStack stack : craftingGridCounts.getItemCounts().values()) {
+            requestItem(new ItemStack(stack.getItem(), stack.getCount() - storageCounts.getCount(stack)), requestor);
+        }*/
     }
 
     public ItemStackHandler getInventoryStacks() {
