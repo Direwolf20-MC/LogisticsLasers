@@ -118,6 +118,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
         int itemsPerPage = 81;
         maxPages = (int) Math.floor((double) itemStacks.size() / itemsPerPage);
+        if (page > maxPages) page = 0;
         int itemStackMin = (page * itemsPerPage);
         int itemStackMax = Math.min((page * itemsPerPage) + itemsPerPage, itemStacks.size());
         List<ItemStack> displayStacks = itemStacks.subList(itemStackMin, itemStackMax);
