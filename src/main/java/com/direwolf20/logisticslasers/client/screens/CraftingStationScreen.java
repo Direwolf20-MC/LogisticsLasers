@@ -71,7 +71,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
         this.renderForeground(stack, mouseX, mouseY);
-        this.func_230459_a_(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
+        this.renderHoveredTooltip(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
     }
 
     public void renderForeground(MatrixStack matrixStack, int mouseX, int mouseY) {

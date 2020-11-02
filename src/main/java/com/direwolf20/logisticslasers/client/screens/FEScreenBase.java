@@ -29,7 +29,7 @@ public abstract class FEScreenBase<T extends FEContainerBase> extends ContainerS
         this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
 
-        this.func_230459_a_(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
+        this.renderHoveredTooltip(stack, mouseX, mouseY); // @mcp: func_230459_a_ = renderHoveredToolTip
         /*if (mouseX > (guiLeft + 7) && mouseX < (guiLeft + 7) + 18 && mouseY > (guiTop + 7) && mouseY < (guiTop + 7) + 73)
             if (Screen.hasShiftDown())
                 this.renderTooltip(stack, LanguageMap.getInstance().func_244260_a(Arrays.asList(
