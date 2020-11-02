@@ -22,6 +22,7 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -239,6 +240,12 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public ItemStackHandler getInventoryStacks() {
         ItemStackHandler handler = inventory.orElse(new ItemStackHandler(27));
         return handler;
+    }
+
+    @Override
+    public void setControllerPos(BlockPos controllerPos) {
+        super.setControllerPos(controllerPos);
+        markDirtyClient();
     }
 
     //Ensure mods and hoppers and such can interact with this inventory - but only the first 27 slots
