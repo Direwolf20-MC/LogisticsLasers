@@ -27,6 +27,6 @@ license="MIT (https://github.com/Direwolf20-MC/LogisticsLasers/blob/master/LICEN
 [[dependencies.logisticslasers]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.3]"
+    versionRange="[1.16.3,]"
     ordering="NONE"
     side="BOTH"
