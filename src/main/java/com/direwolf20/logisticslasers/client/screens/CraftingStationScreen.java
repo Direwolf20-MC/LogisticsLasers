@@ -4,10 +4,12 @@ import com.direwolf20.logisticslasers.LogisticsLasers;
 import com.direwolf20.logisticslasers.client.screens.widgets.DireButton;
 import com.direwolf20.logisticslasers.client.screens.widgets.GuiIncrementer;
 import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
+import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
+import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import com.direwolf20.logisticslasers.common.util.ItemStackKey;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
@@ -197,7 +199,24 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             slot++;
         }
 
-
+        ItemHandlerUtil.InventoryCounts inventoryCounts = new ItemHandlerUtil.InventoryCounts(container.handler);
+        CraftingStationHandler craftingHandler = container.craftingHandler;
+        int overlayColor = MiscTools.rgbaToInt(255, 75, 75, 55);
+        int startX = guiLeft + 29;
+        int startY = guiTop + 16;
+        for (int i = 0; i < craftingHandler.getSlots(); i++) {
+            if (inventoryCounts.getCount(craftingHandler.getStackInSlot(i)) == 0) {
+                int x = startX + (i % 3) * 18 + 1;
+                int y = startY + (i / 3) * 18 + 1;
+                RenderSystem.pushMatrix();
+                RenderSystem.translated(0, 0, 1000);
+                fill(matrixStack, x, y, x + 16, y + 16, overlayColor);
+                RenderSystem.translated(0, 0, -1000);
+                RenderSystem.popMatrix();
+            } else {
+                inventoryCounts.removeStack(craftingHandler.getStackInSlot(i), 1);
+            }
+        }
     }
 
 

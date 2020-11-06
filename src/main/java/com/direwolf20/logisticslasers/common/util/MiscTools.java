@@ -64,4 +64,21 @@ public class MiscTools {
         }
         return list;
     }
+
+    public static int rgbToInt(int r, int g, int b) {
+        int red = (r << 16) & 0x00FF0000;
+        int green = (g << 8) & 0x0000FF00;
+        int blue = b & 0x000000FF;
+
+        return 0xFF000000 | red | green | blue;
+    }
+
+    public static int rgbaToInt(int r, int g, int b, int a) {
+        int alpha = (a << 24) & 0xFF000000;
+        int red = (r << 16) & 0x00FF0000;
+        int green = (g << 8) & 0x0000FF00;
+        int blue = b & 0x000000FF;
+
+        return alpha | red | green | blue;
+    }
 }
