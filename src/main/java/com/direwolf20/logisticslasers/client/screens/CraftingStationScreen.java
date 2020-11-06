@@ -205,7 +205,8 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         int startX = guiLeft + 29;
         int startY = guiTop + 16;
         for (int i = 0; i < craftingHandler.getSlots(); i++) {
-            if (inventoryCounts.getCount(craftingHandler.getStackInSlot(i)) == 0) {
+            ItemStack itemStack = craftingHandler.getStackInSlot(i);
+            if (inventoryCounts.getCount(itemStack) == 0 && !itemStack.equals(ItemStack.EMPTY)) {
                 int x = startX + (i % 3) * 18 + 1;
                 int y = startY + (i / 3) * 18 + 1;
                 RenderSystem.pushMatrix();
