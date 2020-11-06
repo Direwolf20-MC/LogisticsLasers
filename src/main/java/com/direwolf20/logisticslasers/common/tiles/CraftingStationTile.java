@@ -45,7 +45,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
      * Last crafted crafting recipe
      */
     @Nullable
-    private ICraftingRecipe lastRecipe;
+    public ICraftingRecipe lastRecipe;
 
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
@@ -83,6 +83,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 craftResult.setStackInSlot(0, result);
                 this.lastRecipe = recipe;
                 findAlternateRecipes(recipe, manager);
+                markDirtyClient();
             }
         } else {
             //If the recipe is not valid, clear the last recipe and output slot.

@@ -9,10 +9,7 @@ import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlo
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
-import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
-import com.direwolf20.logisticslasers.common.util.ItemStackKey;
-import com.direwolf20.logisticslasers.common.util.MagicHelpers;
-import com.direwolf20.logisticslasers.common.util.MiscTools;
+import com.direwolf20.logisticslasers.common.util.*;
 import com.google.common.collect.ArrayListMultimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -26,12 +23,18 @@ import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.ICraftingRecipe;
+import net.minecraft.item.crafting.IRecipeType;
+import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.awt.*;
 import java.util.List;
@@ -198,26 +201,42 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
             slot++;
         }
-
-        ItemHandlerUtil.InventoryCounts inventoryCounts = new ItemHandlerUtil.InventoryCounts(container.handler);
+        
+        World world = Minecraft.getInstance().world;
+        RecipeManager manager = world.getRecipeManager(); //Get the server recipe list i think
         CraftingStationHandler craftingHandler = container.craftingHandler;
+        ICraftingRecipe recipe = manager.getRecipe(IRecipeType.CRAFTING, new CraftingStationInventory(craftingHandler, 3, 3), world).orElse(null);
+        if (recipe == null) return;
+        ItemStackHandler handler = container.handler;
+        ItemHandlerUtil.InventoryCounts inventoryCounts = new ItemHandlerUtil.InventoryCounts(handler);
+        List<ItemStack> invItemStacks = new ArrayList(inventoryCounts.getItemCounts().values().stream()
+                .collect(Collectors.toList()));
         int overlayColor = MiscTools.rgbaToInt(255, 75, 75, 55);
         int startX = guiLeft + 29;
         int startY = guiTop + 16;
-        for (int i = 0; i < craftingHandler.getSlots(); i++) {
-            ItemStack itemStack = craftingHandler.getStackInSlot(i);
-            if (inventoryCounts.getCount(itemStack) == 0 && !itemStack.equals(ItemStack.EMPTY)) {
-                int x = startX + (i % 3) * 18 + 1;
-                int y = startY + (i / 3) * 18 + 1;
+        List<Ingredient> ingredients = recipe.getIngredients();//.stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+        for (int i = 0; i < ingredients.size(); i++) {
+            Ingredient ingredient = ingredients.get(i);
+            if (ingredient.hasNoMatchingItems()) continue;
+            boolean foundItem = false;
+            int x = startX + (i % 3) * 18 + 1;
+            int y = startY + (i / 3) * 18 + 1;
+            for (ItemStack testStack : invItemStacks) { //Loop through all slots in internal inventory
+                if (ingredient.test(testStack) && testStack.getCount() > 0) {
+                    foundItem = true;
+                    testStack.shrink(1);
+                    break;
+                }
+            }
+            if (!foundItem) {
                 RenderSystem.pushMatrix();
                 RenderSystem.translated(0, 0, 1000);
                 fill(matrixStack, x, y, x + 16, y + 16, overlayColor);
                 RenderSystem.translated(0, 0, -1000);
                 RenderSystem.popMatrix();
-            } else {
-                inventoryCounts.removeStack(craftingHandler.getStackInSlot(i), 1);
             }
         }
+
     }
 
 
