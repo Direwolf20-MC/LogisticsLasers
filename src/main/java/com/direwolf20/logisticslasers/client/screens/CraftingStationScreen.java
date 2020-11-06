@@ -8,6 +8,7 @@ import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlo
 import com.direwolf20.logisticslasers.common.container.customslot.CraftingSlot;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.*;
+import com.direwolf20.logisticslasers.common.util.ItemStackKey;
 import com.direwolf20.logisticslasers.common.util.MagicHelpers;
 import com.direwolf20.logisticslasers.common.util.MiscTools;
 import com.google.common.collect.ArrayListMultimap;
@@ -54,6 +55,8 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     private TextFieldWidget searchField;
     private int page = 0;
     private int maxPages = 0;
+    ItemStackKey selectedItem = new ItemStackKey(ItemStack.EMPTY);
+    List<ItemStack> displayStacks;
 
     public CraftingStationScreen(CraftingStationContainer container, PlayerInventory playerInventory, ITextComponent title) {
         super(container, playerInventory, title);
@@ -121,14 +124,17 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         if (page > maxPages) page = 0;
         int itemStackMin = (page * itemsPerPage);
         int itemStackMax = Math.min((page * itemsPerPage) + itemsPerPage, itemStacks.size());
-        List<ItemStack> displayStacks = itemStacks.subList(itemStackMin, itemStackMax);
+        displayStacks = itemStacks.subList(itemStackMin, itemStackMax);
         font.drawString(matrixStack, MagicHelpers.withSuffix(page), guiLeft + 260 - font.getStringWidth(MagicHelpers.withSuffix(page)) * 0.65f, guiTop + 5, TextFormatting.DARK_GRAY.getColor());
 
         int slot = 0;
         overSlot = -1;
-        if (selectedSlot >= displayStacks.size()) selectedSlot = -1;
+        selectedSlot = -1;
         for (int i = 0; i < displayStacks.size(); i++) {
             ItemStack stack = displayStacks.get(i);
+            ItemStackKey stackKey = new ItemStackKey(stack);
+            if (selectedItem.equals(stackKey))
+                selectedSlot = i;
             int row = (int) Math.floor((double) slot / 9);
             if (row >= maxRows) break;
             int col = slot % 9;
@@ -243,7 +249,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
     private void requestItem() {
         if (selectedSlot == -1) return;
-        ItemStack stack = itemStacks.get(selectedSlot);
+        ItemStack stack = displayStacks.get(selectedSlot);
         stack.setCount(requestCounter.getValue());
         PacketHandler.sendToServer(new PacketRequestItem(stack, requestCounter.getValue()));
     }
@@ -286,7 +292,8 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         }
 
         if (overSlot >= 0) {
-            selectedSlot = overSlot;
+            //selectedSlot = overSlot;
+            selectedItem = new ItemStackKey(displayStacks.get(overSlot));
             return true;
         }
 
