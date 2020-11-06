@@ -198,7 +198,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     @Override
     public void init() {
         super.init();
-        this.guiLeft = 80;
+        this.guiLeft = 100;
         availableItemsstartX = guiLeft + 195;
         availableItemstartY = guiTop + 17;
         List<Widget> leftWidgets = new ArrayList<>();
