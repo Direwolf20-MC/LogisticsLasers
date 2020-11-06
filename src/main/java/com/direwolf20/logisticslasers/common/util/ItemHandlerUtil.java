@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.NonNullList;
@@ -35,6 +36,20 @@ public class ItemHandlerUtil {
         }
         stack.setCount(amtGotten);
         return stack;
+    }
+
+    public static ItemStack extractIngredient(IItemHandler source, @Nonnull Ingredient ingredient, boolean simulate) {
+        if (source == null || ingredient.hasNoMatchingItems())
+            return ItemStack.EMPTY;
+
+        for (int i = 0; i < source.getSlots(); i++) {
+            ItemStack stackInSlot = source.getStackInSlot(i);
+            if (ingredient.test(stackInSlot)) { //If this ingredient matches
+                ItemStack tempStack = source.extractItem(i, 1, simulate);
+                return tempStack;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     /**

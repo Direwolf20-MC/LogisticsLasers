@@ -23,6 +23,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -575,6 +576,47 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 break; //If we successfully sent all items in this stack, we're done
         }
         return stackSize;
+    }
+
+    /**
+     * Given a @param ingredient, find providers that offer it and send to @param toPos
+     * Retrieve from multiple providers if necessary
+     *
+     * @return whether or not we succeeded
+     */
+    public boolean provideIngredientToPos(Ingredient ingredient, BlockPos toPos) {
+        boolean successfullySent = false;
+        TileEntity te = world.getTileEntity(toPos);
+        int rfBaseCost = (te instanceof InventoryNodeTile) ? Config.CONTROLLER_STOCKER.get() : Config.CRAFTING_STATION_REQUEST.get();
+        List<BlockPos> possibleProviders = new ArrayList(providerNodes); //Find a list of possible Providers. We can't use the cache lookup here because of NBT, etc.
+        possibleProviders.remove(toPos); //Remove this chest
+        if (possibleProviders.isEmpty()) return false; //If nothing can provide to here, stop working
+        for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
+            IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
+            if (providerItemHandler == null) continue; //If its empty, move onto the next provider
+
+
+            ItemStack simulated = ItemHandlerUtil.extractIngredient(providerItemHandler, ingredient, true); //Pretend to extract the stack from the provider's inventory
+
+            if (simulated.getCount() == 0) {
+                continue; //If the stack we removed has zero items in it check another provider
+            }
+
+            ItemStack extractedStack;
+            if (useEnergy(rfBaseCost))
+                extractedStack = ItemHandlerUtil.extractIngredient(providerItemHandler, ingredient, false); //Actually remove the items this time
+            else {
+                return false;
+            }
+            successfullySent = transferItemStack(providerPos, toPos, extractedStack);
+            if (!successfullySent) { //Attempt to send items
+                ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+                continue;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

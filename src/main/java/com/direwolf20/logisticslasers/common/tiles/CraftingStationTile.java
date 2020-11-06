@@ -5,7 +5,6 @@ import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
-import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.block.Block;
@@ -192,11 +191,11 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         return result;
     }
 
-    public boolean requestItem(ItemStack stack, PlayerEntity requestor, int gridSlot) {
+    public boolean requestItem(ItemStack stack, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
         ItemStack returnedStack = te.provideItemStacksToPos(stack, pos);
-        if (returnedStack.getCount() > 0) { //If we couldn't get the stack we're looking for
+        /*if (returnedStack.getCount() > 0) { //If we couldn't get the stack we're looking for
             boolean success = false;
             if (gridSlot != -1) {
                 Set<ItemStack> alternates = alternateIngredients.getOrDefault(gridSlot, new HashSet<>());
@@ -210,23 +209,55 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
             }
             if (!success)
                 requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), stack.getItem())), false);
-        }
+        }*/
         te.updateItemCounts((ServerPlayerEntity) requestor);
         return returnedStack.getCount() == 0;
     }
 
+    public boolean requestIngredient(Ingredient ingredient, PlayerEntity requestor) {
+        ControllerTile te = getControllerTE();
+        if (te == null) return false;
+        boolean success = te.provideIngredientToPos(ingredient, pos);
+        if (!success)
+            requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", 1, ingredient.getMatchingStacks()[0].getItem())), false);
+        return success;
+    }
+
     public void requestGrid(PlayerEntity requestor, int amt) {
-            for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
-                ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
-                requestStack.setCount(amt);
-                if (!requestStack.isEmpty())
-                    requestItem(requestStack, requestor, i);
-            }
+        if (lastRecipe == null) return;
+        List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+        for (Ingredient ingredient : ingredients) {
+            requestIngredient(ingredient, requestor);
+        }
+        /*for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
+            ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
+            requestStack.setCount(amt);
+            if (!requestStack.isEmpty())
+                requestItem(requestStack, requestor, i);
+        }*/
     }
 
     public void requestGridOnlyMissing(PlayerEntity requestor) {
+        if (lastRecipe == null) return;
         ItemStackHandler handler = getInventoryStacks();
-        ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
+        List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+        for (int i = 0; i < handler.getSlots(); i++) {
+            ItemStack stackInSlot = handler.getStackInSlot(i);
+            int count = stackInSlot.getCount();
+            for (Ingredient ingredient : lastRecipe.getIngredients()) {
+                if (ingredients.isEmpty()) break;
+                if (count == 0) break;
+                if (ingredient.test(stackInSlot) && count >= 1) {
+                    if (ingredients.remove(ingredient)) {
+                        count--;
+                    }
+                }
+            }
+        }
+        for (Ingredient ingredient : ingredients) {
+            requestIngredient(ingredient, requestor);
+        }
+        /*ItemHandlerUtil.InventoryCounts storageCounts = new ItemHandlerUtil.InventoryCounts(handler);
         for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
             ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
             if (requestStack.isEmpty()) continue;
@@ -236,7 +267,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
             } else { //otherwise request the item
                 requestItem(new ItemStack(requestStack.getItem(), 1), requestor, i);
             }
-        }
+        }*/
     }
 
     public ItemStackHandler getInventoryStacks() {

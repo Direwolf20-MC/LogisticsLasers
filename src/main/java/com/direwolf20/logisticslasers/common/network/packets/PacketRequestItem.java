@@ -43,7 +43,7 @@ public class PacketRequestItem {
                     CraftingStationTile te = ((CraftingStationContainer) container).tile;
                     ItemStack stack = msg.stack;
                     stack.setCount(msg.amount);
-                    te.requestItem(msg.stack, sender, -1);
+                    te.requestItem(msg.stack, sender);
                 }
 
 
