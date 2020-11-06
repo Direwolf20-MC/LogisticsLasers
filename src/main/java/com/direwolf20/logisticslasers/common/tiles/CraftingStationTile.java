@@ -129,9 +129,10 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                             if (ingredients.isEmpty()) break;
                             if (count == 0) break;
                             if (ingredient.test(stackInSlot) && count >= 1) {
-                                itemStacksToremove.add(i);
-                                ingredients.remove(ingredient);
-                                count--;
+                                if (ingredients.remove(ingredient)) {
+                                    itemStacksToremove.add(i);
+                                    count--;
+                                }
                             }
                         }
                         if (ingredients.isEmpty()) break;
