@@ -88,19 +88,14 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    maven {
-        // JEI
-        name = "Progwml6 maven"
-        url = "https://dvs1.progwml6.com/files/maven/"
-    }
+    maven { url = "https://dvs1.progwml6.com/files/maven/" } // JEI
+    maven { url = 'https://www.dogforce-games.com/maven/' } // mappings
+    maven { url = 'https://maven.latmod.com' }
+    maven { url = 'https://modmaven.dev/' } // mek
+    maven { url = "https://www.cursemaven.com" } // curse mods
+
     flatDir {
-        dirs 'includedMods/'
-    }
-    maven {
-        url 'https://www.dogforce-games.com/maven/'
-    }
-    maven {
-        url 'https://maven.latmod.com'
+        dirs 'includedMods/' // local
     }
 }
 
@@ -116,11 +111,11 @@ dependencies {
     //compileOnly fg.deobf("com.feed_the_beast.mods:ftb-gui-library:1.0.0.18")
 
     //Other mods for dev environment
-    runtimeOnly fg.deobf("ignored:Mekanism:1.16.3-10.0.9")
-    runtimeOnly fg.deobf("ignored:InventoryEssentials:1.16.3-2.2.0")
-    runtimeOnly fg.deobf("ignored:inventorysorter:1.16.1-18.1.0")
-    runtimeOnly fg.deobf("ignored:Lollipop:1.16.3-3.2.2")
-    runtimeOnly fg.deobf("ignored:Powah:1.16.3-2.3.3")
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}")
+    runtimeOnly fg.deobf("curse.maven:powah:3098477")
+    runtimeOnly fg.deobf("curse.maven:lollipop:3084134")
+    runtimeOnly fg.deobf("curse.maven:inventory-essentials:3098198")
+    runtimeOnly fg.deobf("cpw.mods:cpw_inventorysorter_master:18.1.0") // already on the forge maven
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
