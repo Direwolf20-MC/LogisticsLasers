@@ -49,9 +49,9 @@ public class Config {
         CONTROLLER_PASSIVE = COMMON_BUILDER.comment("The passive RF/Tick cost of the controller")
                 .defineInRange("rf_controller_passive", 0, 0, Integer.MAX_VALUE);
         CONTROLLER_BASIC_NODE_PASSIVE = COMMON_BUILDER.comment("The passive RF/Tick cost of a basic node when connected to a controller")
-                .defineInRange("rf_controller_basic_node_passive", 5, 0, Integer.MAX_VALUE);
+                .defineInRange("rf_controller_basic_node_passive", 2, 0, Integer.MAX_VALUE);
         CONTROLLER_INV_NODE_PASSIVE = COMMON_BUILDER.comment("The passive RF/Tick cost of an inventory node when connected to a controller")
-                .defineInRange("rf_controller_inventory_node_passive", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("rf_controller_inventory_node_passive", 5, 0, Integer.MAX_VALUE);
         CONTROLLER_INTERNAL = COMMON_BUILDER.comment("The RF cost per item to store items in the controller's internal inventory.")
                 .defineInRange("rf_controller_internal", 10, 0, Integer.MAX_VALUE);
         CONTROLLER_INTERNAL_REMOVE = COMMON_BUILDER.comment("The RF cost per item to remove an item from the internal stored inventory")
@@ -66,7 +66,7 @@ public class Config {
         CRAFTING_STATION_REQUEST = COMMON_BUILDER.comment("The RF cost per item when requesting from a crafting station")
                 .defineInRange("rf_crafting_station_request", 10, 0, Integer.MAX_VALUE);
         CRAFTING_STATION_PASSIVE = COMMON_BUILDER.comment("The passive RF/Tick cost of a crafting station when connected to a controller")
-                .defineInRange("rf_controller_crafting_station_passive", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("rf_controller_crafting_station_passive", 5, 0, Integer.MAX_VALUE);
         COMMON_BUILDER.pop();
     }
 }

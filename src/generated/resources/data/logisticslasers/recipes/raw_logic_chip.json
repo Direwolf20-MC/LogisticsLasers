@@ -20,6 +20,7 @@
     }
   },
   "result": {
-    "item": "logisticslasers:raw_logic_chip"
+    "item": "logisticslasers:raw_logic_chip",
+    "count": 4
   }
 }

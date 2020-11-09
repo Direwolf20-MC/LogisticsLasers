@@ -137,7 +137,7 @@ public class GeneratorRecipes extends RecipeProvider {
                 .patternLine(" i ")
                 .addCriterion("has_routing_module", hasItem(ROUTING_LOGIC_MODULE.get()))
                 .build(consumer);
-        ShapedRecipeBuilder.shapedRecipe(RAW_LOGIC_CHIP.get())
+        ShapedRecipeBuilder.shapedRecipe(RAW_LOGIC_CHIP.get(), 4)
                 .key('r', Tags.Items.DUSTS_REDSTONE)
                 .key('q', Items.QUARTZ_BLOCK)
                 .key('g', Tags.Items.NUGGETS_GOLD)
