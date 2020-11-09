@@ -29,12 +29,12 @@ public class CardStocker extends BaseCard {
         IIntArray tempArray = new IIntArray() {
             @Override
             public int get(int index) {
-                switch (index) {
-                    case 0:
-                        return getPriority(itemStack);
-                    default:
-                        throw new IllegalArgumentException("Invalid index: " + index);
-                }
+                if (index == 0)
+                    return getPriority(itemStack);
+                else if (index < 16)
+                    return getInventory(itemStack).getStackInSlot(index - 1).getCount();
+                else
+                    throw new IllegalArgumentException("Invalid index: " + index);
             }
 
             @Override
@@ -44,7 +44,7 @@ public class CardStocker extends BaseCard {
 
             @Override
             public int size() {
-                return 1;
+                return 16;
             }
         };
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(

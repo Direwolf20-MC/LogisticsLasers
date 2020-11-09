@@ -57,34 +57,55 @@ public class PacketOpenFilter {
 
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
                 ItemStack itemStack = slot.getStack();
-
-               /* if (itemStack.getItem() instanceof CardPolymorph) {
-                    //ModScreens.openPolymorphScreen(itemStack, msg.sourcePos, msg.slotNumber);
-                } else {*/
+                IIntArray tempArray;
                 ItemStackHandler handler = getInventory(itemStack);
-                IIntArray tempArray = new IIntArray() {
-                    @Override
-                    public int get(int index) {
-                        switch (index) {
-                            case 0:
+                if (itemStack.getItem() instanceof CardStocker) {
+                    tempArray = new IIntArray() {
+                        @Override
+                        public int get(int index) {
+                            if (index == 0)
                                 return BaseCard.getPriority(itemStack);
-                            case 1:
-                                return BaseCard.getExtractAmt(itemStack);
-                            default:
+                            else if (index < 16)
+                                return BaseCard.getInventory(itemStack).getStackInSlot(index - 1).getCount();
+                            else
                                 throw new IllegalArgumentException("Invalid index: " + index);
                         }
-                    }
 
-                    @Override
-                    public void set(int index, int value) {
-                        throw new IllegalStateException("Cannot set values through IIntArray");
-                    }
+                        @Override
+                        public void set(int index, int value) {
+                            throw new IllegalStateException("Cannot set values through IIntArray");
+                        }
 
-                    @Override
-                    public int size() {
-                        return 2;
-                    }
-                };
+                        @Override
+                        public int size() {
+                            return 16;
+                        }
+                    };
+                } else {
+                    tempArray = new IIntArray() {
+                        @Override
+                        public int get(int index) {
+                            switch (index) {
+                                case 0:
+                                    return BaseCard.getPriority(itemStack);
+                                case 1:
+                                    return BaseCard.getExtractAmt(itemStack);
+                                default:
+                                    throw new IllegalArgumentException("Invalid index: " + index);
+                            }
+                        }
+
+                        @Override
+                        public void set(int index, int value) {
+                            throw new IllegalStateException("Cannot set values through IIntArray");
+                        }
+
+                        @Override
+                        public int size() {
+                            return 2;
+                        }
+                    };
+                }
                 if (itemStack.getItem() instanceof CardStocker) {
                     NetworkHooks.openGui(sender, new SimpleNamedContainerProvider(
                             (windowId, playerInventory, playerEntity) -> new StockerFilterContainer(itemStack, windowId, playerInventory, handler, msg.sourcePos, tempArray), new StringTextComponent("")), (buf -> {

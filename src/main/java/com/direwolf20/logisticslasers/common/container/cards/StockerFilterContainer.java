@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.container.cards;
 
 import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.ClickType;
@@ -9,6 +10,7 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.IIntArray;
+import net.minecraft.util.IntArray;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -17,7 +19,8 @@ import javax.annotation.Nullable;
 public class StockerFilterContainer extends BasicFilterContainer {
 
     public StockerFilterContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-        super(windowId, playerInventory, extraData);
+        this(ItemStack.EMPTY, windowId, playerInventory, new ItemStackHandler(SLOTS), new IntArray(16));
+        filterItemStack = extraData.readItemStack();
     }
 
     public StockerFilterContainer(@Nullable ItemStack card, int windowId, PlayerInventory playerInventory, ItemStackHandler handler, IIntArray cardData) {
@@ -100,6 +103,8 @@ public class StockerFilterContainer extends BasicFilterContainer {
                 }
                 if (!this.mergeItemStack(currentStack, 0, SLOTS, false)) {
                     return ItemStack.EMPTY;
+                } else {
+                    BaseCard.setInventory(filterItemStack, handler);
                 }
             }
 
@@ -120,5 +125,9 @@ public class StockerFilterContainer extends BasicFilterContainer {
 
     public int getPriority() {
         return this.data.get(0);
+    }
+
+    public int getStackSize(int slot) {
+        return this.data.get(slot + 1);
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.items.IItemHandler;
 
 import java.awt.*;
 
@@ -44,6 +45,23 @@ public class StockerFilterScreen extends BaseFilterScreen<StockerFilterContainer
 
     protected static TranslationTextComponent getTrans(String key, Object... args) {
         return new TranslationTextComponent(LogisticsLasers.MOD_ID + "." + key, args);
+    }
+
+    @Override
+    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
+        updateItemCounts();
+        super.render(stack, mouseX, mouseY, partialTicks);
+    }
+
+    /**
+     * This method updates client side item counts from the IIntArray
+     */
+    public void updateItemCounts() {
+        IItemHandler handler = container.handler;
+        for (int i = 0; i < handler.getSlots(); i++) {
+            ItemStack stack = handler.getStackInSlot(i);
+            stack.setCount(container.getStackSize(i));
+        }
     }
 
     @Override

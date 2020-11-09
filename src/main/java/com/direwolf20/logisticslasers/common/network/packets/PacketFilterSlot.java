@@ -1,7 +1,9 @@
 package com.direwolf20.logisticslasers.common.network.packets;
 
+import com.direwolf20.logisticslasers.common.container.cards.StockerFilterContainer;
 import com.direwolf20.logisticslasers.common.container.customslot.BasicFilterSlot;
 import com.direwolf20.logisticslasers.common.container.customslot.StockerFilterSlot;
+import com.direwolf20.logisticslasers.common.items.logiccards.BaseCard;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
@@ -46,8 +48,12 @@ public class PacketFilterSlot {
                 Slot slot = container.inventorySlots.get(msg.slotNumber);
                 ItemStack stack = msg.stack;
                 stack.setCount(msg.count);
-                if (slot instanceof BasicFilterSlot || slot instanceof StockerFilterSlot)
+                if (slot instanceof BasicFilterSlot || slot instanceof StockerFilterSlot) {
                     slot.putStack(stack);
+                    if (container instanceof StockerFilterContainer) {
+                        BaseCard.setInventory(((StockerFilterContainer) container).filterItemStack, ((StockerFilterContainer) container).handler);
+                    }
+                }
             });
 
             ctx.get().setPacketHandled(true);
