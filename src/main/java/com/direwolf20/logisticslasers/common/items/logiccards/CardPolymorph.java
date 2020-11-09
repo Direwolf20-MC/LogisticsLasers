@@ -40,8 +40,6 @@ public class CardPolymorph extends CardInserter {
                 switch (index) {
                     case 0:
                         return getPriority(itemStack);
-                    case 1:
-                        return getExtractAmt(itemStack);
                     default:
                         throw new IllegalArgumentException("Invalid index: " + index);
                 }
@@ -54,7 +52,7 @@ public class CardPolymorph extends CardInserter {
 
             @Override
             public int size() {
-                return 2;
+                return 1;
             }
         };
         NetworkHooks.openGui((ServerPlayerEntity) player, new SimpleNamedContainerProvider(
