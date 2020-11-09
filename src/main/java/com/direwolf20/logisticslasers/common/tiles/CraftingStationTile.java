@@ -218,6 +218,12 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         }
     }
 
+    public void clearGrid() {
+        for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
+            craftMatrixHandler.setStackInSlot(i, ItemStack.EMPTY);
+        }
+    }
+
     public void requestGridOnlyMissing(PlayerEntity requestor) {
         if (lastRecipe == null) return;
         ItemStackHandler handler = getInventoryStacks();

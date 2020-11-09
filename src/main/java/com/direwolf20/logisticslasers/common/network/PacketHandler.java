@@ -47,6 +47,7 @@ public class PacketHandler {
         registerMessage(PacketButtonAdd.class, PacketButtonAdd::encode, PacketButtonAdd::decode, PacketButtonAdd.Handler::handle);
         registerMessage(PacketToggleNBTFilter.class, PacketToggleNBTFilter::encode, PacketToggleNBTFilter::decode, PacketToggleNBTFilter.Handler::handle);
         registerMessage(PacketChangeExtractAmt.class, PacketChangeExtractAmt::encode, PacketChangeExtractAmt::decode, PacketChangeExtractAmt.Handler::handle);
+        registerMessage(PacketClearGrid.class, PacketClearGrid::encode, PacketClearGrid::decode, PacketClearGrid.Handler::handle);
 
         //Going to Client Side
         registerMessage(PacketItemCountsSync.class, PacketItemCountsSync::encode, PacketItemCountsSync::decode, PacketItemCountsSync.Handler::handle);

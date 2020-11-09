@@ -253,6 +253,10 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             PacketHandler.sendToServer(new PacketRequestGrid(amt));
         }));
 
+        leftWidgets.add(new DireButton(guiLeft + 18, guiTop + 16, 10, 10, new StringTextComponent("X"), (button) -> {
+            PacketHandler.sendToServer(new PacketClearGrid());
+        }));
+
         leftWidgets.add(new DireButton(guiLeft + 90, guiTop + 45, 10, 10, new StringTextComponent("~"), (button) -> {
             PacketHandler.sendToServer(new PacketRequestGridMissing());
         }));
