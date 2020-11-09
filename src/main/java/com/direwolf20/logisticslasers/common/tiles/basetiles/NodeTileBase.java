@@ -2,6 +2,7 @@ package com.direwolf20.logisticslasers.common.tiles.basetiles;
 
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import com.direwolf20.logisticslasers.common.network.packets.PacketUpdateLaserRender;
+import com.direwolf20.logisticslasers.common.tiles.BasicNodeTile;
 import com.direwolf20.logisticslasers.common.tiles.ControllerTile;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -152,6 +153,8 @@ public class NodeTileBase extends TileBase {
     public boolean addConnection(BlockPos pos) {
         NodeTileBase te = (NodeTileBase) world.getTileEntity(pos);
         if (te.hasController() && hasController() && !te.getControllerPos().equals(getControllerPos()))
+            return false;
+        if (!(this instanceof BasicNodeTile || te instanceof BasicNodeTile))
             return false;
 
         boolean success = addNode(pos);
