@@ -205,6 +205,8 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         boolean success = te.findIngredient(ingredient, pos);
         if (!success)
             requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", 1, ingredient.getMatchingStacks()[0].getItem())), false);
+        else
+            te.updateItemCounts((ServerPlayerEntity) requestor);
         return success;
     }
 
