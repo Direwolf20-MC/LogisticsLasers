@@ -1069,7 +1069,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                 checkedNodes = true;
             }
             if (allNodes.size() == 0) return;
-            if (useEnergy(passiveRFCost)) { //Use our passive energy amount, if it fails don't process anything below this line
+            if (!world.isBlockPowered(pos) && useEnergy(passiveRFCost)) { //Use our passive energy amount, if it fails don't process anything below this line
                 useEnergy(Config.CONTROLLER_INTERNAL.get() * storedItems.getTotalCount()); //Burn RF for stored items.
                 handleInternalInventory();
                 handleExtractors();
@@ -1077,7 +1077,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
                     handleStockers(); //Stocking is somewhat expensive operation, so only do it every 5 seconds, rather than once a tick.
 
             }
-            handleTasks(); //We let tasks finish, even if the power runs out. This way items still reach their destination
+            handleTasks(); //We let tasks finish, even if the power runs out or redstone applied. This way items still reach their destination
         }
     }
 
