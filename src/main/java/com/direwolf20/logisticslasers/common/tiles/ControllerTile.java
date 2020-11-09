@@ -76,6 +76,7 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
     private final HashMap<ItemStackKey, ArrayList<BlockPos>> inserterCache = new HashMap<>(); //A cache of all insertable items
     private final HashMap<ItemStackKey, ArrayList<BlockPos>> providerCache = new HashMap<>(); //A cache of all providable items
     private final HashMap<BlockPos, ArrayList<ItemStack>> stockerCache = new HashMap<>(); //A cache of all stocker requests
+    private final HashMap<Ingredient, BlockPos> ingredientCache = new HashMap<>(); //A cache of the last ingredient location
     private ItemHandlerUtil.InventoryCounts itemCounts = new ItemHandlerUtil.InventoryCounts(); //A cache of all items available via providerCards for the CraftingStations to use
     private Object2IntMap<BlockPos> invNodeSlot = new Object2IntOpenHashMap<>(); //Used to track which slot an inventory node is currently working on.
     private Table<BlockPos, ItemStackKey, Integer> extractorAmounts = HashBasedTable.create();
@@ -584,39 +585,54 @@ public class ControllerTile extends NodeTileBase implements ITickableTileEntity,
      *
      * @return whether or not we succeeded
      */
-    public boolean provideIngredientToPos(Ingredient ingredient, BlockPos toPos) {
-        boolean successfullySent = false;
-        TileEntity te = world.getTileEntity(toPos);
-        int rfBaseCost = (te instanceof InventoryNodeTile) ? Config.CONTROLLER_STOCKER.get() : Config.CRAFTING_STATION_REQUEST.get();
+    public boolean findIngredient(Ingredient ingredient, BlockPos toPos) {
+        if (ingredientCache.containsKey(ingredient)) { //Check the ingredientCache first
+            BlockPos providerPos = ingredientCache.get(ingredient);
+            if (provideIngredient(ingredient, toPos, providerPos)) {
+                return true;
+            } else {
+                ingredientCache.remove(ingredient);
+            }
+        }
+
         List<BlockPos> possibleProviders = new ArrayList(providerNodes); //Find a list of possible Providers. We can't use the cache lookup here because of NBT, etc.
         possibleProviders.remove(toPos); //Remove this chest
         if (possibleProviders.isEmpty()) return false; //If nothing can provide to here, stop working
         for (BlockPos providerPos : possibleProviders) { //Loop through all possible Providers
-            IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
-            if (providerItemHandler == null) continue; //If its empty, move onto the next provider
-
-
-            ItemStack simulated = ItemHandlerUtil.extractIngredient(providerItemHandler, ingredient, true); //Pretend to extract the stack from the provider's inventory
-
-            if (simulated.getCount() == 0) {
-                continue; //If the stack we removed has zero items in it check another provider
-            }
-
-            ItemStack extractedStack;
-            if (useEnergy(rfBaseCost))
-                extractedStack = ItemHandlerUtil.extractIngredient(providerItemHandler, ingredient, false); //Actually remove the items this time
-            else {
-                return false;
-            }
-            successfullySent = transferItemStack(providerPos, toPos, extractedStack);
-            if (!successfullySent) { //Attempt to send items
-                ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
-                continue;
-            } else {
+            if (provideIngredient(ingredient, toPos, providerPos)) {
+                ingredientCache.put(ingredient, providerPos);
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean provideIngredient(Ingredient ingredient, BlockPos toPos, BlockPos providerPos) {
+        boolean successfullySent = false;
+        IItemHandler providerItemHandler = getAttachedInventory(providerPos); //Get the inventory handler of the block the inventory node is facing
+        if (providerItemHandler == null) return false; //If its empty, move onto the next provider
+
+        ItemStack simulated = ItemHandlerUtil.extractIngredient(providerItemHandler, ingredient, true); //Pretend to extract the stack from the provider's inventory
+
+        if (simulated.getCount() == 0) {
+            return false; //If the stack we removed has zero items in it check another provider
+        }
+        TileEntity te = world.getTileEntity(toPos);
+        int rfBaseCost = (te instanceof InventoryNodeTile) ? Config.CONTROLLER_STOCKER.get() : Config.CRAFTING_STATION_REQUEST.get();
+        ItemStack extractedStack;
+        if (useEnergy(rfBaseCost))
+            extractedStack = ItemHandlerUtil.extractIngredient(providerItemHandler, ingredient, false); //Actually remove the items this time
+        else {
+            return false;
+        }
+        successfullySent = transferItemStack(providerPos, toPos, extractedStack);
+        if (!successfullySent) { //Attempt to send items
+            ItemHandlerHelper.insertItem(providerItemHandler, extractedStack, false); //If failed for some reason, put back in inventory
+            return false;
+        } else {
+            ingredientCache.put(ingredient, providerPos);
+            return true;
+        }
     }
 
     /**

@@ -195,21 +195,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         ControllerTile te = getControllerTE();
         if (te == null) return false;
         ItemStack returnedStack = te.provideItemStacksToPos(stack, pos);
-        /*if (returnedStack.getCount() > 0) { //If we couldn't get the stack we're looking for
-            boolean success = false;
-            if (gridSlot != -1) {
-                Set<ItemStack> alternates = alternateIngredients.getOrDefault(gridSlot, new HashSet<>());
-                for (ItemStack altStack : alternates) {
-                    returnedStack = te.provideItemStacksToPos(altStack.copy(), pos);
-                    if (returnedStack.getCount() == 0) { //If we found what we're looking for
-                        success = true;
-                        break;
-                    }
-                }
-            }
-            if (!success)
-                requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", returnedStack.getCount(), stack.getItem())), false);
-        }*/
         te.updateItemCounts((ServerPlayerEntity) requestor);
         return returnedStack.getCount() == 0;
     }
@@ -217,7 +202,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public boolean requestIngredient(Ingredient ingredient, PlayerEntity requestor) {
         ControllerTile te = getControllerTE();
         if (te == null) return false;
-        boolean success = te.provideIngredientToPos(ingredient, pos);
+        boolean success = te.findIngredient(ingredient, pos);
         if (!success)
             requestor.sendStatusMessage((new TranslationTextComponent("message.logisticslasers.failedRequest", 1, ingredient.getMatchingStacks()[0].getItem())), false);
         return success;
@@ -229,12 +214,6 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         for (Ingredient ingredient : ingredients) {
             requestIngredient(ingredient, requestor);
         }
-        /*for (int i = 0; i < craftMatrixHandler.getSlots(); i++) {
-            ItemStack requestStack = craftMatrixHandler.getStackInSlot(i).copy();
-            requestStack.setCount(amt);
-            if (!requestStack.isEmpty())
-                requestItem(requestStack, requestor, i);
-        }*/
     }
 
     public void requestGridOnlyMissing(PlayerEntity requestor) {
