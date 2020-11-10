@@ -358,7 +358,6 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             ItemStackKey slotStackKey = new ItemStackKey(hoveredSlot.getStack());
             if (slotStackKey.equals(heldStackKey)) return true;
             stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
-            System.out.println(stack);
             hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
             PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
             return true;
