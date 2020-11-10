@@ -329,7 +329,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             ItemStack stack = getMinecraft().player.inventory.getItemStack();
             stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
             hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
-
+            this.dragSplitting = true;
             PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
             return true;
         }
@@ -351,14 +351,31 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
     }
 
     @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (hoveredSlot instanceof BasicFilterSlot) {
+            ItemStack stack = getMinecraft().player.inventory.getItemStack();
+            ItemStackKey heldStackKey = new ItemStackKey(stack);
+            ItemStackKey slotStackKey = new ItemStackKey(hoveredSlot.getStack());
+            if (slotStackKey.equals(heldStackKey)) return true;
+            stack = stack.copy().split(hoveredSlot.getSlotStackLimit()); // Limit to slot limit
+            System.out.println(stack);
+            hoveredSlot.putStack(stack); // Temporarily update the client for continuity purposes
+            PacketHandler.sendToServer(new PacketFilterSlot(hoveredSlot.slotNumber, stack, stack.getCount()));
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
     public boolean mouseReleased(double x, double y, int btn) {
         if (hoveredSlot != null && hoveredSlot instanceof CraftingSlot) {
+            this.dragSplitting = false;
             return true;
         }
 
         if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
             return super.mouseReleased(x, y, btn);
-
+        this.dragSplitting = false;
         return true;
     }
 
