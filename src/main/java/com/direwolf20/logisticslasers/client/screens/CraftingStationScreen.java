@@ -209,18 +209,16 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
         if (recipe == null) return;
         ItemStackHandler handler = container.handler;
         ItemHandlerUtil.InventoryCounts inventoryCounts = new ItemHandlerUtil.InventoryCounts(handler);
-        List<ItemStack> invItemStacks = new ArrayList(inventoryCounts.getItemCounts().values().stream()
-                .collect(Collectors.toList()));
+        List<ItemStack> invItemStacks = new ArrayList(inventoryCounts.getItemCounts().values());
         int overlayColor = MiscTools.rgbaToInt(255, 75, 75, 55);
         int startX = guiLeft + 29;
         int startY = guiTop + 16;
-        List<Ingredient> ingredients = recipe.getIngredients();//.stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+        List<Ingredient> ingredients = recipe.getIngredients();
+        List<Integer> slotsChecked = new ArrayList<>();
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ingredient = ingredients.get(i);
             if (ingredient.hasNoMatchingItems()) continue;
             boolean foundItem = false;
-            int x = startX + (i % 3) * 18 + 1;
-            int y = startY + (i / 3) * 18 + 1;
             for (ItemStack testStack : invItemStacks) { //Loop through all slots in internal inventory
                 if (ingredient.test(testStack) && testStack.getCount() > 0) {
                     foundItem = true;
@@ -231,7 +229,16 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
             if (!foundItem) {
                 RenderSystem.pushMatrix();
                 RenderSystem.translated(0, 0, 1000);
-                fill(matrixStack, x, y, x + 16, y + 16, overlayColor);
+                for (int j = 0; j < 9; j++) {
+                    ItemStack stackInSlot = container.craftingHandler.getStackInSlot(j);
+                    if (!stackInSlot.isEmpty() && !slotsChecked.contains(j) && ingredient.test(stackInSlot)) {
+                        int x = startX + (j % 3) * 18 + 1;
+                        int y = startY + (j / 3) * 18 + 1;
+                        fill(matrixStack, x, y, x + 16, y + 16, overlayColor);
+                        slotsChecked.add(j);
+                        break;
+                    }
+                }
                 RenderSystem.translated(0, 0, -1000);
                 RenderSystem.popMatrix();
             }
