@@ -43,6 +43,9 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
+            // disable ref map so patchouli doesn't poop itself
+            properties 'mixin.env.disableRefMap': 'true'
+
             mods {
                 logisticslasers {
                     source sourceSets.main
@@ -59,6 +62,9 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
+            // disable ref map so patchouli doesn't poop itself
+            properties 'mixin.env.disableRefMap': 'true'
+
             mods {
                 logisticslasers {
                     source sourceSets.main
@@ -74,6 +80,9 @@ minecraft {
 
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
+
+            // disable ref map so patchouli doesn't poop itself
+            properties 'mixin.env.disableRefMap': 'true'
 
             args '--mod', 'logisticslasers', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', sourceSets.main.resources.srcDirs[0]
 
@@ -93,6 +102,7 @@ repositories {
     maven { url = 'https://maven.latmod.com' }
     maven { url = 'https://modmaven.dev/' } // mek
     maven { url = "https://www.cursemaven.com" } // curse mods
+    maven { url = "https://maven.blamejared.com" } // Patchouli
 
     flatDir {
         dirs 'includedMods/' // local
@@ -110,12 +120,20 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
     //compileOnly fg.deobf("com.feed_the_beast.mods:ftb-gui-library:1.0.0.18")
 
+    //Patchouli
+    compileOnly fg.deobf("${patchouli_location}:${patchouli_version}")
+    compileOnly fg.deobf("${patchouli_location}:${patchouli_version}:api")
+    runtimeOnly fg.deobf("${patchouli_location}:${patchouli_version}")
+
     //Other mods for dev environment
     runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}")
     runtimeOnly fg.deobf("curse.maven:powah:3098477")
     runtimeOnly fg.deobf("curse.maven:lollipop:3084134")
     runtimeOnly fg.deobf("curse.maven:inventory-essentials:3098198")
     runtimeOnly fg.deobf("cpw.mods:cpw_inventorysorter_master:18.1.0") // already on the forge maven
+
+    runtimeOnly fg.deobf("ignored:aequivaleo:0.1.16-ALPHA-universal")
+    runtimeOnly fg.deobf("ignored:Goo:1.16.3-0.7.9.5")
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
