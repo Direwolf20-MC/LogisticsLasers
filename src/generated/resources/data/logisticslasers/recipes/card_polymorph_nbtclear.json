@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "logisticslasers:card_polymorph"
+    }
+  ],
+  "result": {
+    "item": "logisticslasers:card_polymorph"
+  }
+}

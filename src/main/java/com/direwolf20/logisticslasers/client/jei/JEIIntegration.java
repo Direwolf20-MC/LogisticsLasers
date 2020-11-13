@@ -13,7 +13,7 @@ import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
 
-import static com.direwolf20.logisticslasers.common.items.ModItems.CARD_EXTRACTOR;
+import static com.direwolf20.logisticslasers.common.items.ModItems.*;
 
 @JeiPlugin
 public class JEIIntegration implements IModPlugin {
@@ -34,6 +34,18 @@ public class JEIIntegration implements IModPlugin {
         IRecipeManager recipeRegistry = jeiRuntime.getRecipeManager();
         RecipeManager recipeManager = Minecraft.getInstance().world.getRecipeManager();
         recipeManager.getRecipe(new ResourceLocation(CARD_EXTRACTOR.getId() + "_nbtclear"))
+                .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
+        recipeManager.getRecipe(new ResourceLocation(CARD_INSERTER.getId() + "_nbtclear"))
+                .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
+        recipeManager.getRecipe(new ResourceLocation(CARD_PROVIDER.getId() + "_nbtclear"))
+                .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
+        recipeManager.getRecipe(new ResourceLocation(CARD_STOCKER.getId() + "_nbtclear"))
+                .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
+        recipeManager.getRecipe(new ResourceLocation(CARD_POLYMORPH.getId() + "_nbtclear"))
+                .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
+        recipeManager.getRecipe(new ResourceLocation(CARD_INSERTER_MOD.getId() + "_nbtclear"))
+                .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
+        recipeManager.getRecipe(new ResourceLocation(CARD_INSERTER_TAG.getId() + "_nbtclear"))
                 .ifPresent(r -> recipeRegistry.hideRecipe(r, VanillaRecipeCategoryUid.CRAFTING));
 
     }

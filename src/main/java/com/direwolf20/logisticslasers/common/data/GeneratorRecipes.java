@@ -157,6 +157,31 @@ public class GeneratorRecipes extends RecipeProvider {
                 .addIngredient(CARD_EXTRACTOR.get())
                 .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
                 .build(consumer, CARD_EXTRACTOR.getId() + "_nbtclear");
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_INSERTER.get())
+                .addIngredient(CARD_INSERTER.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, CARD_INSERTER.getId() + "_nbtclear");
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_PROVIDER.get())
+                .addIngredient(CARD_PROVIDER.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, CARD_PROVIDER.getId() + "_nbtclear");
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_STOCKER.get())
+                .addIngredient(CARD_STOCKER.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, CARD_STOCKER.getId() + "_nbtclear");
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_POLYMORPH.get())
+                .addIngredient(CARD_POLYMORPH.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, CARD_POLYMORPH.getId() + "_nbtclear");
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_INSERTER_MOD.get())
+                .addIngredient(CARD_INSERTER_MOD.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, CARD_INSERTER_MOD.getId() + "_nbtclear");
+        ShapelessRecipeBuilder.shapelessRecipe(CARD_INSERTER_TAG.get())
+                .addIngredient(CARD_INSERTER_TAG.get())
+                .addCriterion("has_card_blank", hasItem(CARD_BLANK.get()))
+                .build(consumer, CARD_INSERTER_TAG.getId() + "_nbtclear");
+
     }
 
 }
