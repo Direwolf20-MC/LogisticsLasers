@@ -48,6 +48,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
 
     public CraftingStationHandler craftMatrixHandler = new CraftingStationHandler(9, this);
     public final CraftingStationInventory craftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3);
+    public final CraftingStationInventory fakecraftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3); //Used to track items ACTUALLY used to do the craft
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
     private Int2ObjectMap<Set<ItemStack>> alternateIngredients = new Int2ObjectOpenHashMap<>();
@@ -110,75 +111,90 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
 
         ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
         do {
+            this.fakecraftMatrix.clear();
             ArrayList<Integer> itemStacksToremove = new ArrayList<>();
             ItemStackHandler handler = getInventoryStacks();
             // check if the player has access to the result
-            if (player instanceof ServerPlayerEntity) {
-                if (this.lastRecipe != null) {
-                    // if the player cannot craft this, block crafting
-                    if (!this.lastRecipe.isDynamic() && world.getGameRules().getBoolean(GameRules.DO_LIMITED_CRAFTING) && !((ServerPlayerEntity) player).getRecipeBook().isUnlocked(this.lastRecipe)) {
-                        return ItemStack.EMPTY;
-                    }
+            if (player instanceof ServerPlayerEntity && this.lastRecipe != null) {
+                // if the player cannot craft this, block crafting
+                if (!this.lastRecipe.isDynamic() && world.getGameRules().getBoolean(GameRules.DO_LIMITED_CRAFTING) && !((ServerPlayerEntity) player).getRecipeBook().isUnlocked(this.lastRecipe)) {
+                    return ItemStack.EMPTY;
+                }
 
-                    //Check if the inventory slots have enough items to craft this.
-                    List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
-                    for (int i = 0; i < handler.getSlots(); i++) {
-                        ItemStack stackInSlot = handler.getStackInSlot(i);
-                        int count = stackInSlot.getCount();
-                        for (Ingredient ingredient : lastRecipe.getIngredients()) {
-                            if (ingredients.isEmpty()) break;
-                            if (count == 0) break;
-                            if (ingredient.test(stackInSlot) && count >= 1) {
-                                if (ingredients.remove(ingredient)) {
-                                    itemStacksToremove.add(i);
-                                    count--;
-                                }
+                //Check if the inventory slots have enough items to craft this.
+                List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+                for (int i = 0; i < handler.getSlots(); i++) {
+                    ItemStack stackInSlot = handler.getStackInSlot(i);
+                    int count = stackInSlot.getCount();
+                    int ingredientCounter = 0;
+                    for (Ingredient ingredient : lastRecipe.getIngredients()) {
+                        if (ingredients.isEmpty()) break;
+                        if (count == 0) break;
+                        if (!fakecraftMatrix.getStackInSlot(ingredientCounter).isEmpty()) {
+                            ingredientCounter++;
+                            continue;
+                        }
+                        if (ingredient.test(stackInSlot) && count >= 1) {
+                            if (ingredients.remove(ingredient)) {
+                                itemStacksToremove.add(i);
+                                count--;
+                                this.fakecraftMatrix.setInventorySlotContents(ingredientCounter, stackInSlot);
                             }
                         }
-                        if (ingredients.isEmpty()) break;
+                        ingredientCounter++;
                     }
-
-                    if (!ingredients.isEmpty())
-                        break;
-
-                    // unlock the recipe if it was not unlocked
-                    if (this.lastRecipe != null && !this.lastRecipe.isDynamic()) {
-                        player.unlockRecipes(Collections.singleton(this.lastRecipe));
-                    }
+                    if (ingredients.isEmpty()) break;
                 }
+
+                if (!ingredients.isEmpty())
+                    break;
+
+                RecipeManager manager = this.world.getServer().getRecipeManager();
+                ICraftingRecipe madeRecipe = manager.getRecipe(IRecipeType.CRAFTING, this.fakecraftMatrix, this.world).orElse(null);
+
+                if (madeRecipe == null)
+                    break;
+
+                // unlock the recipe if it was not unlocked
+                if (madeRecipe != null && !madeRecipe.isDynamic()) {
+                    player.unlockRecipes(Collections.singleton(madeRecipe));
+                }
+
 
                 // fire crafting events
                 result.onCrafting(this.world, player, amount);
-                BasicEventHooks.firePlayerCraftingEvent(player, result, this.craftMatrix);
-            }
+                BasicEventHooks.firePlayerCraftingEvent(player, result, this.fakecraftMatrix);
 
-            //Try to give the item to the player (On their cursor)
-            ItemStack heldItem = serverPlayer.inventory.getItemStack();
-            boolean success = false;
-            if (heldItem.isEmpty()) {
-                serverPlayer.inventory.setItemStack(result.copy());
-                success = true;
-            } else {
-                if (result.isItemEqual(heldItem) && (result.getCount() + heldItem.getCount() <= result.getMaxStackSize())) {
-                    heldItem.grow(result.getCount());
+
+                //Try to give the item to the player (On their cursor)
+                ItemStack heldItem = serverPlayer.inventory.getItemStack();
+                ItemStack resultItem = madeRecipe.getRecipeOutput().copy();
+                boolean success = false;
+                if (heldItem.isEmpty()) {
+                    serverPlayer.inventory.setItemStack(resultItem);
                     success = true;
+                } else {
+                    if (resultItem.isItemEqual(heldItem) && (resultItem.getCount() + heldItem.getCount() <= resultItem.getMaxStackSize())) {
+                        heldItem.grow(resultItem.getCount());
+                        success = true;
+                    }
                 }
-            }
-            if (!success) break; //If it failed, return without deleting items from contents
-            serverPlayer.sendContainerToPlayer(serverPlayer.openContainer); //Update player's client with the itemstack now on the cursor
+                if (!success) break; //If it failed, return without deleting items from contents
+                serverPlayer.sendContainerToPlayer(serverPlayer.openContainer); //Update player's client with the itemstack now on the cursor
 
-            ForgeHooks.setCraftingPlayer(player);
-            List<ItemStack> remaining = this.lastRecipe.getRemainingItems(craftMatrix).stream().filter(o -> !o.isEmpty()).collect(Collectors.toList()); //Get remaining items like buckets
-            ForgeHooks.setCraftingPlayer(null);
-            //Remove items from inventory that we found earlier
-            for (Integer slot : itemStacksToremove) {
-                handler.getStackInSlot(slot).shrink(1);
-            }
-            //Put items into inventory like empty buckets. Drop in world if failed somehow.
-            for (ItemStack remainingStack : remaining) {
-                ItemStack postInsert = ItemHandlerHelper.insertItem(handler, remainingStack, false);
-                if (!postInsert.isEmpty()) {
-                    Block.spawnAsEntity(world, pos, postInsert);
+                ForgeHooks.setCraftingPlayer(player);
+                List<ItemStack> remaining = madeRecipe.getRemainingItems(fakecraftMatrix).stream().filter(o -> !o.isEmpty()).collect(Collectors.toList()); //Get remaining items like buckets
+                ForgeHooks.setCraftingPlayer(null);
+                //Remove items from inventory that we found earlier
+                for (Integer slot : itemStacksToremove) {
+                    handler.getStackInSlot(slot).shrink(1);
+                }
+                //Put items into inventory like empty buckets. Drop in world if failed somehow.
+                for (ItemStack remainingStack : remaining) {
+                    ItemStack postInsert = ItemHandlerHelper.insertItem(handler, remainingStack, false);
+                    if (!postInsert.isEmpty()) {
+                        Block.spawnAsEntity(world, pos, postInsert);
+                    }
                 }
             }
         } while (bulk);
