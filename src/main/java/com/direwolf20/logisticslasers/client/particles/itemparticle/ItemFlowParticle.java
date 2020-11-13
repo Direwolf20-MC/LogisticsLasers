@@ -1,8 +1,11 @@
 package com.direwolf20.logisticslasers.client.particles.itemparticle;
 
+import net.minecraft.block.Blocks;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.BreakingParticle;
 import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.vector.Vector3d;
 
@@ -36,6 +39,9 @@ public class ItemFlowParticle extends BreakingParticle {
         float maxSize = 0.035f;
         float partSize = minSize + random.nextFloat() * (maxSize - minSize);
         this.particleScale = partSize;
+        if (this.sprite == null) {
+            this.setSprite(Minecraft.getInstance().getItemRenderer().getItemModelWithOverrides(new ItemStack(Blocks.COBBLESTONE), world, (LivingEntity) null).getParticleTexture());
+        }
     }
 
     public ItemFlowParticle(ClientWorld world, double x, double y, double z, ItemStack itemStack) {
