@@ -131,7 +131,7 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:lollipop:3084134")
     runtimeOnly fg.deobf("curse.maven:inventory-essentials:3098198")
     runtimeOnly fg.deobf("cpw.mods:cpw_inventorysorter_master:18.1.0") // already on the forge maven
-
+    runtimeOnly fg.deobf("ignored:BloodMagic:1.16.3-3.0.0-3")
     runtimeOnly fg.deobf("ignored:aequivaleo:0.1.16-ALPHA-universal")
     runtimeOnly fg.deobf("ignored:Goo:1.16.3-0.7.9.5")
 
