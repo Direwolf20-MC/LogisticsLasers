@@ -299,7 +299,7 @@ public class CraftingStationScreen extends ContainerScreen<CraftingStationContai
 
     private void requestItem() {
         if (selectedSlot == -1) return;
-        ItemStack stack = displayStacks.get(selectedSlot);
+        ItemStack stack = displayStacks.get(selectedSlot).copy();
         stack.setCount(requestCounter.getValue());
         PacketHandler.sendToServer(new PacketRequestItem(stack, requestCounter.getValue()));
     }
