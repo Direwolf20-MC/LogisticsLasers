@@ -5,8 +5,7 @@ import com.direwolf20.logisticslasers.common.container.CraftingStationContainer;
 import com.direwolf20.logisticslasers.common.container.customhandler.CraftingStationHandler;
 import com.direwolf20.logisticslasers.common.tiles.basetiles.NodeTileBase;
 import com.direwolf20.logisticslasers.common.util.CraftingStationInventory;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import com.direwolf20.logisticslasers.common.util.ItemHandlerUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,7 +35,9 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class CraftingStationTile extends NodeTileBase implements INamedContainerProvider {
@@ -51,7 +52,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
     public final CraftingStationInventory fakecraftMatrix = new CraftingStationInventory(craftMatrixHandler, 3, 3); //Used to track items ACTUALLY used to do the craft
     public final ItemStackHandler craftResult = new ItemStackHandler(1);
     private LazyOptional<ItemStackHandler> inventory = LazyOptional.of(() -> new ItemStackHandler(27));
-    private Int2ObjectMap<Set<ItemStack>> alternateIngredients = new Int2ObjectOpenHashMap<>();
+    //private Int2ObjectMap<Set<ItemStack>> alternateIngredients = new Int2ObjectOpenHashMap<>();
 
     public CraftingStationTile() {
         super(ModBlocks.CRAFTING_STATION_TILE.get());
@@ -82,7 +83,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
             if (recipe != lastRecipe) {
                 craftResult.setStackInSlot(0, result);
                 this.lastRecipe = recipe;
-                findAlternateRecipes(recipe, manager);
+                //findAlternateRecipes(recipe, manager);
                 markDirtyClient();
             }
         } else {
@@ -92,7 +93,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         }
     }
 
-    public void findAlternateRecipes(ICraftingRecipe recipe, RecipeManager manager) {
+    /*public void findAlternateRecipes(ICraftingRecipe recipe, RecipeManager manager) {
         alternateIngredients.clear();
         List<Ingredient> ingredients = recipe.getIngredients();
         for (int i = 0; i < recipe.getIngredients().size(); i++) {
@@ -102,6 +103,45 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 alternateIngredients.put(i, tempSet);
             }
         }
+    }*/
+
+    /**
+     * Loops through all the recipe slots and looks for a matching item in an inventory slot
+     *
+     * @param handler            Inventory of this crafter
+     * @param itemStacksToremove List of inventory slots to decrement when we find an item we can use, used later when we actually 'do' the craft
+     * @return if we found ALL the items needed to craft the result
+     */
+    private boolean hasAllItems(ItemStackHandler handler, ArrayList<Integer> itemStacksToremove) {
+        List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
+        ItemHandlerUtil.InventoryCounts inventoryCounts = new ItemHandlerUtil.InventoryCounts(handler);
+        int ingredientCounter = -1;
+        for (int i = 0; i < 9; i++) {
+            if (craftMatrix.getStackInSlot(i).isEmpty()) continue; //Skip empty slots in a recipe
+            ingredientCounter++;
+            Ingredient ingredient = ingredients.get(ingredientCounter);
+            if (!hasItem(handler, inventoryCounts, itemStacksToremove, ingredient, i))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * Loops through all the inventory slots of the crafter, looking to match the ingredient passed in
+     *
+     * @return If we found a match for the ingredient
+     */
+    private boolean hasItem(ItemStackHandler handler, ItemHandlerUtil.InventoryCounts inventoryCounts, ArrayList<Integer> itemStacksToremove, Ingredient ingredient, int i) {
+        for (int k = 0; k < handler.getSlots(); k++) {
+            ItemStack stackInSlot = handler.getStackInSlot(k);
+            if (ingredient.test(stackInSlot) && inventoryCounts.getCount(stackInSlot) > 0) {
+                itemStacksToremove.add(k);
+                inventoryCounts.removeStack(stackInSlot, 1);
+                this.fakecraftMatrix.setInventorySlotContents(i, stackInSlot);
+                return true;
+            }
+        }
+        return false;
     }
 
     public ItemStack onCraft(PlayerEntity player, ItemStack result, int amount, boolean bulk) {
@@ -122,31 +162,7 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
                 }
 
                 //Check if the inventory slots have enough items to craft this.
-                List<Ingredient> ingredients = lastRecipe.getIngredients().stream().filter(o -> !o.hasNoMatchingItems()).collect(Collectors.toList());
-                for (int i = 0; i < handler.getSlots(); i++) {
-                    ItemStack stackInSlot = handler.getStackInSlot(i);
-                    int count = stackInSlot.getCount();
-                    int ingredientCounter = 0;
-                    for (Ingredient ingredient : lastRecipe.getIngredients()) {
-                        if (ingredients.isEmpty()) break;
-                        if (count == 0) break;
-                        if (!fakecraftMatrix.getStackInSlot(ingredientCounter).isEmpty()) {
-                            ingredientCounter++;
-                            continue;
-                        }
-                        if (ingredient.test(stackInSlot) && count >= 1) {
-                            if (ingredients.remove(ingredient)) {
-                                itemStacksToremove.add(i);
-                                count--;
-                                this.fakecraftMatrix.setInventorySlotContents(ingredientCounter, stackInSlot);
-                            }
-                        }
-                        ingredientCounter++;
-                    }
-                    if (ingredients.isEmpty()) break;
-                }
-
-                if (!ingredients.isEmpty())
+                if (!hasAllItems(handler, itemStacksToremove))
                     break;
 
                 RecipeManager manager = this.world.getServer().getRecipeManager();
