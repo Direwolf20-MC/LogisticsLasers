@@ -38,6 +38,7 @@ public class GeneratorLanguage extends LanguageProvider {
         add("item.logisticslasers.polyfilterscreen", "Polymorph Filter");
         add("item.logisticslasers.tagfilterscreen", "Tag Filter");
 
+        add("itemGroup.logisticslasers", "Logistics Lasers");
 
         add("item.logisticslasers.basicfilterscreen.priority", "Priority: %d");
 

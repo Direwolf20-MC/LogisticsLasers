@@ -23,6 +23,7 @@
   "item.logisticslasers.stockerfilterscreen": "Stocking Filter",
   "item.logisticslasers.tagfilterscreen": "Tag Filter",
   "item.logisticslasers.wrench": "Laser Wrench",
+  "itemGroup.logisticslasers": "Logistics Lasers",
   "message.logisticslasers.connectionfailed": "Connection failed to: %d",
   "message.logisticslasers.connectionmade": "Connection made to: %d",
   "message.logisticslasers.connections": "Connected to: %d",
