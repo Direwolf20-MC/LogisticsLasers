@@ -155,11 +155,11 @@ public class PolymorphScreen extends ContainerScreen<PolyFilterContainer> {
         stack.pop();
 
         ArrayList<ItemStack> filterStacks = CardPolymorph.getListFromCard(card);
-        int maxRows = 9;
+        int maxRows = 7;
 
         if (filterStacks.isEmpty()) return;
 
-        int itemsPerPage = 81;
+        int itemsPerPage = 9 * maxRows;
         maxPages = (int) Math.floor((double) filterStacks.size() / itemsPerPage);
         int itemStackMin = (page * itemsPerPage);
         int itemStackMax = Math.min((page * itemsPerPage) + itemsPerPage, filterStacks.size());
