@@ -191,8 +191,8 @@ public class BaseFilterScreen<T extends BasicFilterContainer> extends ContainerS
 
     @Override
     public boolean mouseScrolled(double x, double y, double amt) {
-        if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
-            return super.mouseScrolled(x, y, amt);
+        //if (hoveredSlot == null || !(hoveredSlot instanceof BasicFilterSlot))
+        //e    return super.mouseScrolled(x, y, amt);
 
         return true;
     }
