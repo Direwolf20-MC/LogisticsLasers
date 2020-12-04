@@ -135,10 +135,17 @@ public class CraftingStationTile extends NodeTileBase implements INamedContainer
         for (int k = 0; k < handler.getSlots(); k++) {
             ItemStack stackInSlot = handler.getStackInSlot(k);
             if (ingredient.test(stackInSlot) && inventoryCounts.getCount(stackInSlot) > 0) {
-                itemStacksToremove.add(k);
-                inventoryCounts.removeStack(stackInSlot, 1);
-                this.fakecraftMatrix.setInventorySlotContents(i, stackInSlot);
-                return true;
+                int alreadyUsed = 0;
+                for (Integer slot : itemStacksToremove) {
+                    if (slot == k)
+                        alreadyUsed++;
+                }
+                if (handler.getStackInSlot(k).getCount() > alreadyUsed) {
+                    itemStacksToremove.add(k);
+                    inventoryCounts.removeStack(stackInSlot, 1);
+                    this.fakecraftMatrix.setInventorySlotContents(i, stackInSlot);
+                    return true;
+                }
             }
         }
         return false;
