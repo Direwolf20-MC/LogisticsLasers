@@ -12,17 +12,46 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.stream.Stream;
 
 public class BasicNode extends BaseNode {
-    protected static final VoxelShape SHAPE = Block.makeCuboidShape(3.0D, 3.0D, 3.0D, 13.0D, 13.0D, 13.0D);
+    protected static final VoxelShape SHAPE = Stream.of(
+            Block.makeCuboidShape(5, 4, 4, 11, 5, 5),
+            Block.makeCuboidShape(5, 5, 5, 11, 11, 11),
+            Block.makeCuboidShape(4, 11, 5, 5, 12, 11),
+            Block.makeCuboidShape(5, 11, 11, 11, 12, 12),
+            Block.makeCuboidShape(5, 11, 4, 11, 12, 5),
+            Block.makeCuboidShape(4, 12, 3, 12, 13, 4),
+            Block.makeCuboidShape(4, 12, 12, 12, 13, 13),
+            Block.makeCuboidShape(5, 4, 11, 11, 5, 12),
+            Block.makeCuboidShape(4, 3, 3, 12, 4, 4),
+            Block.makeCuboidShape(4, 3, 12, 12, 4, 13),
+            Block.makeCuboidShape(12, 3, 4, 13, 4, 12),
+            Block.makeCuboidShape(3, 3, 4, 4, 4, 12),
+            Block.makeCuboidShape(3, 3, 12, 4, 13, 13),
+            Block.makeCuboidShape(3, 3, 3, 4, 13, 4),
+            Block.makeCuboidShape(12, 3, 12, 13, 13, 13),
+            Block.makeCuboidShape(12, 3, 3, 13, 13, 4),
+            Block.makeCuboidShape(12, 12, 4, 13, 13, 12),
+            Block.makeCuboidShape(3, 12, 4, 4, 13, 12),
+            Block.makeCuboidShape(11, 11, 5, 12, 12, 11),
+            Block.makeCuboidShape(4, 4, 5, 5, 5, 11),
+            Block.makeCuboidShape(11, 4, 5, 12, 5, 11),
+            Block.makeCuboidShape(4, 4, 4, 5, 12, 5),
+            Block.makeCuboidShape(11, 4, 4, 12, 12, 5),
+            Block.makeCuboidShape(4, 4, 11, 5, 12, 12),
+            Block.makeCuboidShape(11, 4, 11, 12, 12, 12)
+    ).reduce((v1, v2) -> {return VoxelShapes.combineAndSimplify(v1, v2, IBooleanFunction.OR);}).get();
 
     public BasicNode() {
         super(AbstractBlock.Properties.create(Material.IRON).hardnessAndResistance(2.0f).notSolid());

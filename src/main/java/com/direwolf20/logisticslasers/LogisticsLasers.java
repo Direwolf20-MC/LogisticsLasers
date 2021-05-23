@@ -6,6 +6,8 @@ import com.direwolf20.logisticslasers.common.blocks.ModBlocks;
 import com.direwolf20.logisticslasers.common.items.ModItems;
 import com.direwolf20.logisticslasers.common.network.PacketHandler;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -77,6 +79,9 @@ public class LogisticsLasers
         // do something that can only be done on the client
         ClientSetup.setup();
         MinecraftForge.EVENT_BUS.register(ClientEvents.class);
+
+        // Render BasicNode as Translucent for texture opacity
+        RenderTypeLookup.setRenderLayer(ModBlocks.BASIC_NODE.get(), RenderType.getTranslucent());
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)
