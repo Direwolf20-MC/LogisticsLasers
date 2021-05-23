@@ -57,7 +57,7 @@ public class CraftingStation extends BaseNode {
 
     @Override
     public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.isIn(newState.getBlock())) {
+        if (state != newState) {
             TileEntity tileentity = worldIn.getTileEntity(pos);
             if (tileentity instanceof CraftingStationTile) {
                 dropInventoryItems(worldIn, pos, ((CraftingStationTile) tileentity).getInventoryStacks());

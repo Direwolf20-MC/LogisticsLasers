@@ -14,7 +14,7 @@ public class WhiteListButton extends Button {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int p_renderButton_1_, int p_renderButton_2_, float p_renderButton_3_) {
+    public void render(MatrixStack stack, int p_renderButton_1_, int p_renderButton_2_, float p_renderButton_3_) {
         RenderSystem.disableTexture();
         RenderSystem.color4f(.4f, .4f, .4f, 1f);
         this.blit(stack, this.x, this.y, 0, 0, this.width, this.height);
